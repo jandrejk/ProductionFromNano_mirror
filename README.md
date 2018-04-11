@@ -6,7 +6,7 @@ Port of [tools by A. Kalinowski, M. Bluj et al. based on KLUB/LLR trees](https:/
 
 ---
 
-* NanoEventsSkeleton.{h,C}: interfacte to NanoAOD ntuples produced from NanoAOD with MakeClass tool, it needs be updated after each modification of NanoAOD format.
+* NanoEventsSkeleton.{h,C}: interface to NanoAOD ntuples produced from NanoAOD with MakeClass tool, it needs be updated after each modification of NanoAOD format.
 * HTauTauTreeFromNanoBase.{h,C}: base class to translate to WAW format
 * HMuTauhTreeFromNano.{h,C}: specialization for the mu+tau channel
 * HTauhTauhTreeFromNano.{h,C}: specialization for the di-tau channel
@@ -27,7 +27,7 @@ cmsenv
 git cms-addpkg PhysicsTools/NanoAOD #not mandatory, but it initializes git for CMSSW which is already useful
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools # not used for now, but can be in future, e.g. JES?
 # SVFit
-git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit 
+git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b release_2018Mar20
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 # MET recoil corrections
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections

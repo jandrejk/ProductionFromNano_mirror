@@ -126,7 +126,7 @@ public :
   HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<std::string> lumis = std::vector<std::string>(), string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
-  virtual void     Loop();
+  virtual void     Loop(Long64_t nentries_max=-1);
 };
 
 #endif

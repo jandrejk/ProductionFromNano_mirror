@@ -290,13 +290,16 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::Loop(){
+void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 
    if (fChain == 0) return;
 
-   Long64_t nentries = fChain->GetEntries();   
+   Long64_t nentries = fChain->GetEntries();
+   Long64_t nentries_use=nentries;
+   if (nentries_max>0 && nentries_max < nentries) nentries_use=nentries_max;
+
    Long64_t nbytes = 0, nb = 0;
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+   for (Long64_t jentry=0; jentry<nentries_use;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       
       if (ientry < 0) break;
