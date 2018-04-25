@@ -1,7 +1,4 @@
-//#include "interface/RecObj.h"
-//#include "TString.h"
-
-//using namespace std;
+#include "HTTEvent.h"
 
 #ifndef __syncDATA__
 #define __syncDATA__
@@ -319,9 +316,8 @@ class syncDATA
   syncDATA(){}  
   ~syncDATA(){}  
 
-  void setDefault(){
-    fileEntry=-10;
-  }
+  void setDefault();
+  void fill(HTTEvent *ev);
 
   /*
   

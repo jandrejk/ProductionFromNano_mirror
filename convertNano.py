@@ -17,7 +17,7 @@ if applyRecoil :
 #Some system have problem runnig compilation (missing glibc-static library?).
 #First we try to compile, and only then we start time consuming cmssw
 status = gSystem.CompileMacro('HTTEvent.cxx')
-#status *= gSystem.CompileMacro('syncDATA.h')
+status *= gSystem.CompileMacro('syncDATA.C')
 status *= gSystem.CompileMacro('NanoEventsSkeleton.C')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')

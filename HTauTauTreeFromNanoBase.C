@@ -701,7 +701,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 
       httEvent->clear();
       SyncDATA->setDefault();
-      //SyncDATA->fileEntry=17;
 
       //if(jentry%1000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
       //Check if event is contained in JSon
@@ -737,7 +736,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 	  //break; ///TEST for synch. ntuple
 	}
 	httTree->Fill();
-	//	SyncDATA->fill(httEvent);
+	SyncDATA->fill(httEvent);
 	t_TauCheck->Fill();
 
 	hStats->Fill(2);//Number of events saved to ntuple
