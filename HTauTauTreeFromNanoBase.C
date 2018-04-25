@@ -1,6 +1,7 @@
 #define HTauTauTreeFromNanoBase_cxx
 
 #include "HTauTauTreeFromNanoBase.h"
+
 #include <TH2.h>
 #include <TStyle.h>
 #include <TCanvas.h>
@@ -114,6 +115,399 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   TBranch *genLeptonBranch = httTree->Branch("HTTGenLeptonCollection",&httGenLeptonCollection);
   hStats = new TH1F("hStats","Bookkeeping histogram",11,-0.5,10.5);
   hStats->SetDirectory(httFile);
+
+  //move these two to the configuration
+  bool isSync=1;
+  bool isMC=1;
+
+  SyncDATA = new syncDATA();
+
+  //initializing sync ntuple branches: begin
+  t_TauCheck=new TTree("TauCheck","TauCheck");
+  if(!isSync){
+    t_TauCheck->SetMaxTreeSize(1000000);
+  }
+  t_TauCheck->Branch("fileEntry", &SyncDATA->fileEntry);
+
+  t_TauCheck->Branch("entry", &SyncDATA->entry);
+  t_TauCheck->Branch("run", &SyncDATA->run_syncro);
+  t_TauCheck->Branch("lumi", &SyncDATA->lumi_syncro);
+  t_TauCheck->Branch("evt", &SyncDATA->evt_syncro);
+  //t_TauCheck->Branch("evtWeight", &SyncDATA->evtWeight);
+  t_TauCheck->Branch("weight", &SyncDATA->weight);
+  t_TauCheck->Branch("eventWeight", &SyncDATA->weight);
+  t_TauCheck->Branch("lumiWeight", &SyncDATA->lumiWeight);
+  t_TauCheck->Branch("puweight", &SyncDATA->puWeight);
+  t_TauCheck->Branch("genweight", &SyncDATA->genWeight);
+  t_TauCheck->Branch("trigweight_1", &SyncDATA->trigweight_1);
+  t_TauCheck->Branch("anti_trigweight_1", &SyncDATA->anti_trigweight_1);
+  t_TauCheck->Branch("trigweight_2", &SyncDATA->trigweight_2);
+  t_TauCheck->Branch("idisoweight_1", &SyncDATA->idisoweight_1);
+  t_TauCheck->Branch("anti_idisoweight_1", &SyncDATA->anti_idisoweight_1);
+  t_TauCheck->Branch("idisoweight_2", &SyncDATA->idisoweight_2);
+  t_TauCheck->Branch("trk_sf", &SyncDATA->trk_sf);
+  t_TauCheck->Branch("effweight", &SyncDATA->effweight);
+  t_TauCheck->Branch("stitchedWeight", &SyncDATA->stitchedWeight);
+  t_TauCheck->Branch("topWeight", &SyncDATA->topWeight);
+  t_TauCheck->Branch("topWeight_run1", &SyncDATA->topWeight_run1);
+  t_TauCheck->Branch("zPtReweightWeight", &SyncDATA->ZWeight);
+
+  t_TauCheck->Branch("zpt_weight_nom",&SyncDATA->zpt_weight_nom);
+  t_TauCheck->Branch("zpt_weight_esup",&SyncDATA->zpt_weight_esup);
+  t_TauCheck->Branch("zpt_weight_esdown",&SyncDATA->zpt_weight_esdown);
+  t_TauCheck->Branch("zpt_weight_ttup",&SyncDATA->zpt_weight_ttup);
+  t_TauCheck->Branch("zpt_weight_ttdown",&SyncDATA->zpt_weight_ttdown);
+  t_TauCheck->Branch("zpt_weight_statpt0up",&SyncDATA->zpt_weight_statpt0up);
+  t_TauCheck->Branch("zpt_weight_statpt0down",&SyncDATA->zpt_weight_statpt0down);
+  t_TauCheck->Branch("zpt_weight_statpt40up",&SyncDATA->zpt_weight_statpt40up);
+  t_TauCheck->Branch("zpt_weight_statpt40down",&SyncDATA->zpt_weight_statpt40down);
+  t_TauCheck->Branch("zpt_weight_statpt80up",&SyncDATA->zpt_weight_statpt80up);
+  t_TauCheck->Branch("zpt_weight_statpt80down",&SyncDATA->zpt_weight_statpt80down);
+
+  t_TauCheck->Branch("trg_singlemuon", &SyncDATA->trg_singlemuon);
+  t_TauCheck->Branch("trg_mutaucross", &SyncDATA->trg_mutaucross);
+  t_TauCheck->Branch("trg_singleelectron", &SyncDATA->trg_singleelectron);
+  t_TauCheck->Branch("trg_singletau", &SyncDATA->trg_singletau);
+  t_TauCheck->Branch("trg_doubletau", &SyncDATA->trg_doubletau);
+  t_TauCheck->Branch("trg_muonelectron", &SyncDATA->trg_muonelectron);
+  t_TauCheck->Branch("gen_Mll", &SyncDATA->gen_Mll);
+  t_TauCheck->Branch("genpX", &SyncDATA->gen_ll_px);
+  t_TauCheck->Branch("genpY", &SyncDATA->gen_ll_py);
+  t_TauCheck->Branch("genpZ", &SyncDATA->gen_ll_pz);
+  t_TauCheck->Branch("gen_top_pt_1", &SyncDATA->gen_top_pt_1);
+  t_TauCheck->Branch("gen_top_pt_2", &SyncDATA->gen_top_pt_2);
+  t_TauCheck->Branch("gen_vis_Mll", &SyncDATA->gen_vis_Mll);
+  t_TauCheck->Branch("vispX", &SyncDATA->gen_ll_vis_px);
+  t_TauCheck->Branch("vispY", &SyncDATA->gen_ll_vis_py);
+  t_TauCheck->Branch("vispZ", &SyncDATA->gen_ll_vis_pz);
+  t_TauCheck->Branch("npv", &SyncDATA->npv);
+  t_TauCheck->Branch("npu", &SyncDATA->npu);
+  t_TauCheck->Branch("rho", &SyncDATA->rho);
+  t_TauCheck->Branch("NUP", &SyncDATA->NUP);
+  
+  t_TauCheck->Branch("passBadMuonFilter", &SyncDATA->passBadMuonFilter);
+  t_TauCheck->Branch("passBadChargedHadronFilter", &SyncDATA->passBadChargedHadronFilter);
+  t_TauCheck->Branch("flagHBHENoiseFilter", &SyncDATA->Flag_HBHENoiseFilter);
+  t_TauCheck->Branch("flagHBHENoiseIsoFilter", &SyncDATA->Flag_HBHENoiseIsoFilter);
+  t_TauCheck->Branch("flagEcalDeadCellTriggerPrimitiveFilter", &SyncDATA->Flag_EcalDeadCellTriggerPrimitiveFilter);
+  t_TauCheck->Branch("flagGoodVertices", &SyncDATA->Flag_goodVertices);
+  t_TauCheck->Branch("flagEeBadScFilter", &SyncDATA->Flag_eeBadScFilter);
+  t_TauCheck->Branch("flagGlobalTightHalo2016Filter", &SyncDATA->Flag_globalTightHalo2016Filter);
+
+  if(isMC){
+    t_TauCheck->Branch("Flag_badMuons", &SyncDATA->failBadGlobalMuonTagger);
+    t_TauCheck->Branch("Flag_duplicateMuons", &SyncDATA->failCloneGlobalMuonTagger);
+  }
+  else{
+    t_TauCheck->Branch("Flag_badMuons", &SyncDATA->Flag_badMuons);
+    t_TauCheck->Branch("Flag_duplicateMuons", &SyncDATA->Flag_duplicateMuons);
+  }
+
+  t_TauCheck->Branch("passesFilter", &SyncDATA->passesMetMuonFilter);
+
+  t_TauCheck->Branch("matchedJetPt03_1", &SyncDATA->matchedJetPt03_1);
+  t_TauCheck->Branch("matchedJetPt05_1", &SyncDATA->matchedJetPt05_1);
+  t_TauCheck->Branch("matchedJetPt03_2", &SyncDATA->matchedJetPt03_2);
+  t_TauCheck->Branch("matchedJetPt05_2", &SyncDATA->matchedJetPt05_2);
+
+  t_TauCheck->Branch("gen_match_1", &SyncDATA->gen_match_1);
+  t_TauCheck->Branch("gen_match_2", &SyncDATA->gen_match_2);
+  t_TauCheck->Branch("gen_match_jetId_1", &SyncDATA->gen_match_jetId_1);
+  t_TauCheck->Branch("gen_match_jetId_2", &SyncDATA->gen_match_jetId_2);
+  t_TauCheck->Branch("genJets", &SyncDATA->genJets);
+  t_TauCheck->Branch("genPt_1", &SyncDATA->genPt_1);
+  t_TauCheck->Branch("genPt_2", &SyncDATA->genPt_2);
+  t_TauCheck->Branch("genJet_match_1", &SyncDATA->genJet_match_1);
+  t_TauCheck->Branch("genJet_match_2", &SyncDATA->genJet_match_2);
+
+  t_TauCheck->Branch("pt_1", &SyncDATA->pt_1);
+  t_TauCheck->Branch("phi_1", &SyncDATA->phi_1);
+  t_TauCheck->Branch("eta_1", &SyncDATA->eta_1);
+  t_TauCheck->Branch("eta_SC_1", &SyncDATA->eta_SC_1);
+  t_TauCheck->Branch("m_1", &SyncDATA->m_1);
+  t_TauCheck->Branch("q_1", &SyncDATA->q_1);
+  t_TauCheck->Branch("d0_1", &SyncDATA->d0_1);
+  t_TauCheck->Branch("dZ_1", &SyncDATA->dZ_1);
+  t_TauCheck->Branch("mt_1", &SyncDATA->mt_1);
+  t_TauCheck->Branch("pfmt_1", &SyncDATA->pfmt_1);
+  t_TauCheck->Branch("iso_1", &SyncDATA->iso_1);
+  t_TauCheck->Branch("againstElectronLooseMVA6_1", &SyncDATA->againstElectronLooseMVA6_1);
+  t_TauCheck->Branch("againstElectronMediumMVA6_1", &SyncDATA->againstElectronMediumMVA6_1);
+  t_TauCheck->Branch("againstElectronTightMVA6_1", &SyncDATA->againstElectronTightMVA6_1);
+  t_TauCheck->Branch("againstElectronVLooseMVA6_1", &SyncDATA->againstElectronVLooseMVA6_1);
+  t_TauCheck->Branch("againstElectronVTightMVA6_1", &SyncDATA->againstElectronVTightMVA6_1);
+  t_TauCheck->Branch("againstMuonLoose3_1", &SyncDATA->againstMuonLoose3_1);
+  t_TauCheck->Branch("againstMuonTight3_1", &SyncDATA->againstMuonTight3_1);
+  t_TauCheck->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &SyncDATA->byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
+  t_TauCheck->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_1", &SyncDATA->byLooseCombinedIsolationDeltaBetaCorr3Hits_1);
+  t_TauCheck->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_1", &SyncDATA->byMediumCombinedIsolationDeltaBetaCorr3Hits_1);
+  t_TauCheck->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_1", &SyncDATA->byTightCombinedIsolationDeltaBetaCorr3Hits_1);
+  t_TauCheck->Branch("byIsolationMVA3newDMwoLTraw_1", &SyncDATA->byIsolationMVA3newDMwoLTraw_1);
+  t_TauCheck->Branch("byIsolationMVA3oldDMwoLTraw_1", &SyncDATA->byIsolationMVA3oldDMwoLTraw_1);
+  t_TauCheck->Branch("byIsolationMVA3newDMwLTraw_1", &SyncDATA->byIsolationMVA3newDMwLTraw_1);
+  t_TauCheck->Branch("byIsolationMVA3oldDMwLTraw_1", &SyncDATA->byIsolationMVA3oldDMwLTraw_1);
+  t_TauCheck->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_1", &SyncDATA->byVLooseIsolationMVArun2v1DBoldDMwLT_1);
+  t_TauCheck->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_1", &SyncDATA->byLooseIsolationMVArun2v1DBoldDMwLT_1);
+  t_TauCheck->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_1", &SyncDATA->byMediumIsolationMVArun2v1DBoldDMwLT_1);
+  t_TauCheck->Branch("byTightIsolationMVArun2v1DBoldDMwLT_1", &SyncDATA->byTightIsolationMVArun2v1DBoldDMwLT_1);
+  t_TauCheck->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_1", &SyncDATA->byVTightIsolationMVArun2v1DBoldDMwLT_1);
+  t_TauCheck->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &SyncDATA->byVLooseIsolationMVArun2v1DBnewDMwLT_1);
+  t_TauCheck->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &SyncDATA->byLooseIsolationMVArun2v1DBnewDMwLT_1);
+  t_TauCheck->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &SyncDATA->byMediumIsolationMVArun2v1DBnewDMwLT_1);
+  t_TauCheck->Branch("byTightIsolationMVArun2v1DBnewDMwLT_1", &SyncDATA->byTightIsolationMVArun2v1DBnewDMwLT_1);
+  t_TauCheck->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_1", &SyncDATA->byVTightIsolationMVArun2v1DBnewDMwLT_1);
+
+  t_TauCheck->Branch("byRerunMVAIdVLoose_1", &SyncDATA->NewMVAIDVLoose_1);
+  t_TauCheck->Branch("byRerunMVAIdLoose_1", &SyncDATA->NewMVAIDLoose_1);
+  t_TauCheck->Branch("byRerunMVAIdMedium_1", &SyncDATA->NewMVAIDMedium_1);
+  t_TauCheck->Branch("byRerunMVAIdTight_1", &SyncDATA->NewMVAIDTight_1);
+  t_TauCheck->Branch("byRerunMVAIdVTight_1", &SyncDATA->NewMVAIDVTight_1);
+  t_TauCheck->Branch("byRerunMVAIdVVTight_1", &SyncDATA->NewMVAIDVVTight_1);
+
+
+  t_TauCheck->Branch("idMVANewDM_1", &SyncDATA->idMVANewDM_1);
+  t_TauCheck->Branch("chargedIsoPtSum_1", &SyncDATA->chargedIsoPtSum_1);
+  t_TauCheck->Branch("neutralIsoPtSum_1", &SyncDATA->neutralIsoPtSum_1);
+  t_TauCheck->Branch("puCorrPtSum_1", &SyncDATA->puCorrPtSum_1);
+  t_TauCheck->Branch("decayModeFindingOldDMs_1", &SyncDATA->decayModeFindingOldDMs_1);
+  t_TauCheck->Branch("decayMode_1", &SyncDATA->decayMode_1);
+  t_TauCheck->Branch("id_e_mva_nt_loose_1", &SyncDATA->id_e_mva_nt_loose_1);
+
+  t_TauCheck->Branch("id_m_loose_1", &SyncDATA->id_m_loose_1);
+  t_TauCheck->Branch("id_m_medium_1", &SyncDATA->id_m_medium_1);
+  t_TauCheck->Branch("id_m_tight_1", &SyncDATA->id_m_tight_1);
+  t_TauCheck->Branch("id_m_tightnovtx_1", &SyncDATA->id_m_tightnovtx_1);
+  t_TauCheck->Branch("id_m_highpt_1", &SyncDATA->id_m_highpt_1);
+  t_TauCheck->Branch("id_e_cut_veto_1", &SyncDATA->id_e_cut_veto_1);
+  t_TauCheck->Branch("id_e_cut_loose_1", &SyncDATA->id_e_cut_loose_1);
+  t_TauCheck->Branch("id_e_cut_medium_1", &SyncDATA->id_e_cut_medium_1);
+  t_TauCheck->Branch("id_e_cut_tight_1", &SyncDATA->id_e_cut_tight_1);
+
+  t_TauCheck->Branch("antilep_tauscaling", &SyncDATA->antilep_tauscaling);
+  
+  t_TauCheck->Branch("pt_2", &SyncDATA->pt_2);
+  t_TauCheck->Branch("phi_2", &SyncDATA->phi_2);
+  t_TauCheck->Branch("eta_2", &SyncDATA->eta_2); 
+  t_TauCheck->Branch("m_2", &SyncDATA->m_2);
+  t_TauCheck->Branch("q_2", &SyncDATA->q_2);
+  t_TauCheck->Branch("d0_2", &SyncDATA->d0_2);
+  t_TauCheck->Branch("dZ_2", &SyncDATA->dZ_2);
+  t_TauCheck->Branch("mt_2", &SyncDATA->mt_2);
+  t_TauCheck->Branch("pfmt_2", &SyncDATA->pfmt_2);
+  t_TauCheck->Branch("iso_2", &SyncDATA->iso_2);
+  t_TauCheck->Branch("againstElectronLooseMVA6_2", &SyncDATA->againstElectronLooseMVA6_2);
+  t_TauCheck->Branch("againstElectronMediumMVA6_2", &SyncDATA->againstElectronMediumMVA6_2);
+  t_TauCheck->Branch("againstElectronTightMVA6_2", &SyncDATA->againstElectronTightMVA6_2);
+  t_TauCheck->Branch("againstElectronVLooseMVA6_2", &SyncDATA->againstElectronVLooseMVA6_2);
+  t_TauCheck->Branch("againstElectronVTightMVA6_2", &SyncDATA->againstElectronVTightMVA6_2);
+  t_TauCheck->Branch("againstMuonLoose3_2", &SyncDATA->againstMuonLoose3_2);
+  t_TauCheck->Branch("againstMuonTight3_2", &SyncDATA->againstMuonTight3_2);
+  t_TauCheck->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &SyncDATA->byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
+  t_TauCheck->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_2", &SyncDATA->byLooseCombinedIsolationDeltaBetaCorr3Hits_2);
+  t_TauCheck->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_2", &SyncDATA->byMediumCombinedIsolationDeltaBetaCorr3Hits_2);
+  t_TauCheck->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_2", &SyncDATA->byTightCombinedIsolationDeltaBetaCorr3Hits_2);
+  t_TauCheck->Branch("byIsolationMVA3newDMwoLTraw_2", &SyncDATA->byIsolationMVA3newDMwoLTraw_2);
+  t_TauCheck->Branch("byIsolationMVA3oldDMwoLTraw_2", &SyncDATA->byIsolationMVA3oldDMwoLTraw_2);
+  t_TauCheck->Branch("byIsolationMVA3newDMwLTraw_2", &SyncDATA->byIsolationMVA3newDMwLTraw_2);
+  t_TauCheck->Branch("byIsolationMVA3oldDMwLTraw_2", &SyncDATA->byIsolationMVA3oldDMwLTraw_2);
+  t_TauCheck->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_2", &SyncDATA->byVLooseIsolationMVArun2v1DBoldDMwLT_2);
+  t_TauCheck->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_2", &SyncDATA->byLooseIsolationMVArun2v1DBoldDMwLT_2);
+  t_TauCheck->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_2", &SyncDATA->byMediumIsolationMVArun2v1DBoldDMwLT_2);
+  t_TauCheck->Branch("byTightIsolationMVArun2v1DBoldDMwLT_2", &SyncDATA->byTightIsolationMVArun2v1DBoldDMwLT_2);
+  t_TauCheck->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_2", &SyncDATA->byVTightIsolationMVArun2v1DBoldDMwLT_2);
+  t_TauCheck->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &SyncDATA->byVLooseIsolationMVArun2v1DBnewDMwLT_2);
+  t_TauCheck->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &SyncDATA->byLooseIsolationMVArun2v1DBnewDMwLT_2);
+  t_TauCheck->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &SyncDATA->byMediumIsolationMVArun2v1DBnewDMwLT_2);
+  t_TauCheck->Branch("byTightIsolationMVArun2v1DBnewDMwLT_2", &SyncDATA->byTightIsolationMVArun2v1DBnewDMwLT_2);
+  t_TauCheck->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_2", &SyncDATA->byVTightIsolationMVArun2v1DBnewDMwLT_2);
+
+  t_TauCheck->Branch("byRerunMVAIdVLoose_2", &SyncDATA->NewMVAIDVLoose_2);
+  t_TauCheck->Branch("byRerunMVAIdLoose_2", &SyncDATA->NewMVAIDLoose_2);
+  t_TauCheck->Branch("byRerunMVAIdMedium_2", &SyncDATA->NewMVAIDMedium_2);
+  t_TauCheck->Branch("byRerunMVAIdTight_2", &SyncDATA->NewMVAIDTight_2);
+  t_TauCheck->Branch("byRerunMVAIdVTight_2", &SyncDATA->NewMVAIDVTight_2);
+  t_TauCheck->Branch("byRerunMVAIdVVTight_2", &SyncDATA->NewMVAIDVVTight_2);
+
+  t_TauCheck->Branch("idMVANewDM_2", &SyncDATA->idMVANewDM_2);
+  t_TauCheck->Branch("chargedIsoPtSum_2", &SyncDATA->chargedIsoPtSum_2);
+  t_TauCheck->Branch("neutralIsoPtSum_2", &SyncDATA->neutralIsoPtSum_2);
+  t_TauCheck->Branch("puCorrPtSum_2", &SyncDATA->puCorrPtSum_2);
+  t_TauCheck->Branch("decayModeFindingOldDMs_2", &SyncDATA->decayModeFindingOldDMs_2);
+  t_TauCheck->Branch("decayMode_2", &SyncDATA->decayMode_2);
+
+  t_TauCheck->Branch("pzetavis", &SyncDATA->pzetavis);
+  t_TauCheck->Branch("pzetamiss", &SyncDATA->pzetamiss);
+  t_TauCheck->Branch("dzeta", &SyncDATA->dzeta);
+  
+  t_TauCheck->Branch("pt_tt", &SyncDATA->pt_tt);
+  t_TauCheck->Branch("pt_vis", &SyncDATA->pt_vis);
+  t_TauCheck->Branch("dphi", &SyncDATA->dphi);
+  t_TauCheck->Branch("mt_3", &SyncDATA->mt_3);
+  t_TauCheck->Branch("mt_tot", &SyncDATA->mt_tot);
+  t_TauCheck->Branch("pfpt_tt", &SyncDATA->pfpt_tt);
+  t_TauCheck->Branch("m_vis", &SyncDATA->m_vis);
+  t_TauCheck->Branch("m_coll", &SyncDATA->m_coll);
+
+  t_TauCheck->Branch("eleTauFakeRateWeight", &SyncDATA->eleTauFakeRateWeight);
+  t_TauCheck->Branch("muTauFakeRateWeight", &SyncDATA->muTauFakeRateWeight);
+
+  t_TauCheck->Branch("passesIsoCuts", &SyncDATA->passesIsoCuts);
+  t_TauCheck->Branch("passesLepIsoCuts", &SyncDATA->passesLepIsoCuts);
+  t_TauCheck->Branch("passesTauLepVetos", &SyncDATA->passesTauLepVetos);
+  t_TauCheck->Branch("passesThirdLepVeto", &SyncDATA->passesThirdLepVeto);
+  t_TauCheck->Branch("passesDiMuonVeto", &SyncDATA->passesDiMuonVeto);
+  t_TauCheck->Branch("passesDiElectronVeto", &SyncDATA->passesDiElectronVeto);
+
+  t_TauCheck->Branch("matchXTrig_obj", &SyncDATA->matchXTrig_obj);
+  t_TauCheck->Branch("dilepton_veto", &SyncDATA->dilepton_veto);
+  t_TauCheck->Branch("extraelec_veto", &SyncDATA->extraelec_veto);
+  t_TauCheck->Branch("extramuon_veto", &SyncDATA->extramuon_veto);
+  t_TauCheck->Branch("uncorrmet", &SyncDATA->uncorrmet );
+  t_TauCheck->Branch("met", &SyncDATA->met);
+  t_TauCheck->Branch("metphi", &SyncDATA->metphi);
+  t_TauCheck->Branch("met_ex", &SyncDATA->met_ex);
+  t_TauCheck->Branch("met_ey", &SyncDATA->met_ey);
+  t_TauCheck->Branch("corrmet", &SyncDATA->corrmet);
+  t_TauCheck->Branch("corrmetphi", &SyncDATA->corrmetphi);
+  t_TauCheck->Branch("corrmet_ex", &SyncDATA->corrmet_ex);
+  t_TauCheck->Branch("corrmet_ey", &SyncDATA->corrmet_ey);
+  t_TauCheck->Branch("mvamet", &SyncDATA->mvamet);
+  t_TauCheck->Branch("mvametphi", &SyncDATA->mvametphi);
+  t_TauCheck->Branch("mvamet_ex", &SyncDATA->mvamet_ex);
+  t_TauCheck->Branch("mvamet_ey", &SyncDATA->mvamet_ey);
+  t_TauCheck->Branch("corrmvamet", &SyncDATA->corrmvamet);
+  t_TauCheck->Branch("corrmvametphi", &SyncDATA->corrmvametphi);
+  t_TauCheck->Branch("corrmvamet_ex", &SyncDATA->corrmvamet_ex);
+  t_TauCheck->Branch("corrmvamet_ey", &SyncDATA->corrmvamet_ey);
+  t_TauCheck->Branch("mvacov00", &SyncDATA->mvacov00);
+  t_TauCheck->Branch("mvacov01", &SyncDATA->mvacov01);
+  t_TauCheck->Branch("mvacov10", &SyncDATA->mvacov10);
+  t_TauCheck->Branch("mvacov11", &SyncDATA->mvacov11);
+  t_TauCheck->Branch("metcov00", &SyncDATA->metcov00);
+  t_TauCheck->Branch("metcov01", &SyncDATA->metcov01);
+  t_TauCheck->Branch("metcov10", &SyncDATA->metcov10);
+  t_TauCheck->Branch("metcov11", &SyncDATA->metcov11);
+
+  t_TauCheck->Branch("m_sv", &SyncDATA->m_sv);
+  t_TauCheck->Branch("pt_sv", &SyncDATA->pt_sv);
+
+  t_TauCheck->Branch("mjj", &SyncDATA->mjj);
+  t_TauCheck->Branch("mjjUp", &SyncDATA->mjjUp);
+  t_TauCheck->Branch("mjjDown", &SyncDATA->mjjDown);
+  t_TauCheck->Branch("jdeta", &SyncDATA->jdeta);
+  t_TauCheck->Branch("jdetaUp", &SyncDATA->jdetaUp);
+  t_TauCheck->Branch("jdetaDown", &SyncDATA->jdetaDown);
+  t_TauCheck->Branch("njetingap", &SyncDATA->njetingap);
+  t_TauCheck->Branch("njetingap20", &SyncDATA->njetingap20);
+  t_TauCheck->Branch("dijetpt", &SyncDATA->dijetpt);
+  t_TauCheck->Branch("dijetphi", &SyncDATA->dijetphi);
+  t_TauCheck->Branch("jdphi", &SyncDATA->jdphi);
+  t_TauCheck->Branch("nbtag", &SyncDATA->nbtag);
+  t_TauCheck->Branch("njets", &SyncDATA->njets);
+  t_TauCheck->Branch("njetsUp", &SyncDATA->njetsUp);
+  t_TauCheck->Branch("njetsDown", &SyncDATA->njetsDown);
+  t_TauCheck->Branch("njetspt20", &SyncDATA->njetspt20);
+  t_TauCheck->Branch("jpt_1", &SyncDATA->jpt_1);
+  t_TauCheck->Branch("jptUp_1", &SyncDATA->jptUp_1);
+  t_TauCheck->Branch("jptDown_1", &SyncDATA->jptDown_1);
+  t_TauCheck->Branch("jeta_1", &SyncDATA->jeta_1);
+  t_TauCheck->Branch("jphi_1", &SyncDATA->jphi_1);
+  t_TauCheck->Branch("jm_1", &SyncDATA->jm_1);
+  t_TauCheck->Branch("jrawf_1", &SyncDATA->jrawf_1);
+  t_TauCheck->Branch("jmva_1", &SyncDATA->jmva_1);
+  t_TauCheck->Branch("jcsv_1", &SyncDATA->jcsv_1);
+  t_TauCheck->Branch("jpt_2", &SyncDATA->jpt_2);
+  t_TauCheck->Branch("jptUp_2", &SyncDATA->jptUp_2);
+  t_TauCheck->Branch("jptDown_2", &SyncDATA->jptDown_2);
+  t_TauCheck->Branch("jeta_2", &SyncDATA->jeta_2);
+  t_TauCheck->Branch("jphi_2", &SyncDATA->jphi_2);
+  t_TauCheck->Branch("jm_2", &SyncDATA->jm_2);
+  t_TauCheck->Branch("jrawf_2", &SyncDATA->jrawf_2);
+  t_TauCheck->Branch("jmva_2",&SyncDATA->jmva_2);
+  t_TauCheck->Branch("jcsv_2",&SyncDATA->bcsv_2);
+  t_TauCheck->Branch("bpt_1", &SyncDATA->bpt_1);
+  t_TauCheck->Branch("beta_1", &SyncDATA->beta_1);
+  t_TauCheck->Branch("bphi_1", &SyncDATA->bphi_1);
+  t_TauCheck->Branch("brawf_1",&SyncDATA->brawf_1);
+  t_TauCheck->Branch("bmva_1",&SyncDATA->bmva_1);
+  t_TauCheck->Branch("bcsv_1", &SyncDATA->bcsv_1);
+  t_TauCheck->Branch("bpt_2", &SyncDATA->bpt_2);
+  t_TauCheck->Branch("beta_2", &SyncDATA->beta_2);
+  t_TauCheck->Branch("bphi_2", &SyncDATA->bphi_2);
+  t_TauCheck->Branch("brawf_2",&SyncDATA->brawf_2);
+  t_TauCheck->Branch("bmva_2",&SyncDATA->bmva_2);
+  t_TauCheck->Branch("bcsv_2", &SyncDATA->bcsv_2);
+
+  /*
+  if(!isSync){
+    t_TauCheck->Branch("pfpt_sum", &SyncDATA->pfpt_sum);
+    t_TauCheck->Branch("pt_sum", &SyncDATA->pt_sum);
+    t_TauCheck->Branch("dr_leptau", &SyncDATA->dr_leptau);
+
+    t_TauCheck->Branch("jeta1eta2", &SyncDATA->jeta1eta2);
+    t_TauCheck->Branch("met_centrality", &SyncDATA->met_centrality);
+    t_TauCheck->Branch("lep_etacentrality", &SyncDATA->lep_etacentrality);
+    t_TauCheck->Branch("sphericity", &SyncDATA->sphericity);
+
+    t_TauCheck->Branch("nadditionalMu", &SyncDATA->nadditionalMu);
+    t_TauCheck->Branch("addmuon_pt", &SyncDATA->addmuon_pt);
+    t_TauCheck->Branch("addmuon_eta", &SyncDATA->addmuon_eta);
+    t_TauCheck->Branch("addmuon_phi", &SyncDATA->addmuon_phi);
+    t_TauCheck->Branch("addmuon_m", &SyncDATA->addmuon_m);
+    t_TauCheck->Branch("addmuon_q", &SyncDATA->addmuon_q);
+    t_TauCheck->Branch("addmuon_iso", &SyncDATA->addmuon_iso);
+    t_TauCheck->Branch("addmuon_gen_match", &SyncDATA->addmuon_gen_match);
+
+    t_TauCheck->Branch("nadditionalEle", &SyncDATA->nadditionalEle);
+    t_TauCheck->Branch("addele_pt", &SyncDATA->addele_pt);
+    t_TauCheck->Branch("addele_eta", &SyncDATA->addele_eta);
+    t_TauCheck->Branch("addele_phi", &SyncDATA->addele_phi);
+    t_TauCheck->Branch("addele_m", &SyncDATA->addele_m);
+    t_TauCheck->Branch("addele_q", &SyncDATA->addele_q);
+    t_TauCheck->Branch("addele_iso", &SyncDATA->addele_iso);
+    t_TauCheck->Branch("addele_gen_match", &SyncDATA->addele_gen_match);
+
+    t_TauCheck->Branch("nadditionalTau", &SyncDATA->nadditionalTau);
+    t_TauCheck->Branch("addtau_pt", &SyncDATA->addtau_pt);
+    t_TauCheck->Branch("addtau_eta", &SyncDATA->addtau_eta);
+    t_TauCheck->Branch("addtau_phi", &SyncDATA->addtau_phi);
+    t_TauCheck->Branch("addtau_m", &SyncDATA->addtau_m);
+    t_TauCheck->Branch("addtau_q", &SyncDATA->addtau_q);
+    t_TauCheck->Branch("addtau_byIsolationMVArun2v1DBnewDMwLTraw", &SyncDATA->addtau_byIsolationMVArun2v1DBnewDMwLTraw);
+    t_TauCheck->Branch("addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits", &SyncDATA->addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits);
+    t_TauCheck->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &SyncDATA->addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
+    t_TauCheck->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &SyncDATA->addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
+    t_TauCheck->Branch("addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits", &SyncDATA->addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits);
+    t_TauCheck->Branch("addtau_byVLooseIsolationMVArun2v1DBoldDMwLT", &SyncDATA->addtau_byVLooseIsolationMVArun2v1DBoldDMwLT);
+    t_TauCheck->Branch("addtau_byLooseIsolationMVArun2v1DBoldDMwLT", &SyncDATA->addtau_byLooseIsolationMVArun2v1DBoldDMwLT);
+    t_TauCheck->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &SyncDATA->addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
+    t_TauCheck->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &SyncDATA->addtau_byTightIsolationMVArun2v1DBoldDMwLT);
+    t_TauCheck->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &SyncDATA->addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
+    t_TauCheck->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &SyncDATA->addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
+    t_TauCheck->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &SyncDATA->addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
+    t_TauCheck->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &SyncDATA->addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
+    t_TauCheck->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &SyncDATA->addtau_byTightIsolationMVArun2v1DBnewDMwLT);
+    t_TauCheck->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &SyncDATA->addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
+
+    t_TauCheck->Branch("addtau_NewMVAIDVLoose", &SyncDATA->addtau_NewMVAIDVLoose);
+    t_TauCheck->Branch("addtau_NewMVAIDLoose", &SyncDATA->addtau_NewMVAIDLoose);
+    t_TauCheck->Branch("addtau_NewMVAIDMedium", &SyncDATA->addtau_NewMVAIDMedium);
+    t_TauCheck->Branch("addtau_NewMVAIDTight", &SyncDATA->addtau_NewMVAIDTight);
+    t_TauCheck->Branch("addtau_NewMVAIDVTight", &SyncDATA->addtau_NewMVAIDVTight);
+    t_TauCheck->Branch("addtau_NewMVAIDVVTight", &SyncDATA->addtau_NewMVAIDVVTight);
+  
+    t_TauCheck->Branch("addtau_passesTauLepVetos", &SyncDATA->addtau_passesTauLepVetos);
+    t_TauCheck->Branch("addtau_decayMode", &SyncDATA->addtau_decayMode);
+    t_TauCheck->Branch("addtau_d0", &SyncDATA->addtau_d0);
+    t_TauCheck->Branch("addtau_dZ", &SyncDATA->addtau_dZ);
+    t_TauCheck->Branch("addtau_gen_match", &SyncDATA->addtau_gen_match);
+    t_TauCheck->Branch("addtau_mt", &SyncDATA->addtau_mt);
+    t_TauCheck->Branch("addtau_mvis", &SyncDATA->addtau_mvis);
+  }
+  */
+
+  //initializing sync ntuple branches: end
+
 
   leptonPropertiesList.push_back("pdgId");
   leptonPropertiesList.push_back("charge");
@@ -290,19 +684,24 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::Loop(){
+void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 
    if (fChain == 0) return;
 
-   Long64_t nentries = fChain->GetEntries();   
+   Long64_t nentries = fChain->GetEntries();
+   Long64_t nentries_use=nentries;
+   if (nentries_max>0 && nentries_max < nentries) nentries_use=nentries_max;
+
    Long64_t nbytes = 0, nb = 0;
-   for (Long64_t jentry=0; jentry<nentries;jentry++) {
+   for (Long64_t jentry=0; jentry<nentries_use;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
       httEvent->clear();
+      SyncDATA->setDefault();
+      //SyncDATA->fileEntry=17;
 
       //if(jentry%1000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
       //Check if event is contained in JSon
@@ -338,6 +737,9 @@ void HTauTauTreeFromNanoBase::Loop(){
 	  //break; ///TEST for synch. ntuple
 	}
 	httTree->Fill();
+	//	SyncDATA->fill(httEvent);
+	t_TauCheck->Fill();
+
 	hStats->Fill(2);//Number of events saved to ntuple
 	hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
 	if(firstWarningOccurence_)//stop to warn once the first pair is found and filled

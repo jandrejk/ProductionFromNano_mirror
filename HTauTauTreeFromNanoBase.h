@@ -10,6 +10,8 @@
   as produced by nanoEventsChain->MakeClass("NanoEventsSkeleton") */
 #undef NanoEventsSkeleton_cxx //undefine to protect againist problems with multile implementation
 #include "NanoEventsSkeleton.h"
+#include "syncDATA.h"
+
 //#include <TROOT.h>
 //#include <TChain.h>
 //#include <TFile.h>
@@ -103,6 +105,10 @@ public :
   std::vector<HTTParticle> httGenLeptonCollection;
   std::vector<TriggerData> triggerBits_;
   std::vector<std::string> filterBits_;
+  TTree *t_TauCheck;
+  //  std::unique_ptr<syncDATA> SyncDATA;
+  syncDATA *SyncDATA;
+
   TTree *httTree;
   TFile *httFile;
   HTTEvent *httEvent;
@@ -126,7 +132,7 @@ public :
   HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<std::string> lumis = std::vector<std::string>(), string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
-  virtual void     Loop();
+  virtual void     Loop(Long64_t nentries_max=-1);
 };
 
 #endif

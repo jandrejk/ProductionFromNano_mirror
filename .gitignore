@@ -1,0 +1,12 @@
+__init__.py
+*.pyc
+.*.swp
+.#*
+#*#
+*~
+build
+*.d
+*.so
+*.pcm
+FrameworkJobReport.xml
+HTT*root
