@@ -314,3 +314,384 @@ void syncDATA::setDefault(){
   lep_etacentrality=DEF;
   sphericity=DEF;
 }
+
+void syncDATA::initTree(TTree *t, bool isMC){
+
+  t->Branch("fileEntry", &fileEntry);
+  t->Branch("entry", &entry);
+  t->Branch("run", &run_syncro);
+  t->Branch("lumi", &lumi_syncro);
+  t->Branch("evt", &evt_syncro);
+  t->Branch("weight", &weight);
+  t->Branch("eventWeight", &weight);
+  t->Branch("lumiWeight", &lumiWeight);
+  t->Branch("puweight", &puWeight);
+  t->Branch("genweight", &genWeight);
+  t->Branch("trigweight_1", &trigweight_1);
+  t->Branch("anti_trigweight_1", &anti_trigweight_1);
+  t->Branch("trigweight_2", &trigweight_2);
+  t->Branch("idisoweight_1", &idisoweight_1);
+  t->Branch("anti_idisoweight_1", &anti_idisoweight_1);
+  t->Branch("idisoweight_2", &idisoweight_2);
+  t->Branch("trk_sf", &trk_sf);
+  t->Branch("effweight", &effweight);
+  t->Branch("stitchedWeight", &stitchedWeight);
+  t->Branch("topWeight", &topWeight);
+  t->Branch("topWeight_run1", &topWeight_run1);
+  t->Branch("zPtReweightWeight", &ZWeight);
+
+  t->Branch("zpt_weight_nom",&zpt_weight_nom);
+  t->Branch("zpt_weight_esup",&zpt_weight_esup);
+  t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
+  t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
+  t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
+  t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
+  t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
+  t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
+  t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
+  t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
+  t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
+
+  t->Branch("trg_singlemuon", &trg_singlemuon);
+  t->Branch("trg_mutaucross", &trg_mutaucross);
+  t->Branch("trg_singleelectron", &trg_singleelectron);
+  t->Branch("trg_singletau", &trg_singletau);
+  t->Branch("trg_doubletau", &trg_doubletau);
+  t->Branch("trg_muonelectron", &trg_muonelectron);
+  t->Branch("gen_Mll", &gen_Mll);
+  t->Branch("genpX", &gen_ll_px);
+  t->Branch("genpY", &gen_ll_py);
+  t->Branch("genpZ", &gen_ll_pz);
+  t->Branch("gen_top_pt_1", &gen_top_pt_1);
+  t->Branch("gen_top_pt_2", &gen_top_pt_2);
+  t->Branch("gen_vis_Mll", &gen_vis_Mll);
+  t->Branch("vispX", &gen_ll_vis_px);
+  t->Branch("vispY", &gen_ll_vis_py);
+  t->Branch("vispZ", &gen_ll_vis_pz);
+  t->Branch("npv", &npv);
+  t->Branch("npu", &npu);
+  t->Branch("rho", &rho);
+  t->Branch("NUP", &NUP);
+  
+  t->Branch("passBadMuonFilter", &passBadMuonFilter);
+  t->Branch("passBadChargedHadronFilter", &passBadChargedHadronFilter);
+  t->Branch("flagHBHENoiseFilter", &Flag_HBHENoiseFilter);
+  t->Branch("flagHBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
+  t->Branch("flagEcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
+  t->Branch("flagGoodVertices", &Flag_goodVertices);
+  t->Branch("flagEeBadScFilter", &Flag_eeBadScFilter);
+  t->Branch("flagGlobalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
+
+  if(isMC){
+    t->Branch("Flag_badMuons", &failBadGlobalMuonTagger);
+    t->Branch("Flag_duplicateMuons", &failCloneGlobalMuonTagger);
+  }
+  else{
+    t->Branch("Flag_badMuons", &Flag_badMuons);
+    t->Branch("Flag_duplicateMuons", &Flag_duplicateMuons);
+  }
+
+  t->Branch("passesFilter", &passesMetMuonFilter);
+
+  t->Branch("matchedJetPt03_1", &matchedJetPt03_1);
+  t->Branch("matchedJetPt05_1", &matchedJetPt05_1);
+  t->Branch("matchedJetPt03_2", &matchedJetPt03_2);
+  t->Branch("matchedJetPt05_2", &matchedJetPt05_2);
+
+  t->Branch("gen_match_1", &gen_match_1);
+  t->Branch("gen_match_2", &gen_match_2);
+  t->Branch("gen_match_jetId_1", &gen_match_jetId_1);
+  t->Branch("gen_match_jetId_2", &gen_match_jetId_2);
+  t->Branch("genJets", &genJets);
+  t->Branch("genPt_1", &genPt_1);
+  t->Branch("genPt_2", &genPt_2);
+  t->Branch("genJet_match_1", &genJet_match_1);
+  t->Branch("genJet_match_2", &genJet_match_2);
+
+  t->Branch("pt_1", &pt_1);
+  t->Branch("phi_1", &phi_1);
+  t->Branch("eta_1", &eta_1);
+  t->Branch("eta_SC_1", &eta_SC_1);
+  t->Branch("m_1", &m_1);
+  t->Branch("q_1", &q_1);
+  t->Branch("d0_1", &d0_1);
+  t->Branch("dZ_1", &dZ_1);
+  t->Branch("mt_1", &mt_1);
+  t->Branch("pfmt_1", &pfmt_1);
+  t->Branch("iso_1", &iso_1);
+  t->Branch("againstElectronLooseMVA6_1", &againstElectronLooseMVA6_1);
+  t->Branch("againstElectronMediumMVA6_1", &againstElectronMediumMVA6_1);
+  t->Branch("againstElectronTightMVA6_1", &againstElectronTightMVA6_1);
+  t->Branch("againstElectronVLooseMVA6_1", &againstElectronVLooseMVA6_1);
+  t->Branch("againstElectronVTightMVA6_1", &againstElectronVTightMVA6_1);
+  t->Branch("againstMuonLoose3_1", &againstMuonLoose3_1);
+  t->Branch("againstMuonTight3_1", &againstMuonTight3_1);
+  t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
+  t->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_1", &byLooseCombinedIsolationDeltaBetaCorr3Hits_1);
+  t->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_1", &byMediumCombinedIsolationDeltaBetaCorr3Hits_1);
+  t->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_1", &byTightCombinedIsolationDeltaBetaCorr3Hits_1);
+  t->Branch("byIsolationMVA3newDMwoLTraw_1", &byIsolationMVA3newDMwoLTraw_1);
+  t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
+  t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
+  t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
+  t->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_1", &byVLooseIsolationMVArun2v1DBoldDMwLT_1);
+  t->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_1", &byLooseIsolationMVArun2v1DBoldDMwLT_1);
+  t->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_1", &byMediumIsolationMVArun2v1DBoldDMwLT_1);
+  t->Branch("byTightIsolationMVArun2v1DBoldDMwLT_1", &byTightIsolationMVArun2v1DBoldDMwLT_1);
+  t->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_1", &byVTightIsolationMVArun2v1DBoldDMwLT_1);
+  t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
+  t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
+  t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
+  t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_1", &byTightIsolationMVArun2v1DBnewDMwLT_1);
+  t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_1", &byVTightIsolationMVArun2v1DBnewDMwLT_1);
+
+  t->Branch("byRerunMVAIdVLoose_1", &NewMVAIDVLoose_1);
+  t->Branch("byRerunMVAIdLoose_1", &NewMVAIDLoose_1);
+  t->Branch("byRerunMVAIdMedium_1", &NewMVAIDMedium_1);
+  t->Branch("byRerunMVAIdTight_1", &NewMVAIDTight_1);
+  t->Branch("byRerunMVAIdVTight_1", &NewMVAIDVTight_1);
+  t->Branch("byRerunMVAIdVVTight_1", &NewMVAIDVVTight_1);
+
+
+  t->Branch("idMVANewDM_1", &idMVANewDM_1);
+  t->Branch("chargedIsoPtSum_1", &chargedIsoPtSum_1);
+  t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
+  t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
+  t->Branch("decayModeFindingOldDMs_1", &decayModeFindingOldDMs_1);
+  t->Branch("decayMode_1", &decayMode_1);
+  t->Branch("id_e_mva_nt_loose_1", &id_e_mva_nt_loose_1);
+
+  t->Branch("id_m_loose_1", &id_m_loose_1);
+  t->Branch("id_m_medium_1", &id_m_medium_1);
+  t->Branch("id_m_tight_1", &id_m_tight_1);
+  t->Branch("id_m_tightnovtx_1", &id_m_tightnovtx_1);
+  t->Branch("id_m_highpt_1", &id_m_highpt_1);
+  t->Branch("id_e_cut_veto_1", &id_e_cut_veto_1);
+  t->Branch("id_e_cut_loose_1", &id_e_cut_loose_1);
+  t->Branch("id_e_cut_medium_1", &id_e_cut_medium_1);
+  t->Branch("id_e_cut_tight_1", &id_e_cut_tight_1);
+
+  t->Branch("antilep_tauscaling", &antilep_tauscaling);
+  
+  t->Branch("pt_2", &pt_2);
+  t->Branch("phi_2", &phi_2);
+  t->Branch("eta_2", &eta_2); 
+  t->Branch("m_2", &m_2);
+  t->Branch("q_2", &q_2);
+  t->Branch("d0_2", &d0_2);
+  t->Branch("dZ_2", &dZ_2);
+  t->Branch("mt_2", &mt_2);
+  t->Branch("pfmt_2", &pfmt_2);
+  t->Branch("iso_2", &iso_2);
+  t->Branch("againstElectronLooseMVA6_2", &againstElectronLooseMVA6_2);
+  t->Branch("againstElectronMediumMVA6_2", &againstElectronMediumMVA6_2);
+  t->Branch("againstElectronTightMVA6_2", &againstElectronTightMVA6_2);
+  t->Branch("againstElectronVLooseMVA6_2", &againstElectronVLooseMVA6_2);
+  t->Branch("againstElectronVTightMVA6_2", &againstElectronVTightMVA6_2);
+  t->Branch("againstMuonLoose3_2", &againstMuonLoose3_2);
+  t->Branch("againstMuonTight3_2", &againstMuonTight3_2);
+  t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
+  t->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_2", &byLooseCombinedIsolationDeltaBetaCorr3Hits_2);
+  t->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_2", &byMediumCombinedIsolationDeltaBetaCorr3Hits_2);
+  t->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_2", &byTightCombinedIsolationDeltaBetaCorr3Hits_2);
+  t->Branch("byIsolationMVA3newDMwoLTraw_2", &byIsolationMVA3newDMwoLTraw_2);
+  t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
+  t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
+  t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
+  t->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_2", &byVLooseIsolationMVArun2v1DBoldDMwLT_2);
+  t->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_2", &byLooseIsolationMVArun2v1DBoldDMwLT_2);
+  t->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_2", &byMediumIsolationMVArun2v1DBoldDMwLT_2);
+  t->Branch("byTightIsolationMVArun2v1DBoldDMwLT_2", &byTightIsolationMVArun2v1DBoldDMwLT_2);
+  t->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_2", &byVTightIsolationMVArun2v1DBoldDMwLT_2);
+  t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
+  t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
+  t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
+  t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_2", &byTightIsolationMVArun2v1DBnewDMwLT_2);
+  t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_2", &byVTightIsolationMVArun2v1DBnewDMwLT_2);
+
+  t->Branch("byRerunMVAIdVLoose_2", &NewMVAIDVLoose_2);
+  t->Branch("byRerunMVAIdLoose_2", &NewMVAIDLoose_2);
+  t->Branch("byRerunMVAIdMedium_2", &NewMVAIDMedium_2);
+  t->Branch("byRerunMVAIdTight_2", &NewMVAIDTight_2);
+  t->Branch("byRerunMVAIdVTight_2", &NewMVAIDVTight_2);
+  t->Branch("byRerunMVAIdVVTight_2", &NewMVAIDVVTight_2);
+
+  t->Branch("idMVANewDM_2", &idMVANewDM_2);
+  t->Branch("chargedIsoPtSum_2", &chargedIsoPtSum_2);
+  t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
+  t->Branch("puCorrPtSum_2", &puCorrPtSum_2);
+  t->Branch("decayModeFindingOldDMs_2", &decayModeFindingOldDMs_2);
+  t->Branch("decayMode_2", &decayMode_2);
+
+  t->Branch("pzetavis", &pzetavis);
+  t->Branch("pzetamiss", &pzetamiss);
+  t->Branch("dzeta", &dzeta);
+  
+  t->Branch("pt_tt", &pt_tt);
+  t->Branch("pt_vis", &pt_vis);
+  t->Branch("dphi", &dphi);
+  t->Branch("mt_3", &mt_3);
+  t->Branch("mt_tot", &mt_tot);
+  t->Branch("pfpt_tt", &pfpt_tt);
+  t->Branch("m_vis", &m_vis);
+  t->Branch("m_coll", &m_coll);
+
+  t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
+  t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
+
+  t->Branch("passesIsoCuts", &passesIsoCuts);
+  t->Branch("passesLepIsoCuts", &passesLepIsoCuts);
+  t->Branch("passesTauLepVetos", &passesTauLepVetos);
+  t->Branch("passesThirdLepVeto", &passesThirdLepVeto);
+  t->Branch("passesDiMuonVeto", &passesDiMuonVeto);
+  t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
+
+  t->Branch("matchXTrig_obj", &matchXTrig_obj);
+  t->Branch("dilepton_veto", &dilepton_veto);
+  t->Branch("extraelec_veto", &extraelec_veto);
+  t->Branch("extramuon_veto", &extramuon_veto);
+  t->Branch("uncorrmet", &uncorrmet );
+  t->Branch("met", &met);
+  t->Branch("metphi", &metphi);
+  t->Branch("met_ex", &met_ex);
+  t->Branch("met_ey", &met_ey);
+  t->Branch("corrmet", &corrmet);
+  t->Branch("corrmetphi", &corrmetphi);
+  t->Branch("corrmet_ex", &corrmet_ex);
+  t->Branch("corrmet_ey", &corrmet_ey);
+  t->Branch("mvamet", &mvamet);
+  t->Branch("mvametphi", &mvametphi);
+  t->Branch("mvamet_ex", &mvamet_ex);
+  t->Branch("mvamet_ey", &mvamet_ey);
+  t->Branch("corrmvamet", &corrmvamet);
+  t->Branch("corrmvametphi", &corrmvametphi);
+  t->Branch("corrmvamet_ex", &corrmvamet_ex);
+  t->Branch("corrmvamet_ey", &corrmvamet_ey);
+  t->Branch("mvacov00", &mvacov00);
+  t->Branch("mvacov01", &mvacov01);
+  t->Branch("mvacov10", &mvacov10);
+  t->Branch("mvacov11", &mvacov11);
+  t->Branch("metcov00", &metcov00);
+  t->Branch("metcov01", &metcov01);
+  t->Branch("metcov10", &metcov10);
+  t->Branch("metcov11", &metcov11);
+
+  t->Branch("m_sv", &m_sv);
+  t->Branch("pt_sv", &pt_sv);
+
+  t->Branch("mjj", &mjj);
+  t->Branch("mjjUp", &mjjUp);
+  t->Branch("mjjDown", &mjjDown);
+  t->Branch("jdeta", &jdeta);
+  t->Branch("jdetaUp", &jdetaUp);
+  t->Branch("jdetaDown", &jdetaDown);
+  t->Branch("njetingap", &njetingap);
+  t->Branch("njetingap20", &njetingap20);
+  t->Branch("dijetpt", &dijetpt);
+  t->Branch("dijetphi", &dijetphi);
+  t->Branch("jdphi", &jdphi);
+  t->Branch("nbtag", &nbtag);
+  t->Branch("njets", &njets);
+  t->Branch("njetsUp", &njetsUp);
+  t->Branch("njetsDown", &njetsDown);
+  t->Branch("njetspt20", &njetspt20);
+  t->Branch("jpt_1", &jpt_1);
+  t->Branch("jptUp_1", &jptUp_1);
+  t->Branch("jptDown_1", &jptDown_1);
+  t->Branch("jeta_1", &jeta_1);
+  t->Branch("jphi_1", &jphi_1);
+  t->Branch("jm_1", &jm_1);
+  t->Branch("jrawf_1", &jrawf_1);
+  t->Branch("jmva_1", &jmva_1);
+  t->Branch("jcsv_1", &jcsv_1);
+  t->Branch("jpt_2", &jpt_2);
+  t->Branch("jptUp_2", &jptUp_2);
+  t->Branch("jptDown_2", &jptDown_2);
+  t->Branch("jeta_2", &jeta_2);
+  t->Branch("jphi_2", &jphi_2);
+  t->Branch("jm_2", &jm_2);
+  t->Branch("jrawf_2", &jrawf_2);
+  t->Branch("jmva_2",&jmva_2);
+  t->Branch("jcsv_2",&bcsv_2);
+  t->Branch("bpt_1", &bpt_1);
+  t->Branch("beta_1", &beta_1);
+  t->Branch("bphi_1", &bphi_1);
+  t->Branch("brawf_1",&brawf_1);
+  t->Branch("bmva_1",&bmva_1);
+  t->Branch("bcsv_1", &bcsv_1);
+  t->Branch("bpt_2", &bpt_2);
+  t->Branch("beta_2", &beta_2);
+  t->Branch("bphi_2", &bphi_2);
+  t->Branch("brawf_2",&brawf_2);
+  t->Branch("bmva_2",&bmva_2);
+  t->Branch("bcsv_2", &bcsv_2);
+
+  /*
+  if(!isSync){
+    t->Branch("pfpt_sum", &pfpt_sum);
+    t->Branch("pt_sum", &pt_sum);
+    t->Branch("dr_leptau", &dr_leptau);
+
+    t->Branch("jeta1eta2", &jeta1eta2);
+    t->Branch("met_centrality", &met_centrality);
+    t->Branch("lep_etacentrality", &lep_etacentrality);
+    t->Branch("sphericity", &sphericity);
+
+    t->Branch("nadditionalMu", &nadditionalMu);
+    t->Branch("addmuon_pt", &addmuon_pt);
+    t->Branch("addmuon_eta", &addmuon_eta);
+    t->Branch("addmuon_phi", &addmuon_phi);
+    t->Branch("addmuon_m", &addmuon_m);
+    t->Branch("addmuon_q", &addmuon_q);
+    t->Branch("addmuon_iso", &addmuon_iso);
+    t->Branch("addmuon_gen_match", &addmuon_gen_match);
+
+    t->Branch("nadditionalEle", &nadditionalEle);
+    t->Branch("addele_pt", &addele_pt);
+    t->Branch("addele_eta", &addele_eta);
+    t->Branch("addele_phi", &addele_phi);
+    t->Branch("addele_m", &addele_m);
+    t->Branch("addele_q", &addele_q);
+    t->Branch("addele_iso", &addele_iso);
+    t->Branch("addele_gen_match", &addele_gen_match);
+
+    t->Branch("nadditionalTau", &nadditionalTau);
+    t->Branch("addtau_pt", &addtau_pt);
+    t->Branch("addtau_eta", &addtau_eta);
+    t->Branch("addtau_phi", &addtau_phi);
+    t->Branch("addtau_m", &addtau_m);
+    t->Branch("addtau_q", &addtau_q);
+    t->Branch("addtau_byIsolationMVArun2v1DBnewDMwLTraw", &addtau_byIsolationMVArun2v1DBnewDMwLTraw);
+    t->Branch("addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits", &addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits);
+    t->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
+    t->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
+    t->Branch("addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits", &addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits);
+    t->Branch("addtau_byVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVLooseIsolationMVArun2v1DBoldDMwLT);
+    t->Branch("addtau_byLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byLooseIsolationMVArun2v1DBoldDMwLT);
+    t->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
+    t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
+    t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
+    t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
+    t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
+    t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
+    t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
+    t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
+
+    t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
+    t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
+    t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
+    t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
+    t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
+    t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
+  
+    t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
+    t->Branch("addtau_decayMode", &addtau_decayMode);
+    t->Branch("addtau_d0", &addtau_d0);
+    t->Branch("addtau_dZ", &addtau_dZ);
+    t->Branch("addtau_gen_match", &addtau_gen_match);
+    t->Branch("addtau_mt", &addtau_mt);
+    t->Branch("addtau_mvis", &addtau_mvis);
+  }
+  */
+
+}

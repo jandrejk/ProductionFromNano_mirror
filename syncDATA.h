@@ -1,4 +1,5 @@
 #include "HTTEvent.h"
+#include "TTree.h"
 
 #ifndef __syncDATA__
 #define __syncDATA__
@@ -318,6 +319,7 @@ class syncDATA
 
   void setDefault();
   void fill(HTTEvent *ev);
+  void initTree(TTree *t, bool isMC);
 
   /*
   
