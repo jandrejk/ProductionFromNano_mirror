@@ -1,13 +1,395 @@
 #include "syncDATA.h"
 
-void syncDATA::fill(HTTEvent *ev){
-  genWeight=ev->getMCWeight();
+const float DEF = -10.;
+
+void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, bool isMC){
+  lumiWeight=DEF;
+  run_syncro=ev->getRunId();
+  lumi_syncro=ev->getLSId();
+  evt_syncro=ev->getEventId();
+  //  entry=DEF; //filled in main loop
+  //  fileEntry=DEF; //filled in main loop
+  matchXTrig_obj=DEF;
+
   npv=ev->getNPV();
+  npvGood=DEF;
+  npu=ev->getNPU();
+  rho=ev->getRho();
+  gen_match_1=pair->getLeg1().getProperty(PropertyEnum::genPartFlav); //TODO (only correct for taus)
+  gen_match_2=pair->getLeg2().getProperty(PropertyEnum::genPartFlav); //TODO (only correct for taus)
+  genPt_1=DEF;
+  genPt_2=DEF;
+  gen_match_jetId_1=DEF;
+  gen_match_jetId_2=DEF;
+
+  if (isMC){
+    trk_sf = 1.;
+    trigweight_1 = 1;
+    idisoweight_1 = 1.;
+    anti_idisoweight_1 = 1.;
+    trigweight_2 = 1;
+    idisoweight_2 = 1.;
+    effweight = 1.;
+    puWeight = 1.;
+    weight = 1.;
+    NUP=ev->getLHEnOutPartons();
+  } else{
+    trk_sf = 1.;
+    trigweight_1 = 1;
+    idisoweight_1 = 1.;
+    anti_idisoweight_1 = 1.;
+    trigweight_2 = 1;
+    idisoweight_2 = 1.;
+    effweight = 1.;
+    puWeight = 1.;
+    weight = 1.;
+    NUP=-1;
+  }
+
+  stitchedWeight=1.;
+  topWeight=ev->getPtReWeight();
+  topWeight_run1=ev->getPtReWeightR1();
+  ZWeight=ev->getPtReWeightSUSY();
+  zpt_weight_nom=DEF;
+  zpt_weight_esup=DEF;
+  zpt_weight_esdown=DEF;
+  zpt_weight_ttup=DEF;
+  zpt_weight_ttdown=DEF;
+  zpt_weight_statpt0up=DEF;
+  zpt_weight_statpt0down=DEF;
+  zpt_weight_statpt40up=DEF;
+  zpt_weight_statpt40down=DEF;
+  zpt_weight_statpt80up=DEF;
+  zpt_weight_statpt80down=DEF;
+  gen_Mll=DEF;
+  gen_ll_px=DEF;
+  gen_ll_py=DEF;
+  gen_ll_pz=DEF;
+  gen_vis_Mll=DEF;
+  gen_ll_vis_px=DEF;
+  gen_ll_vis_py=DEF;
+  gen_ll_vis_pz=DEF;
+  gen_top_pt_1=DEF;
+  gen_top_pt_2=DEF;
+  genJets=DEF;
+  genJet_match_1=DEF;
+  genJet_match_2=DEF;
+  matchedJetPt03_1=DEF;
+  matchedJetPt05_1=DEF;
+  matchedJetPt03_2=DEF;
+  matchedJetPt05_2=DEF;
+  //////////////////////////////////////////////////////////////////  
+  trg_singlemuon=DEF; //fires OR of HLT_IsoMu22, HLT_IsoTkMu22, HLT_IsoMu22eta2p1, HLT_IsoTkMu22_eta2p1
+  trg_mutaucross=DEF;
+  trg_singleelectron=DEF; //fires HLT_Ele25_eta2p1_WPTight_Gsf
+  trg_singletau=DEF; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
+  trg_doubletau=DEF; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
+  trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+  passBadMuonFilter=DEF;
+  passBadChargedHadronFilter=DEF;
+  Flag_HBHENoiseFilter=DEF;
+  Flag_HBHENoiseIsoFilter=DEF;
+  Flag_EcalDeadCellTriggerPrimitiveFilter=DEF;
+  Flag_goodVertices=DEF;
+  Flag_eeBadScFilter=DEF;
+  Flag_globalTightHalo2016Filter=DEF;
+  failBadGlobalMuonTagger=DEF;
+  failCloneGlobalMuonTagger=DEF;
+  Flag_duplicateMuons=DEF;
+  Flag_badMuons=DEF;
+  Flag_noBadMuons=DEF;
+  passesMetMuonFilter=DEF;
+  //////////////////////////////////////////////////////////////////  
+  //  pt_1=pair->getLeg1P4().Pt();
+  HTTParticle leg1=pair->getLeg1();
+  pt_1=leg1.getP4().Pt();
+  phi_1=leg1.getP4().Phi();
+  eta_1=leg1.getP4().Eta();
+  eta_SC_1=eta_1+leg1.getProperty(PropertyEnum::deltaEtaSC);
+  m_1=leg1.getP4().M();
+  q_1=leg1.getCharge();
+  d0_1=leg1.getProperty(PropertyEnum::dxy);
+  dZ_1=leg1.getProperty(PropertyEnum::dz);
+  mt_1=DEF;
+  iso_1=DEF; //?
+
+  UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
+  againstElectronLooseMVA6_1=(bitmask & 0x2)>0;
+  againstElectronMediumMVA6_1=(bitmask & 0x4)>0;
+  againstElectronTightMVA6_1=(bitmask & 0x8)>0;
+  againstElectronVLooseMVA6_1=(bitmask & 0x1)>0;
+  againstElectronVTightMVA6_1=(bitmask & 0x10)>0;
+
+  bitmask=leg1.getProperty(PropertyEnum::idAntiMu);
+  againstMuonLoose3_1=(bitmask & 0x1)>0;
+  againstMuonTight3_1=(bitmask & 0x2)>0;
+
+  byCombinedIsolationDeltaBetaCorrRaw3Hits_1=leg1.getProperty(PropertyEnum::rawIso);
+  byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
+  byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
+  byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
+  byIsolationMVA3newDMwoLTraw_1=DEF;
+  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(PropertyEnum::rawMVAoldDM);
+  byIsolationMVA3newDMwLTraw_1=DEF;
+  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(PropertyEnum::rawMVAoldDM); //same as above!?
+
+  bitmask=leg1.getProperty(PropertyEnum::idMVAoldDM);
+  byVLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x1)>0;
+  byLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x2)>0;;
+  byMediumIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x4)>0;
+  byTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x8)>0;
+  byVTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x10)>0;
+
+  byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+  byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+  byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
+  byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+  byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+
+  NewMVAIDVLoose_1=DEF; //?
+  NewMVAIDLoose_1=DEF;
+  NewMVAIDMedium_1=DEF;
+  NewMVAIDTight_1=DEF;
+  NewMVAIDVTight_1=DEF;
+  NewMVAIDVVTight_1=DEF;
+
+  idMVANewDM_1=DEF; //?
+
+  chargedIsoPtSum_1=leg1.getProperty(PropertyEnum::chargedIso);
+  neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
+  puCorrPtSum_1=leg1.getProperty(PropertyEnum::puCorr);
+  decayModeFindingOldDMs_1=leg1.getProperty(PropertyEnum::idDecayMode);
+  decayMode_1=leg1.getProperty(PropertyEnum::decayMode);
+
+  id_m_loose_1=leg1.getProperty(PropertyEnum::softId);
+  id_m_medium_1=leg1.getProperty(PropertyEnum::mediumId);
+  id_m_tight_1=leg1.getProperty(PropertyEnum::tightId);
+  id_m_tightnovtx_1=DEF;
+  bitmask=leg1.getProperty(PropertyEnum::highPtId);
+  id_m_highpt_1=(bitmask & 0x2)>0;
+
+  int intmask=leg1.getProperty(PropertyEnum::cutBased);
+  id_e_cut_veto_1=intmask>=1;
+  id_e_cut_loose_1=intmask>=2;
+  id_e_cut_medium_1=intmask>=3;
+  id_e_cut_tight_1=intmask>=4;
+  id_e_mva_nt_loose_1=DEF;
+  
+  //////////////////////////////////////////////////////////////////
+  //pt_2=pair->getLeg2P4().Pt();
+  HTTParticle leg2=pair->getLeg2();
+  pt_2=leg2.getP4().Pt();
+  phi_2=leg2.getP4().Phi();
+  eta_2=leg2.getP4().Eta();
+  m_2=leg2.getP4().M();
+  q_2=leg2.getCharge();
+  d0_2=leg2.getProperty(PropertyEnum::dxy);
+  dZ_2=leg2.getProperty(PropertyEnum::dz);
+  mt_2=DEF;
+  iso_2=DEF; //?
+
+  bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
+  againstElectronLooseMVA6_2=(bitmask & 0x2)>0;
+  againstElectronMediumMVA6_2=(bitmask & 0x4)>0;
+  againstElectronTightMVA6_2=(bitmask & 0x8)>0;
+  againstElectronVLooseMVA6_2=(bitmask & 0x1)>0;
+  againstElectronVTightMVA6_2=(bitmask & 0x10)>0;
+
+  bitmask=leg2.getProperty(PropertyEnum::idAntiMu);
+  againstMuonLoose3_2=(bitmask & 0x1)>0;
+  againstMuonTight3_2=(bitmask & 0x2)>0;
+
+  byCombinedIsolationDeltaBetaCorrRaw3Hits_2=leg2.getProperty(PropertyEnum::rawIso);
+  byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
+  byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
+  byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
+  byIsolationMVA3newDMwoLTraw_2=DEF;
+  byIsolationMVA3oldDMwoLTraw_2=leg2.getProperty(PropertyEnum::rawMVAoldDM);
+  byIsolationMVA3newDMwLTraw_2=DEF;
+  byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM); //same as above!?
+
+  bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM);
+  byVLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x1)>0;
+  byLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x2)>0;;
+  byMediumIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x4)>0;
+  byTightIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x8)>0;
+  byVTightIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x10)>0;
+
+  byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+  byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+  byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
+  byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+  byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+  NewMVAIDVLoose_2=DEF;
+  NewMVAIDLoose_2=DEF;
+  NewMVAIDMedium_2=DEF;
+  NewMVAIDTight_2=DEF;
+  NewMVAIDVTight_2=DEF;
+  NewMVAIDVVTight_2=DEF;
+  idMVANewDM_2=DEF;
+
+  chargedIsoPtSum_2=leg2.getProperty(PropertyEnum::chargedIso);
+  neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
+  puCorrPtSum_2=leg2.getProperty(PropertyEnum::puCorr);
+  decayModeFindingOldDMs_2=leg2.getProperty(PropertyEnum::idDecayMode);
+  decayMode_2=leg2.getProperty(PropertyEnum::decayMode);
+  //////////////////////////////////////////////////////////////////
+  nbtag=0;
+  njets=0; 
+  int ind_b1=-1;
+  int ind_b2=-1;
+  for (unsigned ij=0; ij<jets.size(); ij++){ 
+    if (jets.at(ij).getP4().Pt()>30) njets++; 
+    if ( std::abs(jets.at(ij).getP4().Eta())<2.4 && jets.at(ij).getProperty(PropertyEnum::btagCSVV2)>0.8484 ){
+      nbtag++; 
+      if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
+      if ( ind_b1<0 )              ind_b1=ij;
+    }
+  }
+  njetsUp=njets;
+  njetsDown=njets;
+  njetspt20=jets.size();
+
+  if ( jets.size()>=1 ){
+    jpt_1=jets.at(0).getP4().Pt();
+    jptUp_1=jpt_1;
+    jptDown_1=jpt_1;
+    jeta_1=jets.at(0).getP4().Eta();
+    jphi_1=jets.at(0).getP4().Phi();
+    jm_1=jets.at(0).getP4().M();
+    jrawf_1=jets.at(0).getProperty(PropertyEnum::rawFactor);
+    jmva_1=jets.at(0).getProperty(PropertyEnum::btagCMVA);
+    jcsv_1=jets.at(0).getProperty(PropertyEnum::btagCSVV2);
+  }
+  if ( jets.size()>=2 ){
+    jpt_2=jets.at(1).getP4().Pt();
+    jptUp_2=jpt_2;
+    jptDown_2=jpt_2;
+    jeta_2=jets.at(1).getP4().Eta();
+    jphi_2=jets.at(1).getP4().Phi();
+    jm_2=jets.at(1).getP4().M();
+    jrawf_2=jets.at(1).getProperty(PropertyEnum::rawFactor);
+    jmva_2=jets.at(1).getProperty(PropertyEnum::btagCMVA);
+    jcsv_2=jets.at(1).getProperty(PropertyEnum::btagCSVV2);
+
+    TLorentzVector j1(jets.at(0).getP4());
+    TLorentzVector j2(jets.at(1).getP4());
+    TLorentzVector jj=j1+j2;
+
+    mjj=jj.M();
+    dijetpt=jj.Pt();
+    dijetphi=jj.Phi();
+    
+    jdeta=std::abs( j1.Eta()-j2.Eta() );
+    jdphi=j1.DeltaPhi(j2);
+
+    njetingap=0;
+    njetingap20=0;
+
+    for (unsigned ij=2; ij<jets.size(); ij++){
+      float aj_eta=jets.at(ij).getP4().Eta();
+      //      if ( ( aj_eta<j1.Eta() && aj_eta>j2.Eta() ) || ( aj_eta>j1.Eta() && aj_eta<j2.Eta() ) ) ){
+
+      if ( ( aj_eta<j1.Eta() && aj_eta>j2.Eta() ) || ( aj_eta>j1.Eta() && aj_eta<j2.Eta() ) ){
+	  njetingap20++;
+	  if ( jets.at(ij).getP4().Pt()>30 ) njetingap++;
+      }
+    }
+  }
+  mjjUp=mjj;
+  mjjDown=mjj;
+  jdetaUp=jdeta;
+  jdetaDown=jdeta;
+
+  if (ind_b1>0){
+    bpt_1=jets.at(ind_b1).getP4().Pt();
+    beta_1=jets.at(ind_b1).getP4().Eta();
+    bphi_1=jets.at(ind_b1).getP4().Phi();
+    brawf_1=jets.at(ind_b1).getProperty(PropertyEnum::rawFactor);
+    bmva_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCMVA);
+    bcsv_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2);
+  }
+
+  if (ind_b2>0){
+    bpt_2=jets.at(ind_b2).getP4().Pt();
+    beta_2=jets.at(ind_b2).getP4().Eta();
+    bphi_2=jets.at(ind_b2).getP4().Phi();
+    brawf_2=jets.at(ind_b2).getProperty(PropertyEnum::rawFactor);
+    bmva_2=jets.at(ind_b2).getProperty(PropertyEnum::btagCMVA);
+    bcsv_2=jets.at(ind_b2).getProperty(PropertyEnum::btagCSVV2);
+  }
+
+  //////////////////////////////////////////////////////////////////
+  met=DEF;
+  uncorrmet=DEF;
+  met_ex=DEF;
+  met_ey=DEF;
+  metphi=DEF;
+  corrmet=DEF;
+  corrmet_ex=DEF;
+  corrmet_ey=DEF;
+  corrmetphi=DEF;
+  mvamet=DEF;
+  mvamet_ex=DEF;
+  mvamet_ey=DEF;
+  mvametphi=DEF;
+  corrmvamet_ex=DEF;
+  corrmvamet_ey=DEF;
+  corrmvamet=DEF;
+  corrmvametphi=DEF;
+  mvacov00=DEF;
+  mvacov01=DEF;
+  mvacov10=DEF;
+  mvacov11=DEF;
+  metcov00=DEF;
+  metcov01=DEF;
+  metcov10=DEF;
+  metcov11=DEF;
+  m_sv=DEF;
+  pt_sv=DEF;
+  //////////////////////////////////////////////////////////////////
+  eleTauFakeRateWeight=DEF;
+  muTauFakeRateWeight=DEF;
+  antilep_tauscaling=DEF;
+  //////////////////////////////////////////////////////////////////
+  passesIsoCuts=DEF;
+  passesLepIsoCuts=DEF;
+  passesTauLepVetos=DEF;
+  passesThirdLepVeto=DEF;
+  passesDiMuonVeto=DEF;
+  passesDiElectronVeto=DEF;
+  //////////////////////////////////////////////////////////////////
+  dilepton_veto=DEF;
+  extramuon_veto=DEF;
+  extraelec_veto=DEF;
+  //////////////////////////////////////////////////////////////////
+  pzetavis=DEF;
+  pzetamiss=DEF;
+  dzeta=DEF;
+  //////////////////////////////////////////////////////////////////
+  pt_tt=DEF;
+  pt_vis=DEF;
+  mt_3=DEF;
+  mt_tot=DEF;
+  pfpt_tt=DEF;
+  m_vis=DEF;
+  m_coll=DEF;
+  dphi=DEF;
+  //////////////////////////////////////////////////////////////////
+  pfmt_1=DEF;
+  pfmt_2=DEF;
+  pfpt_sum=DEF;
+  pt_sum=DEF;
+  dr_leptau=DEF;
+  jeta1eta2=DEF;
+  met_centrality=DEF;
+  mvamet_centrality=DEF;
+  lep_etacentrality=DEF;
+  sphericity=DEF;
+
 }
 
 void syncDATA::setDefault(){
-
-  const int DEF=-10;
 
   lumiWeight=DEF;
   run_syncro=DEF;

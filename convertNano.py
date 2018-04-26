@@ -34,8 +34,10 @@ from ROOT import HMuTauhTreeFromNano, HTauhTauhTreeFromNano
 dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
 fileNames = [
     "0E6F4B78-CC12-E811-B37D-FA163EA12C78.root",
-#    "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
-#    "844BE355-CD12-E811-8871-FA163ED9B872.root",
+    "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
+    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
+    "844BE355-CD12-E811-8871-FA163ED9B872.root",
+    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
 ]
 
 lumisToProcess = process.source.lumisToProcess
@@ -55,7 +57,7 @@ for name in fileNames:
     aROOTFile = TFile.Open(aFile)
     aTree = aROOTFile.Get("Events")
     print "TTree entries: ",aTree.GetEntries()
-    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(100)
+    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(5000)
 
 #    print "Making the TauTau tree"
 #    aROOTFile = TFile.Open(aFile)

@@ -12,6 +12,10 @@
 #include <fstream>
 #include <algorithm>
 
+//move these two to the configuration
+bool isSync=1;
+bool isMC=1;
+
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<std::string> lumis, std::string prefix) : NanoEventsSkeleton(tree)
 {
 
@@ -116,10 +120,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   hStats = new TH1F("hStats","Bookkeeping histogram",11,-0.5,10.5);
   hStats->SetDirectory(httFile);
 
-  //move these two to the configuration
-  bool isSync=1;
-  bool isMC=1;
-
   SyncDATA = new syncDATA();
   t_TauCheck=new TTree("TauCheck","TauCheck");
   if(!isSync){
@@ -132,9 +132,14 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   leptonPropertiesList.push_back("Tau_decayMode");
   //leptonPropertiesList.push_back("discriminator");
   //leptonPropertiesList.push_back("daughters_muonID");
+  leptonPropertiesList.push_back("Muon_softId");
   leptonPropertiesList.push_back("Muon_mediumId");
+  leptonPropertiesList.push_back("Muon_tightId");
+  leptonPropertiesList.push_back("Muon_highPtId");
+  leptonPropertiesList.push_back("Electron_cutBased");
   leptonPropertiesList.push_back("Electron_mvaSpring16GP_WP80");
   leptonPropertiesList.push_back("Electron_mvaSpring16GP_WP90");
+  leptonPropertiesList.push_back("Electron_deltaEtaSC");
   leptonPropertiesList.push_back("Electron_lostHits");
   leptonPropertiesList.push_back("Electron_convVeto");
   //leptonPropertiesList.push_back("daughters_typeOfMuon");
@@ -151,8 +156,11 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   leptonPropertiesList.push_back("Tau_idAntiMu");//bits: 1-L, 2-T
   leptonPropertiesList.push_back("pfRelIso03_all");//R=0.4 used for mu?
   leptonPropertiesList.push_back("Muon_pfRelIso04_all");//R=0.4 used for mu?
-  //leptonPropertiesList.push_back("Tau_chargedIso");
   leptonPropertiesList.push_back("Tau_leadTkPtOverTauPt");
+  leptonPropertiesList.push_back("Tau_chargedIso");
+  leptonPropertiesList.push_back("Tau_neutralIso");
+  leptonPropertiesList.push_back("Tau_puCorr");
+  leptonPropertiesList.push_back("Tau_genPartFlav");
   //leptonPropertiesList.push_back("daughters_isGoodTriggerType");
   //leptonPropertiesList.push_back("daughters_FilterFired");
   leptonPropertiesList.push_back("isGoodTriggerType");
@@ -167,6 +175,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   leptonPropertiesList.push_back("Jet_partonFlavour");
   //leptonPropertiesList.push_back("bDiscriminator");?
   leptonPropertiesList.push_back("Jet_btagCSVV2");
+  leptonPropertiesList.push_back("Jet_btagCMVA");
   leptonPropertiesList.push_back("Jet_jetId");//bit1=L,bit2=T
   ////////////////////////////////////////////////////////////
   ///Gen Lepton properties MUST be synchronized with lepton properties
@@ -311,6 +320,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
    if (nentries_max>0 && nentries_max < nentries) nentries_use=nentries_max;
 
    Long64_t nbytes = 0, nb = 0;
+   int entry=0;
    for (Long64_t jentry=0; jentry<nentries_use;jentry++) {
       Long64_t ientry = LoadTree(jentry);
       
@@ -354,7 +364,9 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 	  //break; ///TEST for synch. ntuple
 	}
 	httTree->Fill();
-	SyncDATA->fill(httEvent);
+	SyncDATA->fill(httEvent,httJetCollection,&bestPair,isMC);
+	SyncDATA->entry=entry++;
+	SyncDATA->fileEntry=jentry;
 	t_TauCheck->Fill();
 
 	hStats->Fill(2);//Number of events saved to ntuple
@@ -525,7 +537,7 @@ void HTauTauTreeFromNanoBase::fillEvent(){
     //FIXMEhttEvent->setGenPV(TVector3(pvGen_x,pvGen_y,pvGen_z));
 
     TLorentzVector genBosonP4, genBosonVisP4;
-    double ptReWeight = 1., ptReWeightSusy = 1.;
+    double ptReWeight = 1., ptReWeight_r1 = 1., ptReWeightSusy = 1.;
     if( findBosonP4(genBosonP4,genBosonVisP4) ){
       //std::cout<<"GenBos found! M="<<genBosonP4.M()<<", visM="<<genBosonVisP4.M()<<std::endl;
       httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
@@ -543,10 +555,14 @@ void HTauTauTreeFromNanoBase::fillEvent(){
 	double antitopPt = antitopP4.Perp();
 	double weightTop = exp(0.0615-0.0005*topPt);
 	double weightAntitop= exp(0.0615-0.0005*antitopPt);
+	double weightTop_r1 = exp(0.156-0.00137*topPt);
+	double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
 	ptReWeight = sqrt(weightTop*weightAntitop);
+	ptReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
       }
     }
     httEvent->setPtReWeight(ptReWeight);
+    httEvent->setPtReWeightR1(ptReWeight_r1);
     httEvent->setPtReWeightSUSY(ptReWeightSusy);
 
     for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart){
@@ -710,6 +726,9 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex){
   for(unsigned int iJet=0;iJet<nJet;++iJet){
 
     if(!jetSelection(iJet, bestPairIndex)) continue;
+    if (Jet_pt[iJet]<20) continue;
+    if (std::abs(Jet_eta[iJet])>4.7) continue;
+
     HTTParticle aJet;
 
     TLorentzVector p4;

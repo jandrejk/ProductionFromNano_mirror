@@ -1,5 +1,7 @@
 #include "HTTEvent.h"
 #include "TTree.h"
+#include "TLorentzVector.h"
+
 
 #ifndef __syncDATA__
 #define __syncDATA__
@@ -318,7 +320,7 @@ class syncDATA
   ~syncDATA(){}  
 
   void setDefault();
-  void fill(HTTEvent *ev);
+  void fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, bool isMC);
   void initTree(TTree *t, bool isMC);
 
   /*
