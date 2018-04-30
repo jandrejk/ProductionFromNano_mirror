@@ -7,8 +7,8 @@ from PSet import process
 
 #doSvFit = True
 doSvFit = False
-#applyRecoil=True
-applyRecoil=False
+applyRecoil=True
+#applyRecoil=False
 if doSvFit :
     print "Run with SVFit computation"
 if applyRecoil :
@@ -40,6 +40,9 @@ fileNames = [
     "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
 ]
 
+#nevents=-1      #all
+nevents=5000
+
 lumisToProcess = process.source.lumisToProcess
 #import FWCore.ParameterSet.Config as cms
 #lumisToProcess = cms.untracked.VLuminosityBlockRange( ("1:2047-1:2047", "1:2048-1:2048", "1:6145-1:6145", "1:4098-1:4098", "1:3-1:7", "1:6152-1:6152", "1:9-1:11", "1:273-1:273", "1:4109-1:4109", "1:4112-1:4112", "1:4115-1:4116") )
@@ -57,12 +60,16 @@ for name in fileNames:
     aROOTFile = TFile.Open(aFile)
     aTree = aROOTFile.Get("Events")
     print "TTree entries: ",aTree.GetEntries()
-    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(5000)
+    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
+#    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
 
-#    print "Making the TauTau tree"
-#    aROOTFile = TFile.Open(aFile)
-#    aTree = aROOTFile.Get("Events")
-#    HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
+    print "Making the TauTau tree"
+    aROOTFile = TFile.Open(aFile)
+    aTree = aROOTFile.Get("Events")
+    HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
+
+    if nevents>0: break
+
 
 #Produce framework report required by CRAB
 print "Generate framework report for CRAB"

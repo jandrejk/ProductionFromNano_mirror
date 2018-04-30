@@ -160,7 +160,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   leptonPropertiesList.push_back("Tau_chargedIso");
   leptonPropertiesList.push_back("Tau_neutralIso");
   leptonPropertiesList.push_back("Tau_puCorr");
-  leptonPropertiesList.push_back("Tau_genPartFlav");
+  leptonPropertiesList.push_back("genPartFlav");
   //leptonPropertiesList.push_back("daughters_isGoodTriggerType");
   //leptonPropertiesList.push_back("daughters_FilterFired");
   leptonPropertiesList.push_back("isGoodTriggerType");
@@ -194,33 +194,39 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1);
   triggerBits_.back().leg1Pt=22;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoTkMu22";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<3);
   triggerBits_.back().leg1Pt=22;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoTkMu22_eta2p1";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<3);
   triggerBits_.back().leg1Pt=22;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoMu22_eta2p1";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1);
   triggerBits_.back().leg1Pt=22;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoMu24";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1);
   triggerBits_.back().leg1Pt=24;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoTkMu24";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<3);
   triggerBits_.back().leg1Pt=24;
+  triggerBits_.back().leg1L1Pt=-1;
   // Mu tauh triggers
   ///2nd mu bit (1<<1) for IsoMuon (not sure if correctly encoded in NanoAOD for 80X)
   ///3rd mu bit (1<<2) for mu-tau overlap (should be OK)
@@ -231,33 +237,49 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
   triggerBits_.back().leg1Pt=19;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<5);
   triggerBits_.back().leg2Pt=20;
+  triggerBits_.back().leg2L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
   triggerBits_.back().leg1Pt=19;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<5);
   triggerBits_.back().leg2Pt=20;
+  triggerBits_.back().leg2L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoMu21_eta2p1_LooseIsoPFTau20_SingleL1";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
   triggerBits_.back().leg1Pt=21;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<5);
   triggerBits_.back().leg2Pt=20;
+  triggerBits_.back().leg2L1Pt=-1;
+
+  //Single e triggers
+  triggerBits_.push_back(aTrgData);
+  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+  triggerBits_.back().leg1Id=15;
+  triggerBits_.back().leg1BitMask=(1<<0); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
+  triggerBits_.back().leg1Pt=25;
+  triggerBits_.back().leg1L1Pt=-1;
+
   // Single tauh triggers
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_VLooseIsoPFTau120_Trk50_eta2p1";
   triggerBits_.back().leg1Id=15;
   triggerBits_.back().leg1BitMask=(1<<2);//nothing good for 80X
   triggerBits_.back().leg1Pt=120;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_VLooseIsoPFTau140_Trk50_eta2p1";
   triggerBits_.back().leg1Id=15;
@@ -271,30 +293,36 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   triggerBits_.back().leg1BitMask=(1<<8);
   triggerBits_.back().leg1Pt=35;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<8);
   triggerBits_.back().leg2Pt=35;
   triggerBits_.back().leg2Eta=2.1;
+  triggerBits_.back().leg2L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg";
   triggerBits_.back().leg1Id=15;
   triggerBits_.back().leg1BitMask=(1<<8);
   triggerBits_.back().leg1Pt=35;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<8);
   triggerBits_.back().leg2Pt=35;
   triggerBits_.back().leg2Eta=2.1;
+  triggerBits_.back().leg2L1Pt=-1;
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_DoubleMediumCombinedIsoPFTau40_Trk1_eta2p1_Reg";
   triggerBits_.back().leg1Id=15;
   triggerBits_.back().leg1BitMask=(1<<8);
   triggerBits_.back().leg1Pt=40;
   triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
   triggerBits_.back().leg2BitMask=(1<<8);
   triggerBits_.back().leg2Pt=40;
   triggerBits_.back().leg2Eta=2.1;
+  triggerBits_.back().leg2L1Pt=-1;
 
   ////////////////////////////////////////////////////////////
   ///Filter bits to check
@@ -330,7 +358,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
       httEvent->clear();
       SyncDATA->setDefault();
 
-      //if(jentry%1000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
+      if(jentry%10000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
       //Check if event is contained in JSon
       if( !eventInJson() ) continue;
       //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event in JSon"<<std::endl;//FIXME
@@ -541,9 +569,9 @@ void HTauTauTreeFromNanoBase::fillEvent(){
     if( findBosonP4(genBosonP4,genBosonVisP4) ){
       //std::cout<<"GenBos found! M="<<genBosonP4.M()<<", visM="<<genBosonVisP4.M()<<std::endl;
       httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
-      ptReWeight = getPtReweight(genBosonP4);
+      ptReWeight = getPtReweight(genBosonP4); //???
       bool doSUSY = true;
-      ptReWeightSusy = getPtReweight(genBosonP4,doSUSY);
+      ptReWeightSusy = getPtReweight(genBosonP4,doSUSY); //Z pt rew?
     }
     else {
       TLorentzVector topP4, antitopP4;
@@ -962,8 +990,8 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 
   if(name=="mc_match") return getMCMatching(index,colType);
   
-  if(name=="isGoodTriggerType") return getTriggerMatchning(index,false,colType);
-  if(name=="FilterFired") return getTriggerMatchning(index,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
+  if(name=="isGoodTriggerType") return getTriggerMatching(index,false,colType);
+  if(name=="FilterFired") return getTriggerMatching(index,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
 
   if(colType=="Electron"){
     if(name.find("Muon_")!=std::string::npos ||
@@ -1300,7 +1328,7 @@ bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind){
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-int HTauTauTreeFromNanoBase::getTriggerMatchning(unsigned int index, bool checkBit, std::string colType){
+int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, bool checkBit, std::string colType){
 
   TLorentzVector p4_1;
   unsigned int particleId=0;
@@ -1341,23 +1369,32 @@ int HTauTauTreeFromNanoBase::getTriggerMatchning(unsigned int index, bool checkB
       TLeaf *leaf = branch->FindLeaf(triggerBits_[iTrg].path_name.c_str());
       decision = leaf!=nullptr ? leaf->GetValue() : false;
     }
+    //  int xx=triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos;
+    //    if (triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos) std::cout << triggerBits_[iTrg].path_name << " " << decision << " " << particleId  << std::endl;
     if(!decision) continue; // do not check rest if trigger is not fired
     //check legs
     decision = false;
     //first leg
     if(particleId==triggerBits_[iTrg].leg1Id){
       for(unsigned int iObj=0; iObj<nTrigObj; ++iObj){
+	//	if (xx) std::cout<<"1"<<std::endl;
 	if(TrigObj_id[iObj]!=(int)particleId) continue;
+	//	if (xx) std::cout<<"2"<<std::endl;
 	TLorentzVector p4_trg;
 	p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
 			    TrigObj_eta[iObj],
 			    TrigObj_phi[iObj],
 			    0.);
 	if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+	//	if (xx) std::cout<<"3"<<std::endl;
 	if( triggerBits_[iTrg].leg1Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg1Pt) ) continue;
+	//	if (xx) std::cout<<"4"<<std::endl;
 	if( triggerBits_[iTrg].leg1Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg1Eta) ) continue;
+	//	if (xx) std::cout<<"5 "<< triggerBits_[iTrg].leg1L1Pt << ">0? " << TrigObj_l1pt[iObj] << " > " << triggerBits_[iTrg].leg1L1Pt  << std::endl;
 	if( triggerBits_[iTrg].leg1L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg1L1Pt) ) continue;
+	//	if (xx) std::cout<<"6"<<std::endl;
 	if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+	//	if (xx) std::cout<<"7"<<std::endl;
 	decision = true;
 	if(decision) break;
       }
@@ -1439,36 +1476,6 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
     bool isFinal=getDirectDaughterIndexes(daughterIndexes,(int)iGen,false);//store neutrinos for further use
     if(!isFinal) continue;
 
-    /*MB: old code from times when statusFlags were not available
-    bool fromHardProcessFinalState = false; //MB: note that it is actually not checked if the particles are final state ones!
-    unsigned int firstCp_idx = findFirstCopy(iGen);
-    if(GenPart_status[firstCp_idx]==3 || (GenPart_status[firstCp_idx]>20 && GenPart_status[firstCp_idx]<30)) fromHardProcessFinalState |= true;
-    if(!fromHardProcessFinalState && GenPart_status[firstCp_idx]==22){
-      std::vector<unsigned int> fsrIndexes;
-      getDirectDaughterIndexes(fsrIndexes,(int)firstCp_idx);
-      bool fsrBranching = false;
-      for(unsigned iFsr=0; iFsr<fsrIndexes.size(); ++iFsr){
-	if(GenPart_pdgId[fsrIndexes[iFsr]]==GenPart_pdgId[firstCp_idx] && GenPart_status[fsrIndexes[iFsr]]>50 && GenPart_status[fsrIndexes[iFsr]]<60) fsrBranching |= true;
-      }
-      if(!fsrBranching) fromHardProcessFinalState |= true;
-    }
-    unsigned int mother_idx = GenPart_genPartIdxMother[firstCp_idx]<0?firstCp_idx:GenPart_genPartIdxMother[firstCp_idx];
-    unsigned int mother_absPdgId = std::abs(GenPart_pdgId[mother_idx]);
-    bool mother_fromME = (GenPart_status[mother_idx]==3 || (GenPart_status[mother_idx]>20 && GenPart_status[mother_idx]<30)); // from matrix element
-    if(mother_absPdgId==23 || //assume that it is prompt if from Z
-       mother_absPdgId==24 || //W+-
-       mother_absPdgId==25 || //h
-       mother_absPdgId==35 || //H
-       mother_absPdgId==36 || //A
-       mother_absPdgId==32 || //Z'
-       mother_absPdgId==33 || //Z''
-       mother_absPdgId==34 || //W'
-       mother_absPdgId==37 || //H+-
-       mother_fromME || //or comes from ME
-       false) {
-      fromHardProcessFinalState |= true;
-    }*/
-    /*MB: "statusFlags().fromHardProcess()                      * 256   +" <<8 */
     bool fromHardProcessFinalState = ( (GenPart_statusFlags[iGen] & (1<<8)) == (1<<8) );
     bool isElectron = (absPdgId == 11);
     bool isMuon = (absPdgId == 13);

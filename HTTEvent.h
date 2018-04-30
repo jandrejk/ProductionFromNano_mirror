@@ -288,7 +288,7 @@ class HTTParticle{
   ///calculated with respect to AOD vertex, refitted and generated vertex.
   TVector3 pca, pcaRefitPV, pcaGenPV;
 
-  ///Vector of vaious particle properties.
+  ///Vector of various particle properties.
   ///Index generated automatically during conversion from
   ///LLR ntuple format
   std::vector<Double_t> properties;

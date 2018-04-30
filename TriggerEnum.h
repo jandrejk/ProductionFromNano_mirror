@@ -7,10 +7,11 @@ HLT_IsoTkMu24 = 5,
 HLT_IsoMu19_eta2p1_LooseIsoPFTau20 = 6, 
 HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1 = 7, 
 HLT_IsoMu21_eta2p1_LooseIsoPFTau20_SingleL1 = 8, 
-HLT_VLooseIsoPFTau120_Trk50_eta2p1 = 9, 
-HLT_VLooseIsoPFTau140_Trk50_eta2p1 = 10, 
-HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg = 11, 
-HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg = 12, 
-HLT_DoubleMediumCombinedIsoPFTau40_Trk1_eta2p1_Reg = 13, 
-NONE = 14
+HLT_Ele25_eta2p1_WPTight_Gsf = 9, 
+HLT_VLooseIsoPFTau120_Trk50_eta2p1 = 10, 
+HLT_VLooseIsoPFTau140_Trk50_eta2p1 = 11, 
+HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg = 12, 
+HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg = 13, 
+HLT_DoubleMediumCombinedIsoPFTau40_Trk1_eta2p1_Reg = 14, 
+NONE = 15
 };

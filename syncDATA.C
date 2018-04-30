@@ -2,7 +2,11 @@
 
 const float DEF = -10.;
 
+  const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
+  const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
+
 void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, bool isMC){
+
   lumiWeight=DEF;
   run_syncro=ev->getRunId();
   lumi_syncro=ev->getLSId();
@@ -11,16 +15,26 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   //  fileEntry=DEF; //filled in main loop
   matchXTrig_obj=DEF;
 
+  int pdg1=std::abs(pair->getLeg1().getProperty(PropertyEnum::pdgId));
+  int pdg2=std::abs(pair->getLeg2().getProperty(PropertyEnum::pdgId));
+  unsigned genFlav1=pair->getLeg1().getProperty(PropertyEnum::genPartFlav);
+  unsigned genFlav2=pair->getLeg2().getProperty(PropertyEnum::genPartFlav);
+
   npv=ev->getNPV();
   npvGood=DEF;
   npu=ev->getNPU();
   rho=ev->getRho();
-  gen_match_1=pair->getLeg1().getProperty(PropertyEnum::genPartFlav); //TODO (only correct for taus)
-  gen_match_2=pair->getLeg2().getProperty(PropertyEnum::genPartFlav); //TODO (only correct for taus)
+
+  if (pdg1==15)      gen_match_1=genFlav1;
+  else if (pdg1==13) gen_match_1=gen_mu_map[genFlav1];
+  else if (pdg1==11) gen_match_1=gen_el_map[genFlav1];
+
+  if (pdg2==15)      gen_match_2=genFlav2;
+  else if (pdg2==13) gen_match_2=gen_mu_map[genFlav2];
+  else if (pdg2==11) gen_match_2=gen_el_map[genFlav2];
+
   genPt_1=DEF;
   genPt_2=DEF;
-  gen_match_jetId_1=DEF;
-  gen_match_jetId_2=DEF;
 
   if (isMC){
     trk_sf = 1.;
@@ -61,30 +75,53 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   zpt_weight_statpt40down=DEF;
   zpt_weight_statpt80up=DEF;
   zpt_weight_statpt80down=DEF;
-  gen_Mll=DEF;
-  gen_ll_px=DEF;
-  gen_ll_py=DEF;
-  gen_ll_pz=DEF;
-  gen_vis_Mll=DEF;
-  gen_ll_vis_px=DEF;
-  gen_ll_vis_py=DEF;
-  gen_ll_vis_pz=DEF;
+
+  TLorentzVector ll=ev->getGenBosonP4(false);
+  TLorentzVector llvis=ev->getGenBosonP4(true);
+  gen_Mll=ll.M();
+  gen_ll_px=ll.Px();
+  gen_ll_py=ll.Py();
+  gen_ll_pz=ll.Pz();
+  gen_vis_Mll=llvis.M();
+  gen_ll_vis_px=llvis.Px();
+  gen_ll_vis_py=llvis.Py();
+  gen_ll_vis_pz=llvis.Pz();
+
   gen_top_pt_1=DEF;
   gen_top_pt_2=DEF;
   genJets=DEF;
-  genJet_match_1=DEF;
-  genJet_match_2=DEF;
   matchedJetPt03_1=DEF;
   matchedJetPt05_1=DEF;
   matchedJetPt03_2=DEF;
   matchedJetPt05_2=DEF;
   //////////////////////////////////////////////////////////////////  
-  trg_singlemuon=DEF; //fires OR of HLT_IsoMu22, HLT_IsoTkMu22, HLT_IsoMu22eta2p1, HLT_IsoTkMu22_eta2p1
-  trg_mutaucross=DEF;
-  trg_singleelectron=DEF; //fires HLT_Ele25_eta2p1_WPTight_Gsf
-  trg_singletau=DEF; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
-  trg_doubletau=DEF; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
+
+  //this is quite slow, calling the function for each trigger item...
+  if ( pdg1==13 && pdg2==15 ){ //mu-tau
+    trg_singlemuon=  
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu22)          ||
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu22_eta2p1)   ||
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22)        ||
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22_eta2p1);
+    trg_mutaucross=
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) ) ||
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) );
+  } else if ( pdg1==11 && pdg2==15 ){ //e-tau
+    trg_singleelectron=
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_Ele25_eta2p1_WPTight_Gsf);
+  } else if ( pdg1==15 && pdg2==15 ){ //tau-tau
+    trg_singletau=
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau120_Trk50_eta2p1) || 
+      pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau120_Trk50_eta2p1) ||
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau140_Trk50_eta2p1) || 
+      pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau140_Trk50_eta2p1);
+    trg_doubletau=
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) ) ||
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) );
+  }
+
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+
   passBadMuonFilter=DEF;
   passBadChargedHadronFilter=DEF;
   Flag_HBHENoiseFilter=DEF;
@@ -260,6 +297,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
     jrawf_1=jets.at(0).getProperty(PropertyEnum::rawFactor);
     jmva_1=jets.at(0).getProperty(PropertyEnum::btagCMVA);
     jcsv_1=jets.at(0).getProperty(PropertyEnum::btagCSVV2);
+    gen_match_jetId_1=jets.at(0).getProperty(PropertyEnum::partonFlavour);
+    genJet_match_1=0;
   }
   if ( jets.size()>=2 ){
     jpt_2=jets.at(1).getP4().Pt();
@@ -271,6 +310,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
     jrawf_2=jets.at(1).getProperty(PropertyEnum::rawFactor);
     jmva_2=jets.at(1).getProperty(PropertyEnum::btagCMVA);
     jcsv_2=jets.at(1).getProperty(PropertyEnum::btagCSVV2);
+    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
+    genJet_match_2=0;
 
     TLorentzVector j1(jets.at(0).getP4());
     TLorentzVector j2(jets.at(1).getP4());
@@ -394,7 +435,7 @@ void syncDATA::setDefault(){
   lumiWeight=DEF;
   run_syncro=DEF;
   lumi_syncro=DEF;
-  evt_syncro=DEF;
+  evt_syncro=0; //unsigned
   entry=DEF;
   fileEntry=DEF;
   matchXTrig_obj=DEF;

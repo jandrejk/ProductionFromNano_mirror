@@ -75,7 +75,7 @@ public :
 			      const TVector2 &aMET, const TMatrixD &covMET);
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
   int getMCMatching(unsigned int index, std::string colType="");
-  int getTriggerMatchning(unsigned int index, bool checkBit=false, std::string colType="");
+  int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
   int getMetFilterBits();
   double getPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
   bool isGoodToMatch(unsigned int ind);
