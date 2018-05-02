@@ -40,8 +40,8 @@ fileNames = [
     "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
 ]
 
-#nevents=-1      #all
-nevents=5000
+nevents=-1      #all
+#nevents=5000
 
 lumisToProcess = process.source.lumisToProcess
 #import FWCore.ParameterSet.Config as cms

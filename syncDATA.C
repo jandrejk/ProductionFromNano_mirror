@@ -5,7 +5,7 @@ const float DEF = -10.;
   const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
   const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 
-void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, bool isMC){
+void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
 
   lumiWeight=DEF;
   run_syncro=ev->getRunId();
@@ -143,11 +143,12 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
 
   //////////////////////////////////////////////////////////////////  
   HTTParticle leg1=pair->getLeg1();
-  pt_1=leg1.getP4().Pt();
-  phi_1=leg1.getP4().Phi();
-  eta_1=leg1.getP4().Eta();
+  TLorentzVector leg1P4=leg1.getP4();
+  pt_1=leg1P4.Pt();
+  phi_1=leg1P4.Phi();
+  eta_1=leg1P4.Eta();
   eta_SC_1=eta_1+leg1.getProperty(PropertyEnum::deltaEtaSC);
-  m_1=leg1.getP4().M();
+  m_1=leg1P4.M();
   q_1=leg1.getCharge();
   d0_1=leg1.getProperty(PropertyEnum::dxy);
   dZ_1=leg1.getProperty(PropertyEnum::dz);
@@ -220,10 +221,11 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   
   //////////////////////////////////////////////////////////////////
   HTTParticle leg2=pair->getLeg2();
-  pt_2=leg2.getP4().Pt();
-  phi_2=leg2.getP4().Phi();
-  eta_2=leg2.getP4().Eta();
-  m_2=leg2.getP4().M();
+  TLorentzVector leg2P4=leg2.getP4();
+  pt_2=leg2P4.Pt();
+  phi_2=leg2P4.Phi();
+  eta_2=leg2P4.Eta();
+  m_2=leg2P4.M();
   q_2=leg2.getCharge();
   d0_2=leg2.getProperty(PropertyEnum::dxy);
   dZ_2=leg2.getProperty(PropertyEnum::dz);
@@ -293,6 +295,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   njetsUp=njets;
   njetsDown=njets;
   njetspt20=jets.size();
+  TLorentzVector j1;
+  TLorentzVector j2;
 
   if ( jets.size()>=1 ){
     jpt_1=jets.at(0).getP4().Pt();
@@ -306,6 +310,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
     jcsv_1=jets.at(0).getProperty(PropertyEnum::btagCSVV2);
     gen_match_jetId_1=jets.at(0).getProperty(PropertyEnum::partonFlavour);
     genJet_match_1=0;
+    j1=jets.at(0).getP4();
   }
   if ( jets.size()>=2 ){
     jpt_2=jets.at(1).getP4().Pt();
@@ -319,9 +324,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
     jcsv_2=jets.at(1).getProperty(PropertyEnum::btagCSVV2);
     gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
     genJet_match_2=0;
+    jeta1eta2=jeta_1*jeta_2;
+    lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
 
-    TLorentzVector j1(jets.at(0).getP4());
-    TLorentzVector j2(jets.at(1).getP4());
+    j2=jets.at(1).getP4();
     TLorentzVector jj=j1+j2;
 
     mjj=jj.M();
@@ -416,36 +422,129 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   if( pdg1==15 && pdg2==15 ) passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
   passesThirdLepVeto=!( ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto) && ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto) );
   passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
-  passesDiElectronVeto=1; //TODO
+  passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
   //////////////////////////////////////////////////////////////////
   dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
   extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
   extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
   //////////////////////////////////////////////////////////////////
-  pzetavis=DEF;
-  pzetamiss=DEF;
-  dzeta=DEF;
+  if ( ( pdg1==11 && pdg2==13 ) || ( pdg1==13 && pdg2==11 ) ){
+    double zetaX = TMath::Cos(phi_1) + TMath::Cos(phi_2);
+    double zetaY = TMath::Sin(phi_1) + TMath::Sin(phi_2);
+    double zetaR = TMath::Sqrt(zetaX*zetaX + zetaY*zetaY);
+    if ( zetaR > 0. ) {
+      zetaX /= zetaR;
+      zetaY /= zetaR;
+    }
+    pzetavis =  (leg1P4.Px() + leg2P4.Px())*zetaX + (leg1P4.Py() + leg2P4.Py())*zetaY;
+    pzetamiss = met_ex*zetaX + met_ey*zetaY;
+    dzeta = this->pzetamiss + (pzetavis - 1.85 * pzetavis);
+  }
   //////////////////////////////////////////////////////////////////
-  pt_tt=DEF;
-  pt_vis=DEF;
+  TLorentzVector vis=leg1P4+leg2P4;
+  TLorentzVector vmet; vmet.SetPtEtaPhiM(met,0,metphi,0);
+  TLorentzVector vis_met=vis+vmet;
+  pt_tt=vmet.Pt();
+  pt_vis=vis.Pt();
   mt_3=DEF;
   mt_tot=DEF;
-  pfpt_tt=DEF;
-  m_vis=DEF;
-  m_coll=DEF;
-  dphi=DEF;
-  //////////////////////////////////////////////////////////////////
-  pfmt_1=DEF;
-  pfmt_2=DEF;
-  pfpt_sum=DEF;
-  pt_sum=DEF;
-  dr_leptau=DEF;
-  jeta1eta2=DEF;
-  met_centrality=DEF;
-  mvamet_centrality=DEF;
-  lep_etacentrality=DEF;
-  sphericity=DEF;
+  pfpt_tt=pt_tt;
+  m_vis=vis.M();
+  dphi=leg1P4.DeltaPhi(leg2P4);
 
+  double x1 = pt_1 / ( pt_1 + met );
+  double x2 = pt_2 / ( pt_2 + met );
+  if( TMath::Cos( dphi ) > -0.95
+      && ( x1 > 0 && x1 < 1)
+      && ( x2 > 0 && x2 < 1)
+      ){
+    m_coll =  m_vis / sqrt( x1 * x2 ) ;
+  }
+  else m_coll = -999;
+
+  //////////////////////////////////////////////////////////////////
+  pfmt_1=mt_1;
+  pfmt_2=mt_2;
+  pt_sum=pt_1+pt_2+met;
+  pfpt_sum=pt_sum;
+  dr_leptau=leg1P4.DeltaR(leg2P4);
+  mvamet_centrality=DEF;
+
+  TLorentzVector v0=leg1P4*( 1/sqrt(  pow(leg1P4.Px(),2)+pow(leg1P4.Py(),2)  ) ); //lep, normalized in transverse plane
+  TLorentzVector v1=leg2P4*( 1/sqrt(  pow(leg2P4.Px(),2)+pow(leg2P4.Py(),2)  ) ); //tau, normalized in transverse plane
+  float omega=v1.DeltaPhi(v0);
+  float theta=-v0.Phi();
+  float x=(     met_ex * TMath::Sin(omega-theta)  - met_ey*TMath::Cos(omega-theta)   ) / TMath::Sin(omega); //x coord in lep-tau system
+  float y=(     met_ex * TMath::Sin(theta)        + met_ey*TMath::Cos(theta)         ) / TMath::Sin(omega); //y coord in lep-tau system
+  met_centrality=( x+y ) / sqrt(x*x + y*y);
+
+  vector<TLorentzVector> objs;
+  objs.push_back(leg1P4);
+  objs.push_back(leg2P4);
+  if ( njetspt20>0 ) objs.push_back(j1);
+  if ( njetspt20>1 ) objs.push_back(j2);
+  sphericity=calcSphericity(objs);
+
+}
+
+double syncDATA::calcSphericity(std::vector<TLorentzVector> p){
+
+  TMatrixD S(3,3);
+
+  std::vector<std::vector<double> > pvec;
+
+  float denom=0;
+  for (unsigned k=0; k<p.size(); k++){
+    double dtmp[3]={p.at(k).Px(),p.at(k).Py(),p.at(k).Pz()};
+    std::vector<double> vtmp(dtmp, dtmp+3);
+    pvec.push_back(vtmp);
+    denom+=dtmp[0]*dtmp[0]+dtmp[1]*dtmp[1]+dtmp[2]*dtmp[2];
+  }
+
+  for (int i=0; i<3; i++){
+    for (int j=0; j<3; j++){
+      float num=0;
+      for (unsigned k=0; k<pvec.size(); k++){
+        num+=pvec.at(k)[i]*pvec.at(k)[j];
+      }
+      S(i,j)=num/denom;
+    }
+  }
+  return calcSphericityFromMatrix(S);
+}
+
+double syncDATA::calcSphericityFromMatrix(TMatrixD M) {
+
+  //  TMatrixD M(3,3);
+  //  M.SetMatrixArray(A);
+
+  TMatrixDEigen V(M);
+  TMatrixD Eval = V.GetEigenValues();
+
+  double e1 = TMatrixDRow(Eval,0)(0);
+  double e2 = TMatrixDRow(Eval,1)(1);
+  double e3 = TMatrixDRow(Eval,2)(2);
+
+  std::vector<double> evalvector;
+  evalvector.push_back(e1);
+  evalvector.push_back(e2);
+  evalvector.push_back(e3);
+
+  //sort eigenvalues to get the lowest two for use in sphericity (lowest to highest order)
+  sort (evalvector.begin(), evalvector.end());
+
+  //error-checking
+  //this number should equal zero as the off-diagonal elements should all be zero in the eigenvalue matrix
+  //returns error value of -1
+  double check = TMatrixDRow(Eval,0)(1) + TMatrixDRow(Eval,0)(2) + TMatrixDRow(Eval,1)(0) + TMatrixDRow(Eval,1)(2) + TMatrixDRow(Eval,2)(0) + TMatrixDRow(Eval,2)(1);
+  if (check != 0.0) {double err = -1; return err;}
+
+  //for formula, see: http://cepa.fnal.gov/psm/simulation/mcgen/lund/pythia_manual/pythia6.3/pythia6301/node213.html
+  
+  double value = evalvector.at(0)+evalvector.at(1);
+  double spher = 1.5*value;
+
+  return spher;
 }
 
 void syncDATA::setDefault(){
@@ -756,7 +855,10 @@ void syncDATA::setDefault(){
   sphericity=DEF;
 }
 
-void syncDATA::initTree(TTree *t, bool isMC){
+void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
+
+  isMC=isMC_;
+  isSync=isSync_;
 
   t->Branch("fileEntry", &fileEntry);
   t->Branch("entry", &entry);
@@ -1067,7 +1169,6 @@ void syncDATA::initTree(TTree *t, bool isMC){
   t->Branch("bmva_2",&bmva_2);
   t->Branch("bcsv_2", &bcsv_2);
 
-  /*
   if(!isSync){
     t->Branch("pfpt_sum", &pfpt_sum);
     t->Branch("pt_sum", &pt_sum);
@@ -1133,6 +1234,5 @@ void syncDATA::initTree(TTree *t, bool isMC){
     t->Branch("addtau_mt", &addtau_mt);
     t->Branch("addtau_mvis", &addtau_mvis);
   }
-  */
 
 }

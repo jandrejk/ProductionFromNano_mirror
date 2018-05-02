@@ -1,6 +1,8 @@
 #include "HTTEvent.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
+//#include "TMatrixD.h"
+#include "TMatrixDEigen.h"
 
 
 #ifndef __syncDATA__
@@ -10,6 +12,9 @@ class syncDATA
 {
  public:
   //ClassDef(syncDATA,0);
+
+  int isSync;
+  int isMC;
 
   Float_t lumiWeight;
   Int_t run_syncro;
@@ -320,11 +325,13 @@ class syncDATA
   ~syncDATA(){}  
 
   void setDefault();
-  void fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, bool isMC);
-  void initTree(TTree *t, bool isMC);
+  void fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair);
+  void initTree(TTree *t, bool isMC_, bool isSync_);
 
-  /*
-  
+  double calcSphericity(std::vector<TLorentzVector> p);
+  double calcSphericityFromMatrix(TMatrixD M);
+
+
   //////////////////////////////////////////////////////////////////
   int nadditionalMu;
   vector<double> addmuon_pt;
@@ -379,10 +386,14 @@ class syncDATA
   vector<double> addtau_mt;
   vector<double> addtau_mvis;
   //////////////////////////////////////////////////////////////////
+
+  /*
   BTagCalibration calib;
   BTagCalibrationReader reader;
+
   int whichDilepton;
   int whichDilepton_addTaus;
+
   vector<float> top_pt;
   vector<RecObj> v_mu;
   vector<RecObj> v_trailMu;
@@ -408,7 +419,6 @@ class syncDATA
   RecObj s_MVAmet;
   RecObj s_PFmet_NoRecoilCorr;
   RecObj s_PFmet;
-
   */
 
 };

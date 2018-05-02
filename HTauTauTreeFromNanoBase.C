@@ -125,7 +125,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   if(!isSync){
     t_TauCheck->SetMaxTreeSize(1000000);
   }
-  SyncDATA->initTree(t_TauCheck, isMC);
+  SyncDATA->initTree(t_TauCheck, isMC, isSync);
 
   leptonPropertiesList.push_back("pdgId");
   leptonPropertiesList.push_back("charge");
@@ -397,7 +397,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 	  //break; ///TEST for synch. ntuple
 	}
 	httTree->Fill();
-	SyncDATA->fill(httEvent,httJetCollection,&bestPair,isMC);
+	SyncDATA->fill(httEvent,httJetCollection,&bestPair);
 	SyncDATA->entry=entry++;
 	SyncDATA->fileEntry=jentry;
 	t_TauCheck->Fill();
@@ -556,6 +556,8 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillEvent(){
 
+  httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,1); //only set explicitly for mutau
+  httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,1); //only set explicitly for etau
 
   httEvent->setRun(run);
   httEvent->setEvent(event);
