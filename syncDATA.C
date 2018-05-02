@@ -122,22 +122,26 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
 
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
 
-  passBadMuonFilter=DEF;
-  passBadChargedHadronFilter=DEF;
-  Flag_HBHENoiseFilter=DEF;
-  Flag_HBHENoiseIsoFilter=DEF;
-  Flag_EcalDeadCellTriggerPrimitiveFilter=DEF;
-  Flag_goodVertices=DEF;
-  Flag_eeBadScFilter=DEF;
-  Flag_globalTightHalo2016Filter=DEF;
+  passBadMuonFilter=ev->getFilter(FilterEnum::Flag_muonBadTrackFilter); //?
+  passBadChargedHadronFilter=ev->getFilter(FilterEnum::Flag_chargedHadronTrackResolutionFilter); //?
+
+  Flag_HBHENoiseFilter=ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
+  Flag_HBHENoiseIsoFilter=ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
+  Flag_EcalDeadCellTriggerPrimitiveFilter=ev->getFilter(FilterEnum::Flag_EcalDeadCellTriggerPrimitiveFilter);
+  Flag_goodVertices=ev->getFilter(FilterEnum::Flag_goodVertices);
+  Flag_eeBadScFilter=ev->getFilter(FilterEnum::Flag_eeBadScFilter);
+  Flag_globalTightHalo2016Filter=ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
+
+  Flag_badMuons=ev->getFilter(FilterEnum::Flag_muonBadTrackFilter); //??
+
   failBadGlobalMuonTagger=DEF;
   failCloneGlobalMuonTagger=DEF;
   Flag_duplicateMuons=DEF;
-  Flag_badMuons=DEF;
   Flag_noBadMuons=DEF;
-  passesMetMuonFilter=DEF;
+
+  passesMetMuonFilter=passBadMuonFilter && passBadChargedHadronFilter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_globalTightHalo2016Filter;
+
   //////////////////////////////////////////////////////////////////  
-  //  pt_1=pair->getLeg1P4().Pt();
   HTTParticle leg1=pair->getLeg1();
   pt_1=leg1.getP4().Pt();
   phi_1=leg1.getP4().Phi();
@@ -147,8 +151,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   q_1=leg1.getCharge();
   d0_1=leg1.getProperty(PropertyEnum::dxy);
   dZ_1=leg1.getProperty(PropertyEnum::dz);
-  mt_1=DEF;
-  iso_1=DEF; //?
+  mt_1=pair->getMTLeg1();
+  if (pdg1==15)      iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM);
+  else if (pdg1==13) iso_1=leg1.getProperty(PropertyEnum::pfRelIso04_all);
+  else if (pdg1==11) iso_1=leg1.getProperty(PropertyEnum::pfRelIso03_all);;
 
   UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
   againstElectronLooseMVA6_1=(bitmask & 0x2)>0;
@@ -213,7 +219,6 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   id_e_mva_nt_loose_1=DEF;
   
   //////////////////////////////////////////////////////////////////
-  //pt_2=pair->getLeg2P4().Pt();
   HTTParticle leg2=pair->getLeg2();
   pt_2=leg2.getP4().Pt();
   phi_2=leg2.getP4().Phi();
@@ -222,8 +227,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   q_2=leg2.getCharge();
   d0_2=leg2.getProperty(PropertyEnum::dxy);
   dZ_2=leg2.getProperty(PropertyEnum::dz);
-  mt_2=DEF;
-  iso_2=DEF; //?
+  mt_2=pair->getMTLeg2();
+  if (pdg2==15)      iso_2=leg2.getProperty(PropertyEnum::rawMVAoldDM);
+  else if (pdg2==13) iso_2=leg2.getProperty(PropertyEnum::pfRelIso04_all);
+  else if (pdg2==11) iso_2=leg2.getProperty(PropertyEnum::pfRelIso03_all);;
 
   bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
   againstElectronLooseMVA6_2=(bitmask & 0x2)>0;
@@ -361,15 +368,23 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   }
 
   //////////////////////////////////////////////////////////////////
-  met=DEF;
-  uncorrmet=DEF;
-  met_ex=DEF;
-  met_ey=DEF;
-  metphi=DEF;
-  corrmet=DEF;
-  corrmet_ex=DEF;
-  corrmet_ey=DEF;
-  corrmetphi=DEF;
+  met   =ev->getMET().Mod();
+  met_ex=ev->getMET().X();
+  met_ey=ev->getMET().Y();
+  metphi=ev->getMET().Phi();
+
+  metcov00=pair->getMETMatrix().at(0);
+  metcov01=pair->getMETMatrix().at(1);
+  metcov10=pair->getMETMatrix().at(2);
+  metcov11=pair->getMETMatrix().at(3);
+
+  uncorrmet=ev->getMET_uncorr().Mod();
+
+  corrmet=met;
+  corrmet_ex=met_ex;
+  corrmet_ey=met_ey;
+  corrmetphi=metphi;
+
   mvamet=DEF;
   mvamet_ex=DEF;
   mvamet_ey=DEF;
@@ -382,27 +397,30 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair, 
   mvacov01=DEF;
   mvacov10=DEF;
   mvacov11=DEF;
-  metcov00=DEF;
-  metcov01=DEF;
-  metcov10=DEF;
-  metcov11=DEF;
-  m_sv=DEF;
-  pt_sv=DEF;
+
+  m_sv=pair->getP4().M();
+  pt_sv=pair->getP4().Pt();
   //////////////////////////////////////////////////////////////////
   eleTauFakeRateWeight=DEF;
   muTauFakeRateWeight=DEF;
   antilep_tauscaling=DEF;
   //////////////////////////////////////////////////////////////////
-  passesIsoCuts=DEF;
-  passesLepIsoCuts=DEF;
-  passesTauLepVetos=DEF;
-  passesThirdLepVeto=DEF;
-  passesDiMuonVeto=DEF;
-  passesDiElectronVeto=DEF;
+  if (pdg2==15){
+    if (pdg1==15){passesIsoCuts=byVLooseIsolationMVArun2v1DBoldDMwLT_1 && byVLooseIsolationMVArun2v1DBoldDMwLT_2;} //tautau
+    else{passesIsoCuts=byVLooseIsolationMVArun2v1DBoldDMwLT_2;} //etau/mutau
+  }
+  if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
+
+  if( pdg1==13 && pdg2==15 ) passesTauLepVetos = againstElectronLooseMVA6_2 && againstMuonTight3_2;
+  if( pdg1==11 && pdg2==15 ) passesTauLepVetos = againstElectronTightMVA6_2 && againstMuonLoose3_2;
+  if( pdg1==15 && pdg2==15 ) passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
+  passesThirdLepVeto=!( ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto) && ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto) );
+  passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
+  passesDiElectronVeto=1; //TODO
   //////////////////////////////////////////////////////////////////
-  dilepton_veto=DEF;
-  extramuon_veto=DEF;
-  extraelec_veto=DEF;
+  dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
+  extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
+  extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
   //////////////////////////////////////////////////////////////////
   pzetavis=DEF;
   pzetamiss=DEF;

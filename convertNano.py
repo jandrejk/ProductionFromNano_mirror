@@ -63,10 +63,10 @@ for name in fileNames:
     HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
 #    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
 
-    print "Making the TauTau tree"
-    aROOTFile = TFile.Open(aFile)
-    aTree = aROOTFile.Get("Events")
-    HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
+#    print "Making the TauTau tree"
+#    aROOTFile = TFile.Open(aFile)
+#    aTree = aROOTFile.Get("Events")
+#    HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
 
     if nevents>0: break
 

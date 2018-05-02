@@ -68,6 +68,7 @@ public :
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   bool muonSelection(unsigned int index);
   bool electronSelection(unsigned int index);
+  bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
   void computeSvFit(HTTPair &aPair, HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL);
@@ -85,8 +86,13 @@ public :
   template<typename T> T getBranchValue(const char *branchAddress, unsigned int index);
   Double_t getProperty(std::string name, unsigned int index, std::string colType="");
   std::vector<Double_t> getProperties(const std::vector<std::string> & propertiesList, unsigned int index, std::string colType="");
+
+  Int_t getFilter(std::string name);
+  std::vector<Int_t> getFilters(const std::vector<std::string> & propertiesList);
+
   void writePropertiesHeader(const std::vector<std::string> & propertiesList);
   void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
+  void writeFiltersHeader(const std::vector<std::string> &filterBits);
   double getJecUnc(unsigned int index, std::string name="Total", bool up=true);
   static bool compareLeptons(const HTTParticle& i, const HTTParticle& j);
   static bool comparePairs(const HTTPair& i, const HTTPair& j);
@@ -116,6 +122,8 @@ public :
   TH2F* zptmass_histo, *zptmass_histo_SUSY;
   
   unsigned int bestPairIndex_;
+
+  int passMask_;
 
   ClassicSVfit *svFitAlgo_;
   RecoilCorrector* recoilCorrector_;

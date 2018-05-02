@@ -12,6 +12,7 @@
 #include "PropertyEnum.h"
 #include "JecUncEnum.h"
 #include "TriggerEnum.h"
+#include "FilterEnum.h"
 #include "SelectionBitsEnum.h"
 #include "AnalysisEnums.h"
 ///////////////////////////////////////////////////
@@ -83,7 +84,12 @@ class HTTEvent{
 
   void setMET(const TVector2 &aVector) {met = aVector;}
 
+  void setMET_uncorr(const TVector2 &aVector) {met_uncorr = aVector;}
+
   void setMETFilterDecision(unsigned int aMETFilterDecision) {metFilterDecision = aMETFilterDecision;}
+
+  void setFilters(const std::vector<Int_t> & aFilters) { filters = aFilters;}
+
   ////////////////////////
 
   ///Reset class data members
@@ -130,6 +136,8 @@ class HTTEvent{
 
   TVector2 getMET() const {return met;}
 
+  TVector2 getMET_uncorr() const {return met_uncorr;}
+
   const TVector3 & getGenPV() const {return genPV;}
 
   const TVector3 & getAODPV() const {return AODPV;}
@@ -143,6 +151,8 @@ class HTTEvent{
   bool checkSelectionBit(SelectionBitsEnum iBit) const {return selectionWord.TestBitNumber((unsigned int)iBit);}
 
   unsigned int getMETFilterDecision() const { return metFilterDecision;}
+
+  int getFilter(FilterEnum index) const {return (unsigned int)index<filters.size()?  filters[(unsigned int)index]: -999;}
 
  private:
 
@@ -205,11 +215,16 @@ class HTTEvent{
   ///Bit word coding event selection result
   TBits selectionWord;
 
-  //MET vector
+  //MET vector, uncorrected
+  TVector2 met_uncorr;
+
+  //MET vector, recoil corr
   TVector2 met;
 
   //MET filter decision
   unsigned int metFilterDecision;
+
+  std::vector<Int_t> filters;
 
 };
 

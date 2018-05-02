@@ -335,6 +335,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   filterBits_.push_back("Flag_chargedHadronTrackResolutionFilter");//bad ChargedCand filter?
   filterBits_.push_back("Flag_muonBadTrackFilter");//bad pfMuonFilter filter?
 
+  for ( unsigned ib=0; ib<filterBits_.size(); ib++ )
+    passMask_+=pow(2,ib);
+
   return;
 }
 /////////////////////////////////////////////////
@@ -365,10 +368,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 
       unsigned int bestPairIndex = Cut(ientry);
 
-      fillEvent();
+      fillEvent(); //could avoid doing this for each event if MC weight is filled differently!
 
       hStats->Fill(0);//Number of events analyzed
       hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
+
+      if ( failsGlobalSelection() ) continue;
 
       bestPairIndex_ = bestPairIndex;
 
@@ -407,7 +412,19 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
    writePropertiesHeader(leptonPropertiesList);
 
    writeTriggersHeader(triggerBits_);
+
+   writeFiltersHeader(filterBits_);
 }
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+bool HTauTauTreeFromNanoBase::failsGlobalSelection(){
+
+  //  if ( getMetFilterBits() != passMask_ ) return true;
+
+
+  return false;
+}
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry){
@@ -552,7 +569,11 @@ void HTauTauTreeFromNanoBase::fillEvent(){
 
   TVector2 metPF;
   metPF.SetMagPhi(MET_pt, MET_phi);
-  httEvent->setMET(metPF);
+  httEvent->setMET(metPF); //initial, recoil corrections if flag is set applied later on
+  httEvent->setMET_uncorr(metPF);
+
+  std::vector<Int_t> aFilters = getFilters(filterBits_);
+  httEvent->setFilters(aFilters);
 
   httEvent->setMETFilterDecision(getMetFilterBits());
 
@@ -958,7 +979,7 @@ bool HTauTauTreeFromNanoBase::buildPairs(){
       double mTLeg1 = TMath::Sqrt(2.*httLeptonCollection[iL1].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL1].getP4().Phi()-MET_phi)));
       double mTLeg2 = TMath::Sqrt(2.*httLeptonCollection[iL2].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL2].getP4().Phi()-MET_phi)));
       HTTPair aHTTpair;
-      aHTTpair.setP4(p4);
+      //      aHTTpair.setP4(p4);
       aHTTpair.setMET(met);
       aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
       aHTTpair.setMTLeg1(mTLeg1);
@@ -984,6 +1005,23 @@ template<class T> T HTauTauTreeFromNanoBase::getBranchValue(const char *branchAd
   }
   return aVector->at(index);
 }
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name){
+
+  TBranch *branch = fChain->GetBranch(name.c_str());
+  if(!branch){
+    if(firstWarningOccurence_)
+      std::cout<<"Branch: "<<name<<" not found in the TTree."<<std::endl;
+    return -999;
+  } else{
+    TLeaf *leaf = branch->FindLeaf(name.c_str());
+    bool decision = leaf!=nullptr ? leaf->GetValue() : false;
+    return decision;
+  }
+
+}
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType){
@@ -1126,6 +1164,22 @@ void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+void  HTauTauTreeFromNanoBase::writeFiltersHeader(const std::vector<std::string> &filterBits){
+
+  ofstream outputFile("FilterEnum.h");
+
+  outputFile<<"enum class FilterEnum { ";
+  for(unsigned int iItem=0;iItem<filterBits.size();++iItem){
+    std::string name = filterBits[iItem];
+    outputFile<<name<<" = "<<iItem<<", "<<std::endl;
+  }
+  outputFile<<"NONE"<<" = "<<filterBits.size()<<std::endl;
+  outputFile<<"};"<<std::endl;
+
+  outputFile.close();
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writePropertiesHeader(const std::vector<std::string> & propertiesList){
 
   ofstream outputFile("PropertyEnum.h");
@@ -1166,6 +1220,18 @@ std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<
   }
 
   return aProperties;
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::string> & filtersList){
+
+  std::vector<Int_t> aFilters;
+
+  for(auto propertyName:filtersList){
+    aFilters.push_back(getFilter(propertyName));
+  }
+
+  return aFilters;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
