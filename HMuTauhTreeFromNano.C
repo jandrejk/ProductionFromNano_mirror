@@ -55,10 +55,24 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
     httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;
 
 
-  bool tauBaselineSelection = tauP4.Pt()>20 && std::abs(tauP4.Eta())<2.3 &&
-    httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode)>0 &&
+  bool tauBaselineSelection = tauP4.Pt()>30 && std::abs(tauP4.Eta())<2.3 &&
+    httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode)>0.5 &&
     std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz))<0.2 &&
     (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))==1;
+
+  /*
+  bool triggerSelection_singlemu = muonP4.Pt()>23 &&
+    ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu22) ||
+      httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu22_eta2p1) ||
+      httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22) ||
+      httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22_eta2p1) );
+
+  bool triggerSelection_mutau = 
+    ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) && httLeptonCollection[indexTauLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) ) ||
+    ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && httLeptonCollection[indexTauLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && muonP4.Pt()<23 );
+
+  bool triggerSelection = triggerSelection_singlemu || triggerSelection_mutau;
+  */
 
   bool baselinePair = muonP4.DeltaR(tauP4) > 0.5;
   bool postSynchMuon = httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::pfRelIso04_all)<0.15;

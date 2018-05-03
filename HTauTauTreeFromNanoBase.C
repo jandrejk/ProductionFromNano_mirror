@@ -110,15 +110,17 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   std::string fileName = prefix+filePath.substr(location,filePath.size());
   httFile = new TFile(fileName.c_str(),"RECREATE");
   httEvent = new HTTEvent();
-  httTree = new TTree("HTauTauTree","");
-  httTree->SetDirectory(httFile);
+  //  httTree = new TTree("HTauTauTree","");
+  //  httTree->SetDirectory(httFile);
+  /*
   TBranch *eventBranch = httTree->Branch("HTTEvent.",&httEvent);
   TBranch *pairBranch = httTree->Branch("HTTPairCollection",&httPairCollection);
   TBranch *jetBranch = httTree->Branch("HTTJetCollection",&httJetCollection);
   TBranch *leptonBranch = httTree->Branch("HTTLeptonCollection",&httLeptonCollection);
   TBranch *genLeptonBranch = httTree->Branch("HTTGenLeptonCollection",&httGenLeptonCollection);
+  */
   hStats = new TH1F("hStats","Bookkeeping histogram",11,-0.5,10.5);
-  hStats->SetDirectory(httFile);
+  //  hStats->SetDirectory(httFile);
 
   SyncDATA = new syncDATA();
   t_TauCheck=new TTree("TauCheck","TauCheck");
@@ -396,7 +398,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
 	  computeSvFit(bestPair, type);
 	  //break; ///TEST for synch. ntuple
 	}
-	httTree->Fill();
+	//	httTree->Fill();
 	SyncDATA->fill(httEvent,httJetCollection,&bestPair);
 	SyncDATA->entry=entry++;
 	SyncDATA->fileEntry=jentry;
@@ -424,6 +426,19 @@ bool HTauTauTreeFromNanoBase::failsGlobalSelection(){
 
   return false;
 }
+
+/////////////////////////////////////////////////
+/*
+
+Building pairs:
+Cut
+  1 fillLeptons
+  2 buildPairs (fill info for all possible pairs, and sort them according to comparePairs)
+  3 pairSelection [channel-specific, e.g. in HMuTau...] (filter out pairs not fulfilling kinematic/ID/deltaR requirements)
+  4 bestPair (select pair with index 0)
+
+*/
+/////////////////////////////////////////////////
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -849,8 +864,9 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
   }//Electrons
   //Taus
   for(unsigned int iTau=0; iTau<nTau; ++iTau){
-    if( !(Tau_pt[iTau]>18) ) continue;
-    if( !Tau_idDecayMode[iTau] ) continue; //oldDMs
+    if( Tau_pt[iTau]<30 ) continue;
+    if( std::abs(Tau_eta[iTau])>2.3 ) continue;
+    if( Tau_idDecayMode[iTau]<0.5 ) continue; //oldDMs
     HTTParticle aLepton;
     TLorentzVector p4;
     p4.SetPtEtaPhiM(Tau_pt[iTau],
@@ -872,13 +888,20 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setPCA(pca);
     std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, "Tau");
     aLepton.setProperties(aProperties);
+
+    UChar_t bitmask=aLepton.getProperty(PropertyEnum::idMVAoldDM);
+    if ( !(bitmask & 0x1) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
+
+
     //FIXME: for synch tests, should be removed(?) -->
+    /*
     bool vlMVA=(((int)Tau_idMVAoldDM[iTau] & (1<<0))==(1<<0));
     bool vlMVANew = (((int)Tau_idMVAnewDM[iTau] & (1<<0))==(1<<0));
     //bool vlMVAR03 = (((int)Tau_idMVAoldDMdR03[iTau] & (1<<0))==(1<<0));
     bool lComb = (Tau_rawIso[iTau]<2.5 && Tau_photonsOutsideSignalCone[iTau]<0.1*Tau_pt[iTau]);
     if( !(vlMVA||vlMVANew||lComb) ) continue;
     //if( !(vlMVA) ) continue;
+    */
     //<--
     httLeptonCollection.push_back(aLepton);
   }//Taus
@@ -975,8 +998,8 @@ bool HTauTauTreeFromNanoBase::buildPairs(){
   for(unsigned int iL1=0; iL1<httLeptonCollection.size()-1; ++iL1){
     for(unsigned int iL2=iL1+1; iL2<httLeptonCollection.size(); ++iL2){
       if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
-      TLorentzVector p4 = httLeptonCollection[iL1].getP4()+httLeptonCollection[iL2].getP4();
-      if( !(p4.M()>0) ) continue;
+      //??      TLorentzVector p4 = httLeptonCollection[iL1].getP4()+httLeptonCollection[iL2].getP4();
+      //mb ??      if( !(p4.M()>0) ) continue;
       TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
       double mTLeg1 = TMath::Sqrt(2.*httLeptonCollection[iL1].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL1].getP4().Phi()-MET_phi)));
       double mTLeg2 = TMath::Sqrt(2.*httLeptonCollection[iL2].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL2].getP4().Phi()-MET_phi)));
@@ -1921,7 +1944,7 @@ bool HTauTauTreeFromNanoBase::getDirectDaughterIndexes(std::vector<unsigned int>
   bool isFinal=true;
   for(unsigned int iDau=0;iDau<nGenPart;++iDau){
     if(GenPart_genPartIdxMother[iDau]==(int)motherIndex){
-      unsigned int aPdgId = std::abs(GenPart_pdgId[iDau]);
+      int aPdgId = std::abs(GenPart_pdgId[iDau]);
       if(aPdgId==std::abs(GenPart_pdgId[motherIndex])){
 	isFinal=false;
 	//break;

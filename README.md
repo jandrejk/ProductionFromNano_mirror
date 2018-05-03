@@ -33,6 +33,10 @@ git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 # WAW production tools from NanoAOD
 git clone https://github.com/mbluj/ProductionFromNano.git WawTools/NanoAODTools
+# This is just needed to get rid of warnings
+git cms-addpkg FWCore/MessageLogger
+cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
+mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
 # compile
 scram b -j 4
 ```

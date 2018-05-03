@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
 import os
+import sys
 
-from ROOT import gSystem, TChain, TSystem, TFile
+from ROOT import gSystem, TChain, TSystem, TFile, TString
 from PSet import process
 
 #doSvFit = True
@@ -22,9 +23,26 @@ status *= gSystem.CompileMacro('NanoEventsSkeleton.C')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
+
+# xline=gSystem.GetMakeSharedLib()+' -Wattributes'
+# xline=xline.replace(' -W ',' -W -Wattributes ')
+# gSystem.SetMakeSharedLib(xline)
+# print 'MMM ',gSystem.GetMakeSharedLib()
+
+# yline=gSystem.GetMakeExe()+' -Wattributes'
+# yline=yline.replace(' -W ',' -W -Wattributes ')
+# gSystem.SetMakeExe(yline)
+# print 'NNN ',gSystem.GetMakeExe()
+
+stdout = sys.stdout
+sys.stdout = open('/tmp/pstd', 'w')
+stderr = sys.stderr
+sys.stderr = open('/tmp/perr', 'w')
 status *= gSystem.CompileMacro('HTauTauTreeFromNanoBase.C')
 status *= gSystem.CompileMacro('HMuTauhTreeFromNano.C')
 status *= gSystem.CompileMacro('HTauhTauhTreeFromNano.C')
+sys.stdout=stdout
+sys.stderr=stderr
 
 print "Compilation status: ",status
 if status==0:
@@ -33,15 +51,15 @@ if status==0:
 from ROOT import HMuTauhTreeFromNano, HTauhTauhTreeFromNano
 dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
 fileNames = [
+    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
+    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
     "0E6F4B78-CC12-E811-B37D-FA163EA12C78.root",
     "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
-    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
     "844BE355-CD12-E811-8871-FA163ED9B872.root",
-    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
 ]
 
-nevents=-1      #all
-#nevents=5000
+#nevents=-1      #all
+nevents=5000
 
 lumisToProcess = process.source.lumisToProcess
 #import FWCore.ParameterSet.Config as cms
