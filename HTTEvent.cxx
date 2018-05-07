@@ -93,8 +93,12 @@ void HTTParticle::clear(){
 ////////////////////////////////////////////////
 const TLorentzVector & HTTParticle::getNominalShiftedP4() const{
 
+  return p4;
+
   //Corrections of nominal tau-scale: https://twiki.cern.ch/twiki/bin/view/CMS/TauIDRecommendation13TeV#Tau_energy_scale
 
+  //Done in a different place now
+  /*
   //correct nominal scale of genuine taus
   if(std::abs(getPDGid())==15 && getProperty(PropertyEnum::mc_match)==5){
     int dm = getProperty(PropertyEnum::decayMode);
@@ -108,6 +112,7 @@ const TLorentzVector & HTTParticle::getNominalShiftedP4() const{
       return p4;
     }
     else return p4;
+  */
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////

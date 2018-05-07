@@ -344,7 +344,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
+void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_event){
+
+   check_event_number = sync_event;
 
    if (fChain == 0) return;
 
@@ -356,31 +358,41 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max){
    int entry=0;
    for (Long64_t jentry=0; jentry<nentries_use;jentry++) {
       Long64_t ientry = LoadTree(jentry);
-      
+     
       if (ientry < 0) break;
       nb = fChain->GetEntry(jentry);   nbytes += nb;
 
       httEvent->clear();
       SyncDATA->setDefault();
 
+      if (check_event_number>0 && event!=check_event_number) continue;
+      if (event==check_event_number) cout << "1" << endl;
+
       if(jentry%10000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
       //Check if event is contained in JSon
       if( !eventInJson() ) continue;
       //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event in JSon"<<std::endl;//FIXME
 
+      if (event==check_event_number) cout << "2" << endl;
+
       unsigned int bestPairIndex = Cut(ientry);
 
       fillEvent(); //could avoid doing this for each event if MC weight is filled differently!
+      if (event==check_event_number) cout << "3 " << bestPairIndex << endl;
 
       hStats->Fill(0);//Number of events analyzed
       hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
       if ( failsGlobalSelection() ) continue;
 
+      if (event==check_event_number) cout << "4 " << event << endl;
+
       bestPairIndex_ = bestPairIndex;
 
       if(bestPairIndex<9999){
 	//if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event with good pair"<<std::endl;//FIXME
+
+	if (event==check_event_number) cout << "5" << endl;
 
 	///Call pairSelection again to set selection bits for the selected pair.
         pairSelection(bestPairIndex);
@@ -445,26 +457,39 @@ Cut
 Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry){
 
   fillLeptons();
+
+  if (event==check_event_number) cout << "C1 " << endl;
+
   if( !(httLeptonCollection.size()>1) ) return 9999;
   //std::cout<<"leptons: "<<httLeptonCollection.size()<<std::endl;
 
+  if (event==check_event_number) cout << "C2 " << endl;
+
   //build pairs
   if(!buildPairs()) return 9999;
+
+  if (event==check_event_number) cout << "C3 " << httPairs_.size() << endl;
   //std::cout<<"pairs: "<<httPairs_.size()<<std::endl;
-  std::vector<unsigned int> pairIndexes;
+  std::vector<unsigned int> pairIndices;
   for(unsigned int iPair=0;iPair<httPairs_.size();++iPair){
-    if(pairSelection(iPair)) pairIndexes.push_back(iPair);
+    if (event==check_event_number) cout << "C4 A " << iPair << endl;
+    if(pairSelection(iPair)){
+      pairIndices.push_back(iPair);
+      if (event==check_event_number) cout << "C4 B " << iPair << endl;
+    }
   }
-  //std::cout<<"passed pairs: "<<pairIndexes.size()<<std::endl;
+  //std::cout<<"passed pairs: "<<pairIndices.size()<<std::endl;
+
+  if (event==check_event_number) cout << "C5 " << pairIndices.size() << endl;
   
-  return bestPair(pairIndexes);
+  return bestPair(pairIndices);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-unsigned int HTauTauTreeFromNanoBase::bestPair(std::vector<unsigned int> &pairIndexes){
+unsigned int HTauTauTreeFromNanoBase::bestPair(std::vector<unsigned int> &pairIndices){
 
   ///Pair are already sorted during the ntuple creation
-  if(!pairIndexes.empty()) return pairIndexes[0];
+  if(!pairIndices.empty()) return pairIndices[0];
   else return 9999;
 }
 /////////////////////////////////////////////////
@@ -828,7 +853,9 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
 
   //Muons
   for(unsigned int iMu=0; iMu<nMuon; ++iMu){
+    if (event==check_event_number) std::cout << "M1 " << Muon_pt[iMu] << std::endl;
     if( !(Muon_pt[iMu]>5) ) continue;
+    if (event==check_event_number) std::cout << "M2 " << Muon_pt[iMu] << std::endl;
     HTTParticle aLepton;
     TLorentzVector p4;
     p4.SetPtEtaPhiM(Muon_pt[iMu],
@@ -864,16 +891,43 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
   }//Electrons
   //Taus
   for(unsigned int iTau=0; iTau<nTau; ++iTau){
-    if( Tau_pt[iTau]<30 ) continue;
+    if (event==check_event_number) std::cout << "T1 " << Tau_pt[iTau] << std::endl;
     if( std::abs(Tau_eta[iTau])>2.3 ) continue;
     if( Tau_idDecayMode[iTau]<0.5 ) continue; //oldDMs
     HTTParticle aLepton;
+
+    float tauES = 0.;
+    int genMatch_=Tau_genPartFlav[iTau];
+    int dm_=Tau_decayMode[iTau];
+    if( genMatch_ == 5 ){       
+      if(dm_ == 0 ) tauES = Parameter.Tau.TES.one_prong_0p0;
+      if(dm_ == 1 ) tauES = Parameter.Tau.TES.one_prong_1p0;
+      if(dm_ == 10) tauES = Parameter.Tau.TES.three_prong_0p0;
+
+    }
+    if( genMatch_ == 1 ){       
+      if(dm_ == 0 ) tauES = Parameter.Electron.TES.one_prong_0p0;
+      if(dm_ == 1 ) tauES = Parameter.Electron.TES.one_prong_1p0;
+      if(dm_ == 10) tauES = Parameter.Electron.TES.three_prong_0p0;
+
+    }
+    if( genMatch_ == 2 ){       
+      if(dm_ == 0 ) tauES = Parameter.Muon.TES.one_prong_0p0;
+      if(dm_ == 1 ) tauES = Parameter.Muon.TES.one_prong_1p0;
+      if(dm_ == 10) tauES = Parameter.Muon.TES.three_prong_0p0;
+    }
+
+    if (event==check_event_number) std::cout << "T2 " << Tau_pt[iTau] << std::endl;
+    if( Tau_pt[iTau]*(1.0+tauES)<30 ) continue;
+    if (event==check_event_number) std::cout << "T3 " << Tau_pt[iTau]*(1.0+tauES) << std::endl;
+
     TLorentzVector p4;
-    p4.SetPtEtaPhiM(Tau_pt[iTau],
+    p4.SetPtEtaPhiM(Tau_pt[iTau]*(1.0+tauES),
 		    Tau_eta[iTau],
 		    Tau_phi[iTau],
-		    Tau_mass[iTau]);
-    TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
+		    Tau_mass[iTau]*(1.0+tauES) );
+
+
     aLepton.setP4(p4);
     TLorentzVector chargedP4;//approximate by leadTrack p4
     double leadTkPhi = Tau_phi[iTau]+Tau_leadTkDeltaPhi[iTau];
@@ -885,12 +939,14 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
 			   0.13957); //pi+/- mass
     aLepton.setChargedP4(chargedP4);
     aLepton.setNeutralP4(p4-chargedP4);
+    TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
     aLepton.setPCA(pca);
     std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, "Tau");
     aLepton.setProperties(aProperties);
 
     UChar_t bitmask=aLepton.getProperty(PropertyEnum::idMVAoldDM);
     if ( !(bitmask & 0x1) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
+    if (event==check_event_number) std::cout << "T4 " << Tau_pt[iTau]*(1.0+tauES) << " " << aLepton.getP4().Pt()  << std::endl;
 
 
     //FIXME: for synch tests, should be removed(?) -->
@@ -997,7 +1053,11 @@ bool HTauTauTreeFromNanoBase::buildPairs(){
   httPairs_.clear();
   for(unsigned int iL1=0; iL1<httLeptonCollection.size()-1; ++iL1){
     for(unsigned int iL2=iL1+1; iL2<httLeptonCollection.size(); ++iL2){
+
+      if (event==check_event_number) cout << "bP1 " << event << endl;
       if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
+      if (event==check_event_number) cout << "bP2 " << event << endl;
+
       //??      TLorentzVector p4 = httLeptonCollection[iL1].getP4()+httLeptonCollection[iL2].getP4();
       //mb ??      if( !(p4.M()>0) ) continue;
       TVector2 met; met.SetMagPhi(MET_pt, MET_phi);

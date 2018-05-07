@@ -11,6 +11,7 @@
 #undef NanoEventsSkeleton_cxx //undefine to protect againist problems with multile implementation
 #include "NanoEventsSkeleton.h"
 #include "syncDATA.h"
+#include "ParameterConfig.cc"
 
 //#include <TROOT.h>
 //#include <TChain.h>
@@ -134,13 +135,15 @@ public :
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
 
+  unsigned int check_event_number;
+
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
 
   HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<std::string> lumis = std::vector<std::string>(), string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
-  virtual void     Loop(Long64_t nentries_max=-1);
+  virtual void     Loop(Long64_t nentries_max=-1, unsigned int sync_event=-1);
 };
 
 #endif

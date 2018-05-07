@@ -2,9 +2,22 @@
 
 import os
 import sys
+import threading
 
 from ROOT import gSystem, TChain, TSystem, TFile, TString
 from PSet import process
+
+#def runFile( aFile ):
+#    aROOTFile = TFile.Open(aFile)
+#    aTree = aROOTFile.Get("Events")
+#    print "TTree entries: ",aTree.GetEntries()
+#    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
+##    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
+
+
+
+#sync_event=1400670
+sync_event=0
 
 #doSvFit = True
 doSvFit = False
@@ -19,7 +32,8 @@ if applyRecoil :
 #First we try to compile, and only then we start time consuming cmssw
 status = gSystem.CompileMacro('HTTEvent.cxx')
 status *= gSystem.CompileMacro('syncDATA.C')
-status *= gSystem.CompileMacro('NanoEventsSkeleton.C')
+#status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
+gSystem.Load('NanoEventsSkeleton_C.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
@@ -58,8 +72,8 @@ fileNames = [
     "844BE355-CD12-E811-8871-FA163ED9B872.root",
 ]
 
-#nevents=-1      #all
-nevents=5000
+nevents=-1      #all
+#nevents=5000
 
 lumisToProcess = process.source.lumisToProcess
 #import FWCore.ParameterSet.Config as cms
@@ -69,16 +83,19 @@ vlumis = vector('string')()
 for lumi in lumisToProcess:
     vlumis.push_back(lumi)
 
+threads = []
 for name in fileNames:
 #    aFile = "file:///home/mbluj/work/data/NanoAOD/80X_with944/VBFHToTauTau_M125_13TeV_powheg_pythia8/RunIISummer16NanoAOD_PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/"+name
     aFile = "file://"+dir+name
-    print "Adding file: ",aFile
+    print "Using file: ",aFile
+
+#    tm = threading.Thread(target=runFile, args=aFile)
 
     print "Making the MuTau tree"
     aROOTFile = TFile.Open(aFile)
     aTree = aROOTFile.Get("Events")
     print "TTree entries: ",aTree.GetEntries()
-    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents)
+    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
 #    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
 
 #    print "Making the TauTau tree"

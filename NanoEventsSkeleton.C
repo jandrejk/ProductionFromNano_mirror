@@ -4,7 +4,7 @@
 #include <TStyle.h>
 #include <TCanvas.h>
 
-void NanoEventsSkeleton::Loop(Long64_t nentries_max)
+void NanoEventsSkeleton::Loop(Long64_t nentries_max, unsigned int sync_event)
 {
 //   In a ROOT session, you can do:
 //      root> .L NanoEventsSkeleton.C

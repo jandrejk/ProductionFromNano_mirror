@@ -17,7 +17,11 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   ///Indexes for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
   ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
 
+  if (event==check_event_number) cout << "pS1 " << endl;
+
   if(httPairs_.empty()) return false;
+
+  if (event==check_event_number) cout << "pS2 " << endl;
 
   int pdgIdLeg1 = httPairs_[iPair].getLeg1().getPDGid();
   int pdgIdLeg2 = httPairs_[iPair].getLeg2().getPDGid();
@@ -26,10 +30,14 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   else if(std::abs(pdgIdLeg2)==13) indexMuonLeg = httPairs_[iPair].getIndexLeg2();
   else return 0;
 
+  if (event==check_event_number) cout << "pS3 " << endl;
+
   unsigned int indexTauLeg = -1;
   if(std::abs(pdgIdLeg1)==15) indexTauLeg = httPairs_[iPair].getIndexLeg1();
   else if(std::abs(pdgIdLeg2)==15) indexTauLeg = httPairs_[iPair].getIndexLeg2();
   else return 0;
+
+  if (event==check_event_number) cout << "pS4 " << endl;
 
   int tauIDmask = 0;
   int tauID = (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu);
@@ -59,6 +67,9 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
     httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode)>0.5 &&
     std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz))<0.2 &&
     (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))==1;
+
+  if (event==check_event_number) cout << "pS4b " << tauP4.Pt() << " " << tauP4.Eta() << " " << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " " << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " " << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
+
 
   /*
   bool triggerSelection_singlemu = muonP4.Pt()>23 &&
@@ -93,6 +104,8 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,diMuonVeto());
   httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13));
   httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11));
+
+  if (event==check_event_number) cout << "pS5 " << muonBaselineSelection << " " << tauBaselineSelection << " " << baselinePair << endl;
 
   return muonBaselineSelection && tauBaselineSelection && baselinePair
     //&& postSynchTau && loosePostSynchMuon //comment out for sync
