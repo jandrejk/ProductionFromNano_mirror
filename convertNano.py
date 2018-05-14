@@ -14,8 +14,8 @@ sync_event=0
 doSvFit = False
 applyRecoil=True
 #applyRecoil=False
-nevents=-1      #all
-#nevents=5000
+#nevents=-1      #all
+nevents=5000
 vlumis = vector('string')()
 nthreads = 6
 

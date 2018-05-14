@@ -25,6 +25,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   npu=ev->getNPU();
   rho=ev->getRho();
 
+  gen_match_1=pair->getLeg1().getProperty(PropertyEnum::mc_match);
+  gen_match_2=pair->getLeg2().getProperty(PropertyEnum::mc_match);
+
+  /*
   //  if (pdg1==15)      gen_match_1=genFlav1;
   if (pdg1==15)      gen_match_1=pair->getLeg1().getProperty(PropertyEnum::mc_match);
   else if (pdg1==13) gen_match_1=gen_mu_map[genFlav1];
@@ -34,6 +38,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   if (pdg2==15)      gen_match_2=pair->getLeg2().getProperty(PropertyEnum::mc_match);
   else if (pdg2==13) gen_match_2=gen_mu_map[genFlav2];
   else if (pdg2==11) gen_match_2=gen_el_map[genFlav2];
+  */
 
   genPt_1=DEF;
   genPt_2=DEF;

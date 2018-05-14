@@ -63,7 +63,6 @@ public :
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
   virtual void fillGenLeptons();
-  //  int getGenMatch(TLorentzVector selObj);
   void applyMetRecoilCorrections();
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
@@ -77,6 +76,8 @@ public :
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
+  int getGenMatch(unsigned int index, std::string colType="");
+  int getGenMatch(TLorentzVector selObj);
   int getMCMatching(unsigned int index, std::string colType="");
   int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
   int getMetFilterBits();

@@ -1058,94 +1058,126 @@ TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned i
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-/*
+int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType){ //overloaded
+  if(b_nGenPart==nullptr) return -999;
+  if(nGenPart==0) return -999;
+
+  TLorentzVector p4;
+  if(colType=="Muon"){
+    if(index>=nMuon) return -999;
+    p4.SetPtEtaPhiM(Muon_pt[index],
+		    Muon_eta[index],
+		    Muon_phi[index],
+		    0.10566); //muon mass
+  }
+  else if(colType=="Electron"){
+    if(index>=nElectron) return -999;
+    p4.SetPtEtaPhiM(Electron_pt[index],
+		    Electron_eta[index],
+		    Electron_phi[index],
+		    0.51100e-3); //electron mass
+  }
+  else if(colType=="Tau"){
+    if(index>=nTau) return -999;
+    p4.SetPtEtaPhiM(Tau_pt[index],
+		    Tau_eta[index],
+		    Tau_phi[index],
+		    Tau_mass[index]);
+  }
+  else
+    return -999;
+
+  return getGenMatch(p4);
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj){
 
   float dRTmp = 1.;
   float matchings[5] = {15.,15.,15.,15.,15.};
 
-  for(unsigned int i=0;iGenPart<nGenPart;++iGenPart){
+  for(unsigned int iGen=0;iGen<nGenPart;++iGen){
 
-    if( GenPart_pt[i] > 8){
-      dRTmp = calcDR( GenPart_eta[i],GenPart_phi[i],selObj.Eta(),selObj.Phi() );
+    if( GenPart_pt[iGen] > 8){
+      dRTmp = SyncDATA->calcDR( GenPart_eta[iGen],GenPart_phi[iGen],selObj.Eta(),selObj.Phi() );
 
-      bool GenPart_isPrompt=GenPart_statusFlags
- 
-      if(std::abs(GenPart_pdgId[i]) == 11){
-        if( dRTmp < matchings[0] && GenPart_isPrompt[i]){
+      int statusFlags=GenPart_statusFlags[iGen];
+      bool GenPart_isPrompt=(statusFlags & (1<<0)) == (1<<0);
+      bool GenPart_isDirectPromptTauDecayProduct=(statusFlags & (1<<5)) == (1<<5);
+
+      //electron
+      if(std::abs(GenPart_pdgId[iGen]) == 11){
+        if( dRTmp < matchings[0] && GenPart_isPrompt){
           matchings[0] = dRTmp;
         }
-        if( dRTmp < matchings[2] && GenPart_isDirectPromptTauDecayProduct[i]){
+        if( dRTmp < matchings[2] && GenPart_isDirectPromptTauDecayProduct){
           matchings[2] = dRTmp;
         }
       }
-      if(fabs(GenPart_pdgId[i]) == 13){
-        if( dRTmp < matchings[1] && GenPart_isPrompt[i]){
+
+      //muon
+      if(fabs(GenPart_pdgId[iGen]) == 13){
+        if( dRTmp < matchings[1] && GenPart_isPrompt){
           matchings[1] = dRTmp;
         }
-        if( dRTmp < matchings[3] && GenPart_isDirectPromptTauDecayProduct[i]){
+        if( dRTmp < matchings[3] && GenPart_isDirectPromptTauDecayProduct){
  
           matchings[3] = dRTmp;
         }
       }
+
+      //tauhad
+      if( fabs(GenPart_pdgId[iGen]) == 15 && GenPart_isPrompt){
+	TLorentzVector tmpLVec;
+	TLorentzVector remParticles;
+	remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
+	int nr_neutrinos = 0;
+	int nr_gammas = 0;
+	bool vetoLep = false;
+
+	for(unsigned int iDau=0;iDau<nGenPart;++iDau){
+	  if( ( fabs(GenPart_pdgId[iDau]) == 11
+		|| fabs(GenPart_pdgId[iDau]) == 13
+		)
+	      && (int)GenPart_genPartIdxMother[iDau] == (int)iGen
+	      ) vetoLep = true;
+
+	  if( (fabs(GenPart_pdgId[iDau]) == 16
+	       // || (fabs(GenPart_pdgId[iDau]) == 22 && GenPart_isPrompt[iDau] )   // if gamma correction is necessary
+	       )
+	      && (int)GenPart_genPartIdxMother[iDau] ==  (int)iGen){
+
+	    tmpLVec.SetPtEtaPhiM(GenPart_pt[iDau],
+				 GenPart_eta[iDau],
+				 GenPart_phi[iDau],
+				 GenPart_mass[iDau]
+				 );
+	    remParticles += tmpLVec;
+	    if(fabs(GenPart_pdgId[iDau]) == 16) nr_neutrinos++;
+	  }
+
+	}
+      
+	if(vetoLep==false && nr_neutrinos == 1 ){
+	  TLorentzVector tau;
+	  tau.SetPtEtaPhiM(GenPart_pt[iGen],
+			   GenPart_eta[iGen],
+			   GenPart_phi[iGen],
+			   GenPart_mass[iGen]
+			   );
+
+	  if((tau-remParticles).Pt() > 15){
+	    
+	    dRTmp = SyncDATA->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
+	    if( dRTmp < matchings[4] ){
+	      matchings[4] = dRTmp;
+	    }
+	  }
+	}
+      }//end tauhad
+
     }
   }
-
-  for(int j=0; j<NtupleView->ngenSum; j++){
-    if( fabs(GenPartSum_pdgId[j]) == 15 && GenPartSum_isPrompt[j]){
-      TLorentzVector remParticles;
-      TLorentzVector tmpLVec;
-      remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
-      int nr_neutrinos = 0;
-      int nr_gammas = 0;
-      bool vetoLep = false;
-
-
-      for(int daughter=0; daughter<NtupleView->ngenSum; daughter++){
-
-        if( ( fabs(GenPartSum_pdgId[daughter]) == 11
-              || fabs(GenPartSum_pdgId[daughter]) == 13
-	      )
-            && GenPartSum_motherIndex[daughter] == j
-	    ) vetoLep = true;
-
-        if( (fabs(GenPartSum_pdgId[daughter]) == 16
-	     // || (fabs(GenPartSum_pdgId[daughter]) == 22 && GenPartSum_isPrompt[daughter] )   // if gamma correction is necessary
-	     )
-            && GenPartSum_motherIndex[daughter] ==  j){
-
-          tmpLVec.SetPtEtaPhiM(GenPartSum_pt[daughter],
-                               GenPartSum_eta[daughter],
-                               GenPartSum_phi[daughter],
-                               GenPartSum_mass[daughter]
-                               );
-          remParticles += tmpLVec;
-          if(fabs(GenPartSum_pdgId[daughter]) == 16) nr_neutrinos++;
-        }
-
-      }
-
-      if(vetoLep==false && nr_neutrinos == 1 ){
-
-        TLorentzVector tau;
-        tau.SetPtEtaPhiM(GenPartSum_pt[j],
-                         GenPartSum_eta[j],
-                         GenPartSum_phi[j],
-                         GenPartSum_mass[j]
-                         );
-
-        if((tau-remParticles).Pt() > 15){
-
-          dRTmp = calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
-          if( dRTmp < matchings[4] ){
-            matchings[4] = dRTmp;
-          }
-        }
-      }
-    }
-  }
-
-
 
   int whichObj = 1;
 
@@ -1162,7 +1194,7 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj){
   else return 6;
 
 }
-*/
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillPairs(unsigned int bestPairIndex){
@@ -1236,7 +1268,8 @@ Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name){
 /////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType){
 
-  if(name=="mc_match") return getMCMatching(index,colType);
+  //  if(name=="mc_match") return getMCMatching(index,colType);
+  if(name=="mc_match") return getGenMatch(index,colType);
   
   if(name=="isGoodTriggerType") return getTriggerMatching(index,false,colType);
   if(name=="FilterFired") return getTriggerMatching(index,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
