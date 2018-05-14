@@ -15,8 +15,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   //  fileEntry=DEF; //filled in main loop
   matchXTrig_obj=DEF;
 
-  int pdg1=std::abs(pair->getLeg1().getProperty(PropertyEnum::pdgId));
-  int pdg2=std::abs(pair->getLeg2().getProperty(PropertyEnum::pdgId));
+  pdg1=std::abs(pair->getLeg1().getProperty(PropertyEnum::pdgId));
+  pdg2=std::abs(pair->getLeg2().getProperty(PropertyEnum::pdgId));
   unsigned genFlav1=pair->getLeg1().getProperty(PropertyEnum::genPartFlav);
   unsigned genFlav2=pair->getLeg2().getProperty(PropertyEnum::genPartFlav);
 
@@ -25,11 +25,13 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   npu=ev->getNPU();
   rho=ev->getRho();
 
-  if (pdg1==15)      gen_match_1=genFlav1;
+  //  if (pdg1==15)      gen_match_1=genFlav1;
+  if (pdg1==15)      gen_match_1=pair->getLeg1().getProperty(PropertyEnum::mc_match);
   else if (pdg1==13) gen_match_1=gen_mu_map[genFlav1];
   else if (pdg1==11) gen_match_1=gen_el_map[genFlav1];
 
-  if (pdg2==15)      gen_match_2=genFlav2;
+  //  if (pdg2==15)      gen_match_2=genFlav2;
+  if (pdg2==15)      gen_match_2=pair->getLeg2().getProperty(PropertyEnum::mc_match);
   else if (pdg2==13) gen_match_2=gen_mu_map[genFlav2];
   else if (pdg2==11) gen_match_2=gen_el_map[genFlav2];
 
@@ -205,7 +207,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   decayModeFindingOldDMs_1=leg1.getProperty(PropertyEnum::idDecayMode);
   decayMode_1=leg1.getProperty(PropertyEnum::decayMode);
 
-  id_m_loose_1=leg1.getProperty(PropertyEnum::softId);
+  if (pdg1==13) id_m_loose_1=1; //already filtered at NanoAOD production
   id_m_medium_1=leg1.getProperty(PropertyEnum::mediumId);
   id_m_tight_1=leg1.getProperty(PropertyEnum::tightId);
   id_m_tightnovtx_1=DEF;
@@ -218,6 +220,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   id_e_cut_medium_1=intmask>=3;
   id_e_cut_tight_1=intmask>=4;
   id_e_mva_nt_loose_1=DEF;
+
+  if (pdg1==15) gen_match_jetId_1=getGenMatch_jetId(leg1P4,jets);
   
   //////////////////////////////////////////////////////////////////
   HTTParticle leg2=pair->getLeg2();
@@ -279,6 +283,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   puCorrPtSum_2=leg2.getProperty(PropertyEnum::puCorr);
   decayModeFindingOldDMs_2=leg2.getProperty(PropertyEnum::idDecayMode);
   decayMode_2=leg2.getProperty(PropertyEnum::decayMode);
+
+  if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);
   //////////////////////////////////////////////////////////////////
   nbtag=0;
   njets=0; 
@@ -308,7 +314,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
     jrawf_1=jets.at(0).getProperty(PropertyEnum::rawFactor);
     jmva_1=jets.at(0).getProperty(PropertyEnum::btagCMVA);
     jcsv_1=jets.at(0).getProperty(PropertyEnum::btagCSVV2);
-    gen_match_jetId_1=jets.at(0).getProperty(PropertyEnum::partonFlavour);
+    //    gen_match_jetId_1=jets.at(0).getProperty(PropertyEnum::partonFlavour);
     genJet_match_1=0;
     j1=jets.at(0).getP4();
   }
@@ -322,7 +328,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
     jrawf_2=jets.at(1).getProperty(PropertyEnum::rawFactor);
     jmva_2=jets.at(1).getProperty(PropertyEnum::btagCMVA);
     jcsv_2=jets.at(1).getProperty(PropertyEnum::btagCSVV2);
-    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
+    //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
     genJet_match_2=0;
     jeta1eta2=jeta_1*jeta_2;
     lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
@@ -378,6 +384,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   met_ex=ev->getMET().X();
   met_ey=ev->getMET().Y();
   metphi=ev->getMET().Phi();
+  if (metphi>TMath::Pi()) metphi-=2*TMath::Pi();
 
   metcov00=pair->getMETMatrix().at(0);
   metcov01=pair->getMETMatrix().at(1);
@@ -545,6 +552,31 @@ double syncDATA::calcSphericityFromMatrix(TMatrixD M) {
   double spher = 1.5*value;
 
   return spher;
+}
+
+int syncDATA::getGenMatch_jetId(TLorentzVector selObj, std::vector<HTTParticle> jets){
+  float minDR=1;
+  int whichjet=0;
+
+  for (unsigned i=0; i<jets.size(); i++){
+    TLorentzVector p4=jets.at(i).getP4();
+    if(p4.Pt() > 20 && fabs(p4.Eta() ) < 4.7 ){
+      float tmpDR = calcDR( selObj.Eta(), selObj.Phi(), p4.Eta(), p4.Phi() );
+      if( tmpDR < minDR ){
+	minDR = tmpDR;
+	whichjet=i;
+      }
+    }
+  }
+
+  if( minDR < 0.5 ) return jets.at(whichjet).getProperty(PropertyEnum::partonFlavour);
+  return -99;
+}
+
+double syncDATA::calcDR(double eta1, double phi1, double eta2, double phi2){
+  double deta = eta1-eta2;
+  double dphi = TVector2::Phi_mpi_pi(phi1-phi2);
+  return TMath::Sqrt( deta*deta+dphi*dphi );
 }
 
 void syncDATA::setDefault(){
@@ -751,8 +783,8 @@ void syncDATA::setDefault(){
   jdeta=DEF;
   jdetaUp=DEF;
   jdetaDown=DEF;
-  njetingap=DEF;
-  njetingap20=DEF;
+  njetingap=0;
+  njetingap20=0;
   dijetpt=DEF;
   dijetphi=DEF;
   jdphi=DEF;
@@ -950,6 +982,8 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
   t->Branch("genPt_2", &genPt_2);
   t->Branch("genJet_match_1", &genJet_match_1);
   t->Branch("genJet_match_2", &genJet_match_2);
+  t->Branch("pdg_1", &pdg1);
+  t->Branch("pdg_2", &pdg2);
 
   t->Branch("pt_1", &pt_1);
   t->Branch("phi_1", &phi_1);

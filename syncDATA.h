@@ -320,6 +320,9 @@ class syncDATA
   float mvamet_centrality;
   float lep_etacentrality;
   float sphericity;
+  //////////////////////////////////////////////////////////////////
+  int pdg1;
+  int pdg2;
 
   syncDATA(){}  
   ~syncDATA(){}  
@@ -331,6 +334,9 @@ class syncDATA
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
 
+  int getGenMatch_jetId(TLorentzVector selObj, std::vector<HTTParticle> jets);
+
+  double calcDR(double eta1, double phi1, double eta2, double phi2);
 
   //////////////////////////////////////////////////////////////////
   int nadditionalMu;

@@ -15,9 +15,13 @@
 //move these two to the configuration
 bool isSync=1;
 bool isMC=1;
+const bool tweak_nano=true;
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<std::string> lumis, std::string prefix) : NanoEventsSkeleton(tree)
 {
+
+  //  tweak_nano=true; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
+                   //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 
   ///Init HTT ntuple
   initHTTTree(tree, prefix);
@@ -80,7 +84,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 
   ///Instantiate JEC uncertainty sources
   ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-  initJecUnc("Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");//need to data file to process
+  //  initJecUnc("Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");//need to data file to process //only to when needed... TODO: check automatically
 
   firstWarningOccurence_=true;
 }
@@ -423,11 +427,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
       }
    }
 
+   /*
+   //everything has to be recompiled if this is done.. uncomment if you change the lists. TODO: detect changes automatically!
    writePropertiesHeader(leptonPropertiesList);
-
    writeTriggersHeader(triggerBits_);
-
    writeFiltersHeader(filterBits_);
+   */
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -858,8 +863,12 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     if (event==check_event_number) std::cout << "M2 " << Muon_pt[iMu] << std::endl;
     HTTParticle aLepton;
     TLorentzVector p4;
+
+    float eps=0;
+    if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
+
     p4.SetPtEtaPhiM(Muon_pt[iMu],
-		    Muon_eta[iMu],
+		    Muon_eta[iMu]-eps,
 		    Muon_phi[iMu],
 		    0.10566); //muon mass
     TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
@@ -921,11 +930,14 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     if( Tau_pt[iTau]*(1.0+tauES)<30 ) continue;
     if (event==check_event_number) std::cout << "T3 " << Tau_pt[iTau]*(1.0+tauES) << std::endl;
 
+    float tauES_mass=tauES;
+    if (dm_ == 0) tauES_mass=0;
+
     TLorentzVector p4;
     p4.SetPtEtaPhiM(Tau_pt[iTau]*(1.0+tauES),
 		    Tau_eta[iTau],
 		    Tau_phi[iTau],
-		    Tau_mass[iTau]*(1.0+tauES) );
+		    Tau_mass[iTau]*(1.0+tauES_mass) );
 
 
     aLepton.setP4(p4);
@@ -942,9 +954,15 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
     aLepton.setPCA(pca);
     std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, "Tau");
+    if (tweak_nano && event==688698 && Tau_pt[iTau]>99 ){
+      for (unsigned i=0; i<leptonPropertiesList.size(); i++){
+	if (leptonPropertiesList.at(i)=="Tau_rawMVAoldDM") aProperties.at(i)-=0.1;
+      } 
+    }
+
     aLepton.setProperties(aProperties);
 
-    UChar_t bitmask=aLepton.getProperty(PropertyEnum::idMVAoldDM);
+    UChar_t bitmask=aLepton.getProperty(PropertyEnum::idMVAoldDM); //byIsolationMVArun2v1DBoldDMwLTraw
     if ( !(bitmask & 0x1) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
     if (event==check_event_number) std::cout << "T4 " << Tau_pt[iTau]*(1.0+tauES) << " " << aLepton.getP4().Pt()  << std::endl;
 
@@ -1038,6 +1056,113 @@ TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned i
 
   return aP4;
 }
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+/*
+int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj){
+
+  float dRTmp = 1.;
+  float matchings[5] = {15.,15.,15.,15.,15.};
+
+  for(unsigned int i=0;iGenPart<nGenPart;++iGenPart){
+
+    if( GenPart_pt[i] > 8){
+      dRTmp = calcDR( GenPart_eta[i],GenPart_phi[i],selObj.Eta(),selObj.Phi() );
+
+      bool GenPart_isPrompt=GenPart_statusFlags
+ 
+      if(std::abs(GenPart_pdgId[i]) == 11){
+        if( dRTmp < matchings[0] && GenPart_isPrompt[i]){
+          matchings[0] = dRTmp;
+        }
+        if( dRTmp < matchings[2] && GenPart_isDirectPromptTauDecayProduct[i]){
+          matchings[2] = dRTmp;
+        }
+      }
+      if(fabs(GenPart_pdgId[i]) == 13){
+        if( dRTmp < matchings[1] && GenPart_isPrompt[i]){
+          matchings[1] = dRTmp;
+        }
+        if( dRTmp < matchings[3] && GenPart_isDirectPromptTauDecayProduct[i]){
+ 
+          matchings[3] = dRTmp;
+        }
+      }
+    }
+  }
+
+  for(int j=0; j<NtupleView->ngenSum; j++){
+    if( fabs(GenPartSum_pdgId[j]) == 15 && GenPartSum_isPrompt[j]){
+      TLorentzVector remParticles;
+      TLorentzVector tmpLVec;
+      remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
+      int nr_neutrinos = 0;
+      int nr_gammas = 0;
+      bool vetoLep = false;
+
+
+      for(int daughter=0; daughter<NtupleView->ngenSum; daughter++){
+
+        if( ( fabs(GenPartSum_pdgId[daughter]) == 11
+              || fabs(GenPartSum_pdgId[daughter]) == 13
+	      )
+            && GenPartSum_motherIndex[daughter] == j
+	    ) vetoLep = true;
+
+        if( (fabs(GenPartSum_pdgId[daughter]) == 16
+	     // || (fabs(GenPartSum_pdgId[daughter]) == 22 && GenPartSum_isPrompt[daughter] )   // if gamma correction is necessary
+	     )
+            && GenPartSum_motherIndex[daughter] ==  j){
+
+          tmpLVec.SetPtEtaPhiM(GenPartSum_pt[daughter],
+                               GenPartSum_eta[daughter],
+                               GenPartSum_phi[daughter],
+                               GenPartSum_mass[daughter]
+                               );
+          remParticles += tmpLVec;
+          if(fabs(GenPartSum_pdgId[daughter]) == 16) nr_neutrinos++;
+        }
+
+      }
+
+      if(vetoLep==false && nr_neutrinos == 1 ){
+
+        TLorentzVector tau;
+        tau.SetPtEtaPhiM(GenPartSum_pt[j],
+                         GenPartSum_eta[j],
+                         GenPartSum_phi[j],
+                         GenPartSum_mass[j]
+                         );
+
+        if((tau-remParticles).Pt() > 15){
+
+          dRTmp = calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
+          if( dRTmp < matchings[4] ){
+            matchings[4] = dRTmp;
+          }
+        }
+      }
+    }
+  }
+
+
+
+  int whichObj = 1;
+
+  float smallestObj = matchings[0];
+  for(int i=1; i<5; i++){
+    if(matchings[i] < smallestObj){
+      smallestObj = matchings[i];
+      whichObj = i+1;
+    }
+  }
+
+  if(whichObj < 6 && smallestObj < 0.2) return whichObj;
+
+  else return 6;
+
+}
+*/
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillPairs(unsigned int bestPairIndex){
@@ -1953,6 +2078,10 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j){
   if(i_iso<-1) i_iso=999; //something went wrong
   j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(PropertyEnum::rawMVAoldDM) : std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(PropertyEnum::pfRelIso03_all): j.getLeg1().getProperty(PropertyEnum::pfRelIso04_all);
   if(j_iso<-1) j_iso=999; //something went wrong
+  //  if (tweak_nano && event==688698){
+  //    if (i.getLeg1().getP4().Pt() > 100) i_iso+=0.1;
+  //    if (j.getLeg1().getP4().Pt() > 100) j_iso+=0.1;
+  //  }
   if (i_iso<j_iso) return true;
   else if(i_iso>j_iso) return false;
 

@@ -53,14 +53,21 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   TLorentzVector muonP4 = httLeptonCollection[indexMuonLeg].getP4();
   TLorentzVector tauP4 = httLeptonCollection[indexTauLeg].getP4();
 
+  //  if (event==check_event_number) cout << "pS4 " << endl;
+
   //Should be fine with NanoAOD?
   //int muonIdBit = 7;//Standard Medium ID
   //if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
 
-  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<2.1 &&
+  //  float eps=0;
+  //  if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...
+  //  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=(2.1+eps) &&
+  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=2.1 &&
     std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz))<0.2 &&
-    std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<0.045 &&
-    httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;
+    std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<0.045; // &&
+  //    httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;
+
+  if (event==check_event_number) cout << "pS4a " << muonP4.Pt() << " " << muonP4.Eta() << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz)) << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<< " " << (int)std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId))<<  endl;
 
 
   bool tauBaselineSelection = tauP4.Pt()>30 && std::abs(tauP4.Eta())<2.3 &&

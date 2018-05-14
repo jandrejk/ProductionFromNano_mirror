@@ -63,6 +63,7 @@ public :
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
   virtual void fillGenLeptons();
+  //  int getGenMatch(TLorentzVector selObj);
   void applyMetRecoilCorrections();
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
@@ -136,6 +137,8 @@ public :
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
 
   unsigned int check_event_number;
+
+  //  bool tweak_nano;
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
