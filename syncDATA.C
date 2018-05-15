@@ -302,6 +302,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
       if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
       if ( ind_b1<0 )              ind_b1=ij;
     }
+    if (evt_syncro==1279980){ std::cout << ij << " " << ind_b1 << " " << jets.at(ij).getProperty(PropertyEnum::btagCSVV2) << " " << jets.at(ij).getP4().Pt() << " " << jets.at(ij).getP4().Eta()  << " " <<std::endl; }
   }
   njetsUp=njets;
   njetsDown=njets;
@@ -366,16 +367,17 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   jdetaUp=jdeta;
   jdetaDown=jdeta;
 
-  if (ind_b1>0){
+  if (ind_b1>=0){
     bpt_1=jets.at(ind_b1).getP4().Pt();
     beta_1=jets.at(ind_b1).getP4().Eta();
     bphi_1=jets.at(ind_b1).getP4().Phi();
     brawf_1=jets.at(ind_b1).getProperty(PropertyEnum::rawFactor);
     bmva_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCMVA);
     bcsv_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2);
+    if (evt_syncro==1279980){ std::cout << ind_b1 << " " << ind_b1 << " " << jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2) << " " << jets.at(ind_b1).getP4().Pt() << " " << jets.at(ind_b1).getP4().Eta()  << " " << bcsv_1 << " XX " <<std::endl; }
   }
 
-  if (ind_b2>0){
+  if (ind_b2>=0){
     bpt_2=jets.at(ind_b2).getP4().Pt();
     beta_2=jets.at(ind_b2).getP4().Eta();
     bphi_2=jets.at(ind_b2).getP4().Phi();

@@ -3,6 +3,8 @@
 import sys, os
 import threading
 
+channel='tt'
+
 nthreads = 6
 dir = '/afs/hephy.at/work/m/mflechl/cmssw/CMSSW_9_4_4_fromNano/src/WawTools/NanoAODTools/'
 
@@ -11,7 +13,7 @@ def runOneFile(idx,file):
     os.system('cp -p *h *cxx *C *cc PSet.py zpt*root '+dir+'rundir_'+str(idx))
     os.system('cp -p '+dir+'convertNanoParallel.py '+dir+'rundir_'+str(idx))
     os.chdir(dir+'rundir_'+str(idx))
-    os.system('./convertNanoParallel.py '+file)
+    os.system('./convertNanoParallel.py '+channel+' '+file+' &>log.txt')
     os.chdir(dir)
 
 fileNames = [
@@ -39,3 +41,7 @@ for idx,file in enumerate(fileNames):
 
 for x in threads:
     x.join()
+
+#hadd -O ntuples/v15_mt.root rundir_*/HTTM*root
+if channel=='mt' or channel=='all': os.system('hadd -O ntuple_mt.root rundir_*/HTTM*root')
+if channel=='tt' or channel=='all': os.system('hadd -O ntuple_tt.root rundir_*/HTTT*root')

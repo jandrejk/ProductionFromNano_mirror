@@ -8,6 +8,10 @@ from ROOT import gSystem, TChain, TSystem, TFile, TString, vector
 
 from PSet import process
 
+dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
+channel = sys.argv[1]
+fileNames = [ sys.argv[2] ]
+
 #sync_event=1171228
 sync_event=0
 #doSvFit = True
@@ -18,6 +22,8 @@ nevents=-1      #all
 #nevents=5000
 vlumis = vector('string')()
 nthreads = 6
+
+print 'Channel: ',channel
 
 if doSvFit :
     print "Run with SVFit computation"
@@ -50,8 +56,8 @@ sys.stdout = open('/tmp/pstd', 'w')
 stderr = sys.stderr
 sys.stderr = open('/tmp/perr', 'w')
 status *= gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
-status *= gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
-status *= gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
+if channel=='mt' or channel=='all': status *= gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
+if channel=='tt' or channel=='all': status *= gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
 sys.stdout=stdout
 sys.stderr=stderr
 
@@ -59,17 +65,8 @@ print "Compilation status: ",status
 if status==0:
     exit(-1)
 
-from ROOT import HMuTauhTreeFromNano, HTauhTauhTreeFromNano
-dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
-fileNames = [ sys.argv[1] ]
-#fileNames = [
-#    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
-#    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
-#    "0E6F4B78-CC12-E811-B37D-FA163EA12C78.root",
-#    "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
-#    "844BE355-CD12-E811-8871-FA163ED9B872.root",
-#]
-
+if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
+if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
 
 lumisToProcess = process.source.lumisToProcess
 #import FWCore.ParameterSet.Config as cms
@@ -87,8 +84,8 @@ for name in fileNames:
     aROOTFile = TFile.Open(aFile)
     aTree = aROOTFile.Get("Events")
     print "TTree entries: ",aTree.GetEntries()
-    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
-#    HMuTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop()
+    if channel=='mt' or channel=='all': HMuTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
+    if channel=='tt' or channel=='all': HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
 
 #    print 'A',name,threading.active_count()
 #    t = threading.Thread(target=runFile, args=(aFile,) )

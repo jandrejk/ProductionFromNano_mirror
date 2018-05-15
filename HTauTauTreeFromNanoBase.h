@@ -52,6 +52,7 @@ public :
     int leg1BitMask, leg2BitMask;//definition depends on Id, cf. PhysicsTools/NanoAOD/python/triggerObjects_cff.py
     float leg1Pt, leg2Pt, leg1L1Pt, leg2L1Pt;
     float leg1Eta, leg2Eta;
+    float leg1OfflinePt;
   };
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
@@ -78,7 +79,6 @@ public :
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
   int getGenMatch(unsigned int index, std::string colType="");
   int getGenMatch(TLorentzVector selObj);
-  int getMCMatching(unsigned int index, std::string colType="");
   int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
   int getMetFilterBits();
   double getPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
