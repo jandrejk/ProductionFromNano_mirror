@@ -12,8 +12,8 @@ dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-
 channel = sys.argv[1]
 fileNames = [ sys.argv[2] ]
 
-sync_event=1321942
-#sync_event=0
+#sync_event=1321942
+sync_event=0
 #doSvFit = True
 doSvFit = False
 applyRecoil=True

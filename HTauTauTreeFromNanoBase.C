@@ -15,12 +15,12 @@
 //move these two to the configuration
 bool isSync=1;
 bool isMC=1;
-const bool tweak_nano=true;
+//const bool tweak_nano=true;
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<std::string> lumis, std::string prefix) : NanoEventsSkeleton(tree)
 {
 
-  //  tweak_nano=true; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
+  tweak_nano=true; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
                    //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 
   ///Init HTT ntuple
@@ -1984,10 +1984,6 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j){
   if(i_iso<-1) i_iso=999; //something went wrong
   j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(PropertyEnum::rawMVAoldDM) : std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(PropertyEnum::pfRelIso03_all): j.getLeg1().getProperty(PropertyEnum::pfRelIso04_all);
   if(j_iso<-1) j_iso=999; //something went wrong
-  //  if (tweak_nano && event==688698){
-  //    if (i.getLeg1().getP4().Pt() > 100) i_iso+=0.1;
-  //    if (j.getLeg1().getP4().Pt() > 100) j_iso+=0.1;
-  //  }
   if (i_iso<j_iso) return true;
   else if(i_iso>j_iso) return false;
 

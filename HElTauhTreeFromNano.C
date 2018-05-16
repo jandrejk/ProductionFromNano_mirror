@@ -89,7 +89,7 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
   httEvent->setSelectionBit(SelectionBitsEnum::baselinePair,baselinePair);
   httEvent->setSelectionBit(SelectionBitsEnum::postSynchElectron,postSynchElectron);
   httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau);
-  httEvent->setSelectionBit(SelectionBitsEnum::diElecVeto,diElecVeto());
+  httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,diElectronVeto());
   httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 13));
   httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 11));
 
@@ -102,7 +102,7 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-bool HElTauhTreeFromNano::diElecVeto(){
+bool HElTauhTreeFromNano::diElectronVeto(){
 
   std::vector<int> elecIndexes;
   for(unsigned int iLepton=0;iLepton<httLeptonCollection.size();++iLepton){

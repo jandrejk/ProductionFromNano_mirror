@@ -21,6 +21,8 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   int pdgIdLeg1 = httPairs_[iPair].getLeg1().getPDGid();
   int pdgIdLeg2 = httPairs_[iPair].getLeg2().getPDGid();
+
+  if (event==check_event_number) cout << "pS 1 " << pdgIdLeg1 << " " << pdgIdLeg2 << endl;
   if( std::abs(pdgIdLeg1)!=15 || std::abs(pdgIdLeg2)!=15 ) return 0;
 
   int tauIDmask = 0, tauIDmaskMedium = 0 , tauIDmaskLoose = 0;
@@ -55,6 +57,8 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   TLorentzVector tau1P4 = httLeptonCollection[indexLeg1].getP4();
   TLorentzVector tau2P4 = httLeptonCollection[indexLeg2].getP4();
 
+  if (event==check_event_number) cout << "pS 2 " << tau1P4.Eta() << " " << tau2P4.Eta() << endl;
+
   int tau1ID = (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu);
   tau1ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle);
   tau1ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idMVAoldDM);
@@ -62,11 +66,15 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   tau2ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle);
   tau2ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idMVAoldDM);
 
+  //"real" eta is just below 2.1 for the 2nd tau in these 3 events...
+  float abs_t2_eta=std::abs(tau2P4.Eta());
+  if ( tweak_nano && (event==1321942 || event==577858 || event==392156) ) abs_t2_eta-=0.0001;
+
   bool tauBaselineSelection1 = tau1P4.Pt()>50 && std::abs(tau1P4.Eta())<2.1 &&
                                httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idDecayMode)>0 &&
                                std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::dz))<0.2 &&
                                (int)std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::charge))==1;
-  bool tauBaselineSelection2 = tau2P4.Pt()>40 && std::abs(tau2P4.Eta())<2.1 &&
+  bool tauBaselineSelection2 = tau2P4.Pt()>40 && abs_t2_eta < 2.1 &&
                                httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idDecayMode)>0 &&
                                std::abs(httLeptonCollection[indexLeg2].getProperty(PropertyEnum::dz))<0.2 &&
                                (int)std::abs(httLeptonCollection[indexLeg2].getProperty(PropertyEnum::charge))==1;
@@ -88,6 +96,8 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau2);
   httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexLeg1,indexLeg2,13));
   httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexLeg1,indexLeg2,11));
+
+  if (event==check_event_number) cout << "pS 2 " << tauBaselineSelection1 << " " << tauBaselineSelection2 << " " << baselinePair << endl;
 
   return tauBaselineSelection1 && tauBaselineSelection2 && baselinePair
     //&& ( (postSynchLooseTau1 && postSynchMediumTau2) || (postSynchLooseTau2 && postSynchMediumTau1) )

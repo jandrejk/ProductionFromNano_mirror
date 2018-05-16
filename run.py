@@ -4,17 +4,17 @@ import sys, os
 import threading
 from time import sleep
 
-channel='tt'
+channel='et'
 
 nthreads = 6
 dir = '/afs/hephy.at/work/m/mflechl/cmssw/CMSSW_9_4_4_fromNano/src/WawTools/NanoAODTools/'
 
 def runOneFile(idx,file):
-#    os.system('cp -p *so *pcm '+dir+'rundir_'+str(idx))
-    print str(idx),file,dir+'rundir_'+str(idx)
-    os.system('cp -p *h *cxx *C *cc PSet.py zpt*root '+dir+'rundir_'+str(idx))
-    os.system('cp -p '+dir+'convertNanoParallel.py '+dir+'rundir_'+str(idx))
-    os.chdir(dir+'rundir_'+str(idx))
+#    os.system('cp -p *so *pcm '+dir+'rundir_'+channel+'_'+str(idx))
+    print str(idx),file,dir+'rundir_'+channel+'_'+str(idx)
+    os.system('cp -p *h *cxx *C *cc PSet.py zpt*root '+dir+'rundir_'+channel+'_'+str(idx))
+    os.system('cp -p '+dir+'convertNanoParallel.py '+dir+'rundir_'+channel+'_'+str(idx))
+    os.chdir(dir+'rundir_'+channel+'_'+str(idx))
     os.system('rm -f HTT*root')
     os.system('./convertNanoParallel.py '+channel+' '+file+' &>log.txt')
     os.chdir(dir)
@@ -31,13 +31,13 @@ fileNames = [
 ]                                
 
 #commented out: when rerunning, will only recompile what is needed.
-#os.system('rm -rf rundir_*')
+#os.system('rm -rf rundir_'+channel+'_*')
 
 threads = []
 ctr=0
 for idx,file in enumerate(fileNames):
-    if not os.path.exists(dir+'rundir_'+str(idx)):
-        os.makedirs(dir+'rundir_'+str(idx))
+    if not os.path.exists(dir+'rundir_'+channel+'_'+str(idx)):
+        os.makedirs(dir+'rundir_'+channel+'_'+str(idx))
     t = threading.Thread(target=runOneFile, args=(idx,file,) )
     threads += [t]
 
@@ -53,6 +53,7 @@ for idx,file in enumerate(fileNames):
 for x in threads:
     x.join()
 
-#hadd -O ntuples/v15_mt.root rundir_*/HTTM*root
-if channel=='mt' or channel=='all': os.system('hadd -f -O ntuple_mt.root rundir_*/HTTM*root')
-if channel=='tt' or channel=='all': os.system('hadd -f -O ntuple_tt.root rundir_*/HTTT*root')
+#hadd -O ntuples/v15_mt.root rundir_'+channel+'_*/HTTM*root
+if channel=='et' or channel=='all': os.system('hadd -f -O ntuple_et.root rundir_'+channel+'_*/HTTE*root')
+if channel=='mt' or channel=='all': os.system('hadd -f -O ntuple_mt.root rundir_'+channel+'_*/HTTM*root')
+if channel=='tt' or channel=='all': os.system('hadd -f -O ntuple_tt.root rundir_'+channel+'_*/HTTT*root')

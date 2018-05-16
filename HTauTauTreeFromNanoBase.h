@@ -139,7 +139,7 @@ public :
 
   unsigned int check_event_number;
 
-  //  bool tweak_nano;
+  bool tweak_nano;
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;

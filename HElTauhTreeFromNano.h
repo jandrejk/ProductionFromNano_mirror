@@ -19,7 +19,7 @@ class HElTauhTreeFromNano : public HTauTauTreeFromNanoBase {
 
   /////////////////////////////////////////////////
   /// ET final state specific
-  bool diElecVeto();
+  bool diElectronVeto();
   bool pairSelection(unsigned int index);
   /////////////////////////////////////////////////
   
