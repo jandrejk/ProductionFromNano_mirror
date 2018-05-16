@@ -925,7 +925,8 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     HTTParticle aLepton;
 
     float tauES = 0.;
-    int genMatch_=Tau_genPartFlav[iTau];
+    //    int genMatch_=Tau_genPartFlav[iTau];
+    int genMatch_= getGenMatch(iTau,"Tau");
     int dm_=Tau_decayMode[iTau];
     if( genMatch_ == 5 ){       
       if(dm_ == 0 ) tauES = Parameter.Tau.TES.one_prong_0p0;
@@ -1972,7 +1973,7 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j){
   double i_iso=999, j_iso=999;
   unsigned int i_type=2, j_type=2;
 
-  //step 0.5, leg 1 type
+  //step 0.5, leg 1 type: 2: tau, 1: e, 0: mu
   i_type = std::abs(i.getLeg1().getPDGid())==15 ? 2: std::abs(i.getLeg1().getPDGid())==11 ? 1: 0;
   j_type = std::abs(j.getLeg1().getPDGid())==15 ? 2: std::abs(j.getLeg1().getPDGid())==11 ? 1: 0;
   if (i_type<j_type) return true;

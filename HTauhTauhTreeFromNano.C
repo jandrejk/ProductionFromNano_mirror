@@ -13,8 +13,8 @@
 bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   ///Baseline+post sync selection as on
-  ///https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2015#Baseline_mu_tau_h_AN1
-  ///Indexes for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
+  ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Baseline_tau_h_tau_h
+  ///Indices for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
   ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
 
   if(httPairs_.empty()) return false;

@@ -12,8 +12,8 @@ dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-
 channel = sys.argv[1]
 fileNames = [ sys.argv[2] ]
 
-#sync_event=1171228
-sync_event=0
+sync_event=1321942
+#sync_event=0
 #doSvFit = True
 doSvFit = False
 applyRecoil=True
@@ -36,7 +36,7 @@ status = 1
 gSystem.CompileMacro('HTTEvent.cxx','k')
 status *= gSystem.CompileMacro('syncDATA.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
-gSystem.CompileMacro('NanoEventsSkeleton.C','k')
+status *= gSystem.CompileMacro('NanoEventsSkeleton.C','k')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
@@ -57,6 +57,7 @@ stderr = sys.stderr
 sys.stderr = open('/tmp/perr', 'w')
 status *= gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
 if channel=='mt' or channel=='all': status *= gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
+if channel=='et' or channel=='all': status *= gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
 if channel=='tt' or channel=='all': status *= gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
 sys.stdout=stdout
 sys.stderr=stderr
@@ -66,6 +67,7 @@ if status==0:
     exit(-1)
 
 if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
+if channel=='et' or channel=='all': from ROOT import HElTauhTreeFromNano
 if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
 
 lumisToProcess = process.source.lumisToProcess
@@ -85,6 +87,7 @@ for name in fileNames:
     aTree = aROOTFile.Get("Events")
     print "TTree entries: ",aTree.GetEntries()
     if channel=='mt' or channel=='all': HMuTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
+    if channel=='et' or channel=='all': HElTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
     if channel=='tt' or channel=='all': HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
 
 #    print 'A',name,threading.active_count()

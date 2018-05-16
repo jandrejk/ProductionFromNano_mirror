@@ -2,6 +2,7 @@
 
 import sys, os
 import threading
+from time import sleep
 
 channel='tt'
 
@@ -10,11 +11,16 @@ dir = '/afs/hephy.at/work/m/mflechl/cmssw/CMSSW_9_4_4_fromNano/src/WawTools/Nano
 
 def runOneFile(idx,file):
 #    os.system('cp -p *so *pcm '+dir+'rundir_'+str(idx))
+    print str(idx),file,dir+'rundir_'+str(idx)
     os.system('cp -p *h *cxx *C *cc PSet.py zpt*root '+dir+'rundir_'+str(idx))
     os.system('cp -p '+dir+'convertNanoParallel.py '+dir+'rundir_'+str(idx))
     os.chdir(dir+'rundir_'+str(idx))
+    os.system('rm -f HTT*root')
     os.system('./convertNanoParallel.py '+channel+' '+file+' &>log.txt')
     os.chdir(dir)
+    print str(idx)+' done'
+
+print 'Channel:',channel
 
 fileNames = [
     "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
@@ -24,7 +30,9 @@ fileNames = [
     "844BE355-CD12-E811-8871-FA163ED9B872.root",
 ]                                
 
+#commented out: when rerunning, will only recompile what is needed.
 #os.system('rm -rf rundir_*')
+
 threads = []
 ctr=0
 for idx,file in enumerate(fileNames):
@@ -36,6 +44,9 @@ for idx,file in enumerate(fileNames):
     while threading.active_count()>nthreads:  #pause until thread slots become available
         pass
 
+    #avoid problems when all start at the same time
+    sleep(5)
+
     t.start()
 
 
@@ -43,5 +54,5 @@ for x in threads:
     x.join()
 
 #hadd -O ntuples/v15_mt.root rundir_*/HTTM*root
-if channel=='mt' or channel=='all': os.system('hadd -O ntuple_mt.root rundir_*/HTTM*root')
-if channel=='tt' or channel=='all': os.system('hadd -O ntuple_tt.root rundir_*/HTTT*root')
+if channel=='mt' or channel=='all': os.system('hadd -f -O ntuple_mt.root rundir_*/HTTM*root')
+if channel=='tt' or channel=='all': os.system('hadd -f -O ntuple_tt.root rundir_*/HTTT*root')
