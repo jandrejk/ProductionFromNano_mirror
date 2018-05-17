@@ -106,25 +106,18 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   //this is quite slow, calling the function for each trigger item...
   if ( pdg1==13 && pdg2==15 ){ //mu-tau
     trg_singlemuon=  
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu22)          ||
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu22_eta2p1)   ||
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22)        ||
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22_eta2p1);
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
     trg_mutaucross=
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) ) ||
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) );
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) );
   } else if ( pdg1==11 && pdg2==15 ){ //e-tau
     trg_singleelectron=
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_Ele25_eta2p1_WPTight_Gsf);
+      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
   } else if ( pdg1==15 && pdg2==15 ){ //tau-tau
     trg_singletau=
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau120_Trk50_eta2p1) || 
-      pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau120_Trk50_eta2p1) ||
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau140_Trk50_eta2p1) || 
-      pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_VLooseIsoPFTau140_Trk50_eta2p1);
+      false;
     trg_doubletau=
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) ) ||
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) );
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) ) ||
+      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
   }
 
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL

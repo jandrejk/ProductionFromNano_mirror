@@ -143,8 +143,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   leptonPropertiesList.push_back("Muon_tightId");
   leptonPropertiesList.push_back("Muon_highPtId");
   leptonPropertiesList.push_back("Electron_cutBased");
-  leptonPropertiesList.push_back("Electron_mvaSpring16GP_WP80");
-  leptonPropertiesList.push_back("Electron_mvaSpring16GP_WP90");
+  leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP80");
+  leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP90");
   leptonPropertiesList.push_back("Electron_deltaEtaSC");
   leptonPropertiesList.push_back("Electron_lostHits");
   leptonPropertiesList.push_back("Electron_convVeto");
@@ -196,156 +196,102 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   // Single muon triggers
   ///2nd bit (1<<1) for IsoMuon (not sure if correctly encoded in NanoAOD for 80X)
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoMu22";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<1);
-  triggerBits_.back().leg1Pt=22;
-  triggerBits_.back().leg1L1Pt=20;
-  //triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=23;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoTkMu22";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<3);
-  triggerBits_.back().leg1Pt=22;
-  triggerBits_.back().leg1L1Pt=20;
-  //triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=23;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoTkMu22_eta2p1";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<3);
-  triggerBits_.back().leg1Pt=22;
-  triggerBits_.back().leg1Eta=2.1;
-  triggerBits_.back().leg1L1Pt=20;
-  //triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=23;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoMu22_eta2p1";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<1);
-  triggerBits_.back().leg1Pt=22;
-  triggerBits_.back().leg1Eta=2.1;
-  triggerBits_.back().leg1L1Pt=20;
-  //triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=23;
-  triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_IsoMu24";
   triggerBits_.back().leg1Id=13;
   triggerBits_.back().leg1BitMask=(1<<1);
   triggerBits_.back().leg1Pt=24;
-  triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg1L1Pt=22;
+  //triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg1OfflinePt=23;
+
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoTkMu24";
+  triggerBits_.back().path_name="HLT_IsoMu27";
   triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<3);
-  triggerBits_.back().leg1Pt=24;
-  triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg1BitMask=(1<<1);
+  triggerBits_.back().leg1Pt=27;
+  triggerBits_.back().leg1L1Pt=22; //22 or 25...
+  //triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg1OfflinePt=23;
+
   // Mu tauh triggers
   ///2nd mu bit (1<<1) for IsoMuon (not sure if correctly encoded in NanoAOD for 80X)
   ///3rd mu bit (1<<2) for mu-tau overlap (should be OK)
   ///6th tau bit(1<<5) for mu-tau overlap  (is OK for all 80X triggers?)
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20";
+  //  triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20";
+  triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
   triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
-  triggerBits_.back().leg1Pt=19;
+  triggerBits_.back().leg1BitMask=(1<<1)+(1<<2); //iso+OL
+  triggerBits_.back().leg1Pt=20;
   triggerBits_.back().leg1Eta=2.1;
   triggerBits_.back().leg1L1Pt=-1;
   //  triggerBits_.back().leg1L1Pt=18;
   triggerBits_.back().leg1OfflinePt=20;
   triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<5);
-  triggerBits_.back().leg2Pt=20;
+  triggerBits_.back().leg2BitMask=(1<<0)+(1<<5); //looseChargedIso+OL
+  triggerBits_.back().leg2Pt=27;
+  triggerBits_.back().leg2Eta=2.1;
   //  triggerBits_.back().leg2L1Pt=20;
-  triggerBits_.back().leg2L1Pt=-1;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
-  triggerBits_.back().leg1Pt=19;
-  triggerBits_.back().leg1Eta=2.1;
-  //  triggerBits_.back().leg1L1Pt=18;
-  triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=20;
-  triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<5);
-  triggerBits_.back().leg2Pt=20;
-  triggerBits_.back().leg2L1Pt=-1;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_IsoMu21_eta2p1_LooseIsoPFTau20_SingleL1";
-  triggerBits_.back().leg1Id=13;
-  triggerBits_.back().leg1BitMask=(1<<1)+(1<<2);
-  triggerBits_.back().leg1Pt=21;
-  triggerBits_.back().leg1Eta=2.1;
-  //  triggerBits_.back().leg1L1Pt=20;
-  triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg1OfflinePt=20;
-  triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<5);
-  triggerBits_.back().leg2Pt=20;
   triggerBits_.back().leg2L1Pt=-1;
 
   //Single e triggers
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+  //  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+  triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
   triggerBits_.back().leg1Id=11;
-  //triggerBits_.back().leg1BitMask=(1<<0); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
-  triggerBits_.back().leg1BitMask=(1<<1); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
-  triggerBits_.back().leg1Pt=25;
+  triggerBits_.back().leg1BitMask=(1<<1);
+  triggerBits_.back().leg1Pt=32;
+  triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg1OfflinePt=26;
+
+  triggerBits_.push_back(aTrgData);
+  //  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+  triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
+  triggerBits_.back().leg1Id=11;
+  triggerBits_.back().leg1BitMask=(1<<1);
+  triggerBits_.back().leg1Pt=35;
   triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg1OfflinePt=26;
 
   // Single tauh triggers
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_VLooseIsoPFTau120_Trk50_eta2p1";
-  triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<2);//nothing good for 80X
-  triggerBits_.back().leg1Pt=120;
-  triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().leg1OfflinePt=30;
-  triggerBits_.back().path_name="HLT_VLooseIsoPFTau140_Trk50_eta2p1";
-  triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<2);//nothing good for 80X
-  triggerBits_.back().leg1Pt=140;
-  triggerBits_.back().leg1OfflinePt=30;
 
   // tauh tauh triggers
   ///9th tau bit(1<<8) for di-tau dz filter  (should be OK 80X triggers)
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg";
+  triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
   triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<8);
+  triggerBits_.back().leg1BitMask=(1<<2)+(1<<3)+(1<<8); //TightChargedIso+photons+dz
   triggerBits_.back().leg1Pt=35;
   triggerBits_.back().leg1Eta=2.1;
   triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<8);
+  triggerBits_.back().leg2BitMask=(1<<2)+(1<<3)+(1<<8);
   triggerBits_.back().leg2Pt=35;
   triggerBits_.back().leg2Eta=2.1;
   triggerBits_.back().leg2L1Pt=-1;
+
   triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg";
+  triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
   triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<8);
-  triggerBits_.back().leg1Pt=35;
-  triggerBits_.back().leg1Eta=2.1;
-  triggerBits_.back().leg1L1Pt=-1;
-  triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<8);
-  triggerBits_.back().leg2Pt=35;
-  triggerBits_.back().leg2Eta=2.1;
-  triggerBits_.back().leg2L1Pt=-1;
-  triggerBits_.push_back(aTrgData);
-  triggerBits_.back().path_name="HLT_DoubleMediumCombinedIsoPFTau40_Trk1_eta2p1_Reg";
-  triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<8);
+  triggerBits_.back().leg1BitMask=(1<<1)+(1<<3)+(1<<8); //MediumChargedIso+photons+dz
   triggerBits_.back().leg1Pt=40;
   triggerBits_.back().leg1Eta=2.1;
   triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg2Id=15;
-  triggerBits_.back().leg2BitMask=(1<<8);
+  triggerBits_.back().leg2BitMask=(1<<1)+(1<<3)+(1<<8);
+  triggerBits_.back().leg2Pt=40;
+  triggerBits_.back().leg2Eta=2.1;
+  triggerBits_.back().leg2L1Pt=-1;
+
+  triggerBits_.push_back(aTrgData);
+  triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
+  triggerBits_.back().leg1Id=15;
+  triggerBits_.back().leg1BitMask=(1<<2)+(1<<8); //TightChargedIso+dz
+  triggerBits_.back().leg1Pt=40;
+  triggerBits_.back().leg1Eta=2.1;
+  triggerBits_.back().leg1L1Pt=-1;
+  triggerBits_.back().leg2Id=15;
+  triggerBits_.back().leg2BitMask=(1<<2)+(1<<8);
   triggerBits_.back().leg2Pt=40;
   triggerBits_.back().leg2Eta=2.1;
   triggerBits_.back().leg2L1Pt=-1;
@@ -447,12 +393,10 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
       }
    }
 
-   /*
    //everything has to be recompiled if this is done.. uncomment if you change the lists. TODO: detect changes automatically!
    writePropertiesHeader(leptonPropertiesList);
    writeTriggersHeader(triggerBits_);
    writeFiltersHeader(filterBits_);
-   */
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -587,7 +531,7 @@ bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index){
   bool passSelection = aP4.Pt()>10 && std::abs(aP4.Eta())<2.5 &&
                        std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 &&
                        std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045 &&
-                       httLeptonCollection[index].getProperty(PropertyEnum::mvaSpring16GP_WP90)>0.5 &&
+                       httLeptonCollection[index].getProperty(PropertyEnum::mvaFall17Iso_WP80)>0.5 &&
                        httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5 &&
                        httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<=1 &&
    		       httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso03_all)<0.3;

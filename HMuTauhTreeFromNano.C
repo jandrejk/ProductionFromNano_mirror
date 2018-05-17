@@ -62,7 +62,7 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   //  float eps=0;
   //  if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...
   //  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=(2.1+eps) &&
-  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=2.1 &&
+  bool muonBaselineSelection =  muonP4.Pt()>25 && std::abs(muonP4.Eta())<=2.1 &&
     std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz))<0.2 &&
     std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<0.045; // &&
   //    httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;

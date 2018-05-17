@@ -13,5 +13,9 @@ HLT_VLooseIsoPFTau140_Trk50_eta2p1 = 11,
 HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg = 12, 
 HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg = 13, 
 HLT_DoubleMediumCombinedIsoPFTau40_Trk1_eta2p1_Reg = 14, 
-NONE = 15
+HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1 = 15,
+    HLT_Ele32_WPTight_Gsf = 16,
+    HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg = 17,
+    HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg = 18,
+NONE = 99
 };

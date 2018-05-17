@@ -33,11 +33,13 @@ fileNames = [
     "844BE355-CD12-E811-8871-FA163ED9B872.root",
 ]
 
-##2017 sync
-#dirName = '/data/higgs/nanoaod_2017/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/'
+#2017 sync
+dirName = '/data/higgs/nanoaod_2017/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/'
+fileNames = [
+    "4E3EF595-DD43-E811-834A-002590E7DFEE.root"
+]
 #fileNames = [
 #    "107D8998-A543-E811-8F6A-0CC47A4D7628.root",
-#]
 #    "1E41103A-E743-E811-AC30-A0369FD0B122.root",
 #    "42CA2AF3-3E43-E811-8C57-00248C55CC3C.root",
 #    "4E3EF595-DD43-E811-834A-002590E7DFEE.root",
