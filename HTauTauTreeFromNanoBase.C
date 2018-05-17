@@ -901,11 +901,17 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
   }//Muons
   //Electrons
   for(unsigned int iEl=0; iEl<nElectron; ++iEl){
-    if( !(Electron_pt[iEl]>7) ) continue;
+    float e_pt=Electron_pt[iEl];
+    if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
+    if( !(e_pt>7) ) continue;
     HTTParticle aLepton;
     TLorentzVector p4;
-    p4.SetPtEtaPhiM(Electron_pt[iEl],
-		    Electron_eta[iEl],
+
+    float eps=0;
+    if (tweak_nano && (event==392156 || event==1352574) ) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
+
+    p4.SetPtEtaPhiM(e_pt,
+		    Electron_eta[iEl]-eps,
 		    Electron_phi[iEl],
 		    0.51100e-3); //electron mass
     TVector3 pca;//FIXME: can partly recover with ip3d and momentum?

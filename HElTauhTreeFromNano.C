@@ -57,10 +57,12 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   //  if (event==check_event_number) cout << "pS4 " << endl;
 
-  bool electronBaselineSelection =  elecP4.Pt()>25 && std::abs(elecP4.Eta())<=2.1 &&
+  bool electronBaselineSelection =  elecP4.Pt()>26 && std::abs(elecP4.Eta())<=2.1 &&
     std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dz))<0.2 &&
-    std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dxy))<0.045; // &&
-  //    httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::mediumId)>0;
+    std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dxy))<0.045 &&
+    httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::mvaSpring16GP_WP80)>0.5 &&
+    httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::convVeto)>0.5 &&
+    httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
 
   if (event==check_event_number) cout << "pS4a " << elecP4.Pt() << " " << elecP4.Eta() << " " << std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dz)) << " " << std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dxy))<< " " << (int)std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::mediumId))<<  endl;
 
