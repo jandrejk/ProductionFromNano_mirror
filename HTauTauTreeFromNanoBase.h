@@ -79,7 +79,8 @@ public :
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
   int getGenMatch(unsigned int index, std::string colType="");
   int getGenMatch(TLorentzVector selObj);
-  int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
+  //  int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
+  int getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit=false, std::string colType="");
   int getMetFilterBits();
   double getPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
   bool isGoodToMatch(unsigned int ind);
@@ -88,7 +89,9 @@ public :
 
   template<typename T> T getBranchValue(const char *branchAddress, unsigned int index);
   Double_t getProperty(std::string name, unsigned int index, std::string colType="");
+  Double_t getProperty(std::string name, unsigned int index, TLorentzVector obj, std::string colType="");
   std::vector<Double_t> getProperties(const std::vector<std::string> & propertiesList, unsigned int index, std::string colType="");
+  std::vector<Double_t> getProperties(const std::vector<std::string> & propertiesList, unsigned int index, TLorentzVector obj, std::string colType="");
 
   Int_t getFilter(std::string name);
   std::vector<Int_t> getFilters(const std::vector<std::string> & propertiesList);

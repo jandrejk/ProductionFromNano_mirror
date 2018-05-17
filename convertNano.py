@@ -8,7 +8,7 @@ from ROOT import gSystem, TChain, TSystem, TFile, TString, vector
 
 from PSet import process
 
-#sync_event=1171228
+#sync_event=850381
 sync_event=0
 #doSvFit = True
 doSvFit = False

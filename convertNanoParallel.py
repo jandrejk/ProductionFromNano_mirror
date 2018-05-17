@@ -8,11 +8,11 @@ from ROOT import gSystem, TChain, TSystem, TFile, TString, vector
 
 from PSet import process
 
-dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
+#dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
 channel = sys.argv[1]
 fileNames = [ sys.argv[2] ]
 
-#sync_event=1321942
+#sync_event=850381
 sync_event=0
 #doSvFit = True
 doSvFit = False
@@ -80,7 +80,7 @@ threads = []
 ctr=0
 for name in fileNames:
 #    aFile = "file:///home/mbluj/work/data/NanoAOD/80X_with944/VBFHToTauTau_M125_13TeV_powheg_pythia8/RunIISummer16NanoAOD_PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/"+name
-    aFile = "file://"+dir+name
+    aFile = "file://"+name
 
     print "Using file: ",aFile
     aROOTFile = TFile.Open(aFile)

@@ -289,8 +289,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   //Single e triggers
   triggerBits_.push_back(aTrgData);
   triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
-  triggerBits_.back().leg1Id=15;
-  triggerBits_.back().leg1BitMask=(1<<0); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
+  triggerBits_.back().leg1Id=11;
+  //triggerBits_.back().leg1BitMask=(1<<0); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
+  triggerBits_.back().leg1BitMask=(1<<1); //should this be 5? https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py#L27
   triggerBits_.back().leg1Pt=25;
   triggerBits_.back().leg1L1Pt=-1;
   triggerBits_.back().leg1OfflinePt=26;
@@ -851,7 +852,7 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex){
 		    Jet_eta[iJet],
 		    Jet_phi[iJet],
 		    Jet_mass[iJet]);
-    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet,"Jet");
+    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
     ///Set jet PDG id by hand
     aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
     ///JEC uncertaintes
@@ -895,7 +896,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setChargedP4(p4);//same as p4 for muon
     //aLepton.setNeutralP4(p4Neutral); not defined for muon
     aLepton.setPCA(pca);
-    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, "Muon");
+    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
     aLepton.setProperties(aProperties);
     httLeptonCollection.push_back(aLepton);
   }//Muons
@@ -919,7 +920,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setChargedP4(p4);//same as p4 for electron
     //aLepton.setNeutralP4(p4Neutral); not defined for electron
     aLepton.setPCA(pca);
-    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, "Electron");
+    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
     aLepton.setProperties(aProperties);
     httLeptonCollection.push_back(aLepton);
   }//Electrons
@@ -979,7 +980,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setNeutralP4(p4-chargedP4);
     TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
     aLepton.setPCA(pca);
-    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, "Tau");
+    std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, p4, "Tau");
     if (tweak_nano && event==688698 && Tau_pt[iTau]>99 ){
       for (unsigned i=0; i<leptonPropertiesList.size(); i++){
 	if (leptonPropertiesList.at(i)=="Tau_rawMVAoldDM") aProperties.at(i)-=0.1;
@@ -1293,11 +1294,19 @@ Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name){
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType){
+  TLorentzVector obj;
+  obj.SetPtEtaPhiM(0,0,0,999999);
+  return getProperty(name,index,obj,colType);
+}
+
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, TLorentzVector obj, std::string colType){
 
   if(name=="mc_match") return getGenMatch(index,colType);
   
-  if(name=="isGoodTriggerType") return getTriggerMatching(index,false,colType);
-  if(name=="FilterFired") return getTriggerMatching(index,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
+  if(name=="isGoodTriggerType") return getTriggerMatching(index,obj,false,colType);
+  if(name=="FilterFired") return getTriggerMatching(index,obj,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
 
   if(colType=="Electron"){
     if(name.find("Muon_")!=std::string::npos ||
@@ -1481,10 +1490,21 @@ std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<
 							      unsigned int index,
 							      std::string colType){
 
+  TLorentzVector obj;
+  obj.SetPtEtaPhiM(0,0,0,999999);
+  return getProperties(propertiesList,index,obj,colType);
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,
+							      unsigned int index,
+							      TLorentzVector obj,
+							      std::string colType){
+
   std::vector<Double_t> aProperties;
 
   for(auto propertyName:propertiesList){
-    aProperties.push_back(getProperty(propertyName,index,colType));
+    aProperties.push_back(getProperty(propertyName,index,obj,colType));
   }
 
   return aProperties;
@@ -1510,11 +1530,13 @@ bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind){
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, bool checkBit, std::string colType){
+int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit, std::string colType){
 
-  TLorentzVector p4_1;
+  //  TLorentzVector p4_1;
   unsigned int particleId=0;
   double dRmax=0.5;//was 0.25
+
+  /*
   if(colType=="Muon"){
     if(index>=nMuon) return 0;
     particleId=13;
@@ -1541,6 +1563,19 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, bool checkBi
   }
   else
     return 0;
+  */
+  if(colType=="Muon"){
+    particleId=13;
+  }
+  else if(colType=="Electron"){
+    particleId=11;
+  }
+  else if(colType=="Tau"){
+    particleId=15;
+  }
+  else
+    return 0;
+
 
   int firedBits = 0;
   for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg){
