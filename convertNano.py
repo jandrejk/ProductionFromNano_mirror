@@ -68,7 +68,7 @@ if status==0:
     exit(-1)
 
 from ROOT import HMuTauhTreeFromNano, HTauhTauhTreeFromNano
-dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
+dir = "/data/higgs/nanoaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
 fileNames = [
     "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
     "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
