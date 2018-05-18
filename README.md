@@ -55,11 +55,11 @@ This neeeds to be extended for larger productions, and to work with non-local fi
 
 ---
 Important ressources
-```
-https://cms-nanoaod-integration.web.cern.ch/integration/master/mc94X_doc.html
-https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD
-https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/PhysicsTools/NanoAOD/python/triggerObjects_cff.py
-```
+
+* [https://cms-nanoaod-integration.web.cern.ch/integration/master/mc94X_doc.html](https://cms-nanoaod-integration.web.cern.ch/integration/master/mc94X_doc.html)
+* [https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD](https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookNanoAOD)
+* [https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/PhysicsTools/NanoAOD/python/triggerObjects_cff.py](https://github.com/cms-sw/cmssw/blob/CMSSW_9_4_X/PhysicsTools/NanoAOD/python/triggerObjects_cff.py)
+
 
 
 ---
