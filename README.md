@@ -31,8 +31,7 @@ git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b 
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 # MET recoil corrections
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
-# WAW production tools from NanoAOD
-git clone https://github.com/mbluj/ProductionFromNano.git WawTools/NanoAODTools
+# production tools based on WawTools from NanoAOD
 git clone https://github.com/mflechl/ProductionFromNano.git WawTools/NanoAODTools -b SM2017ML
 # This is just needed to get rid of warnings
 git cms-addpkg FWCore/MessageLogger
