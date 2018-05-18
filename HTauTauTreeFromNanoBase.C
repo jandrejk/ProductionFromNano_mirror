@@ -393,10 +393,13 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
       }
    }
 
-   //everything has to be recompiled if this is done.. uncomment if you change the lists. TODO: detect changes automatically!
+   //if you change any of the lists, uncomment and execute in this directory (i.e. not running parallel in another) and then run again.
+   //  Or, if you run in another directory, copy the *Enum*h over after running the first time, then run again.
+   /*
    writePropertiesHeader(leptonPropertiesList);
    writeTriggersHeader(triggerBits_);
    writeFiltersHeader(filterBits_);
+   */
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1480,46 +1483,10 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
   unsigned int particleId=0;
   double dRmax=0.5;//was 0.25
 
-  /*
-  if(colType=="Muon"){
-    if(index>=nMuon) return 0;
-    particleId=13;
-    p4_1.SetPtEtaPhiM(Muon_pt[index],
-		      Muon_eta[index],
-		      Muon_phi[index],
-		      0.10566); //muon mass
-  }
-  else if(colType=="Electron"){
-    if(index>=nElectron) return 0;
-    particleId=11;
-    p4_1.SetPtEtaPhiM(Electron_pt[index],
-		      Electron_eta[index],
-		      Electron_phi[index],
-		      0.51100e-3); //electron mass
-  }
-  else if(colType=="Tau"){
-    if(index>=nTau) return 0;
-    particleId=15;
-    p4_1.SetPtEtaPhiM(Tau_pt[index],
-		      Tau_eta[index],
-		      Tau_phi[index],
-		      Tau_mass[index]);
-  }
-  else
-    return 0;
-  */
-  if(colType=="Muon"){
-    particleId=13;
-  }
-  else if(colType=="Electron"){
-    particleId=11;
-  }
-  else if(colType=="Tau"){
-    particleId=15;
-  }
-  else
-    return 0;
-
+  if(colType=="Muon")            particleId=13;
+  else if(colType=="Electron")   particleId=11;
+  else if(colType=="Tau")        particleId=15;
+  else return 0;
 
   int firedBits = 0;
   for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg){
@@ -1536,29 +1503,23 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     //  int xx=triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos;
     //    if (triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos) std::cout << triggerBits_[iTrg].path_name << " " << decision << " " << particleId  << std::endl;
     if(!decision) continue; // do not check rest if trigger is not fired
+
     //check legs
     decision = false;
     //first leg
     if(particleId==triggerBits_[iTrg].leg1Id){
       for(unsigned int iObj=0; iObj<nTrigObj; ++iObj){
-	//	if (xx) std::cout<<"1"<<std::endl;
 	if(TrigObj_id[iObj]!=(int)particleId) continue;
-	//	if (xx) std::cout<<"2"<<std::endl;
 	TLorentzVector p4_trg;
 	p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
 			    TrigObj_eta[iObj],
 			    TrigObj_phi[iObj],
 			    0.);
 	if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
-	//	if (xx) std::cout<<"3"<<std::endl;
 	if( triggerBits_[iTrg].leg1Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg1Pt) ) continue;
-	//	if (xx) std::cout<<"4"<<std::endl;
 	if( triggerBits_[iTrg].leg1Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg1Eta) ) continue;
-	//	if (xx) std::cout<<"5 "<< triggerBits_[iTrg].leg1L1Pt << ">0? " << TrigObj_l1pt[iObj] << " > " << triggerBits_[iTrg].leg1L1Pt  << std::endl;
 	if( triggerBits_[iTrg].leg1L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg1L1Pt) ) continue;
-	//	if (xx) std::cout<<"6"<<std::endl;
 	if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
-	//	if (xx) std::cout<<"7"<<std::endl;
 	decision = true;
 	if(decision) break;
       }

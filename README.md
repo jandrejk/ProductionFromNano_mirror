@@ -33,6 +33,7 @@ git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 # WAW production tools from NanoAOD
 git clone https://github.com/mbluj/ProductionFromNano.git WawTools/NanoAODTools
+git clone https://github.com/mflechl/ProductionFromNano.git WawTools/NanoAODTools -b SM2017ML
 # This is just needed to get rid of warnings
 git cms-addpkg FWCore/MessageLogger
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
@@ -46,3 +47,4 @@ scram b -j 4
 Release notes:
 * 16.01.2018, M.Bluj, initial version for 80X (2016) inputs with CMSSW_9_4_2
 * 26.02.2018, M.Bluj, update to NanoAOD of 05Feb2018 production of 2016 data wiht CMSSW_9_4_4
+* 18.05.2018, M.Flechl, produce sync ntuple directly; produce e-tau ntuples; several fixes for the sync
