@@ -24,14 +24,14 @@ def runOneFile(idx,file):
 print 'Channel:',channel
 
 #2016 sync
-dirName = '/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/'
-fileNames = [
-    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
-    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
-    "0E6F4B78-CC12-E811-B37D-FA163EA12C78.root",
-    "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
-    "844BE355-CD12-E811-8871-FA163ED9B872.root",
-]
+#dirName = '/data/higgs/nanoaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/'
+#fileNames = [
+#    "DEBF5F61-CC12-E811-B47A-0CC47AA9943A.root",
+#    "5A038C2A-CC12-E811-B729-7845C4FC3B8D.root",
+#    "0E6F4B78-CC12-E811-B37D-FA163EA12C78.root",
+#    "50BE09DD-CC12-E811-869D-F04DA27542B9.root",
+#    "844BE355-CD12-E811-8871-FA163ED9B872.root",
+#]
 
 #2017 sync
 dirName = '/data/higgs/nanoaod_2017/RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/'
