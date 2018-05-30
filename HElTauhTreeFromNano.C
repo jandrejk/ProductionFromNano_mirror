@@ -127,13 +127,13 @@ bool HElTauhTreeFromNano::diElectronVeto(){
   else{
     for(unsigned int iElec1=0;iElec1<elecIndexes.size()-1;++iElec1){
       for(unsigned int iElec2=iElec1+1;iElec2<elecIndexes.size();++iElec2){
-	TLorentzVector elec1P4 = httLeptonCollection[iElec1].getP4();
-	int elec1Charge = (int)httLeptonCollection[iElec1].getProperty(PropertyEnum::charge);
-	TLorentzVector elec2P4 = httLeptonCollection[iElec2].getP4();
-	int elec2Charge = (int)httLeptonCollection[iElec2].getProperty(PropertyEnum::charge);
-	float deltaR = elec1P4.DeltaR(elec2P4);
-	if(elec2Charge*elec1Charge==-1 &&
-	   deltaR>0.15) return true;
+        TLorentzVector elec1P4 = httLeptonCollection[iElec1].getP4();
+        int elec1Charge = (int)httLeptonCollection[iElec1].getProperty(PropertyEnum::charge);
+        TLorentzVector elec2P4 = httLeptonCollection[iElec2].getP4();
+        int elec2Charge = (int)httLeptonCollection[iElec2].getProperty(PropertyEnum::charge);
+        float deltaR = elec1P4.DeltaR(elec2P4);
+        if(elec2Charge*elec1Charge==-1 &&
+           deltaR>0.15) return true;
       }
     }
   }

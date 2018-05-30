@@ -120,8 +120,8 @@ unsigned int HTauhTauhTreeFromNano::bestPair(std::vector<unsigned int> &pairInde
       unsigned int indexLeg1 = httPairs_[iPair].getIndexLeg1();
       unsigned int indexLeg2 = httPairs_[iPair].getIndexLeg2();
       if(ii>=pairIndexes.size()){//invert legs
-	indexLeg1 = httPairs_[iPair].getIndexLeg2();
-	indexLeg2 = httPairs_[iPair].getIndexLeg1();
+        indexLeg1 = httPairs_[iPair].getIndexLeg2();
+        indexLeg2 = httPairs_[iPair].getIndexLeg1();
       }
       double pt_1_i = httLeptonCollection[indexLeg1].getP4().Pt();
       double pt_2_i = httLeptonCollection[indexLeg2].getP4().Pt();
@@ -148,11 +148,11 @@ unsigned int HTauhTauhTreeFromNano::bestPair(std::vector<unsigned int> &pairInde
     double pt_1_i = httLeptonCollection[indexLeg1].getP4().Pt();
     double pt_2_i = httLeptonCollection[indexLeg2].getP4().Pt();
     std::cout<<"Pair sorting: "<<std::endl
-	     <<"best index = "<<bestIndex<<", index[0] = "<<pairIndexes[0]<<std::endl
-	     <<"\tiso1[best]="<<-iso_1<<", iso1[0]="<<httLeptonCollection[indexLeg1].getProperty(PropertyEnum::rawMVAoldDM)<<std::endl
-	     <<"\tpt1[best]="<<pt_1<<", pt1[0]="<<pt_1_i<<std::endl
-	     <<"\tiso2[best]="<<-iso_2<<", iso1[0]="<<httLeptonCollection[indexLeg2].getProperty(PropertyEnum::rawMVAoldDM)<<std::endl
-	     <<"\tpt2[best]="<<pt_2<<", pt1[0]="<<pt_2_i<<std::endl;
+             <<"best index = "<<bestIndex<<", index[0] = "<<pairIndexes[0]<<std::endl
+             <<"\tiso1[best]="<<-iso_1<<", iso1[0]="<<httLeptonCollection[indexLeg1].getProperty(PropertyEnum::rawMVAoldDM)<<std::endl
+             <<"\tpt1[best]="<<pt_1<<", pt1[0]="<<pt_1_i<<std::endl
+             <<"\tiso2[best]="<<-iso_2<<", iso1[0]="<<httLeptonCollection[indexLeg2].getProperty(PropertyEnum::rawMVAoldDM)<<std::endl
+             <<"\tpt2[best]="<<pt_2<<", pt1[0]="<<pt_2_i<<std::endl;
   }
   */
 

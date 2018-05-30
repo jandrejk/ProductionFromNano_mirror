@@ -62,18 +62,21 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
   //  float eps=0;
   //  if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...
   //  bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=(2.1+eps) &&
-  bool muonBaselineSelection =  muonP4.Pt()>25 && std::abs(muonP4.Eta())<=2.1 &&
-    std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz))<0.2 &&
-    std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<0.045; // &&
-  //    httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;
+
+  // bool muonBaselineSelection =  muonP4.Pt()>20 && std::abs(muonP4.Eta())<=2.1
+  //      && std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz))<0.2
+  //      && std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<0.045
+  //      && httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId)>0;
+
+  bool muonBaselineSelection = muonSelection(indexMuonLeg, "baseline")
 
   if (event==check_event_number) cout << "pS4a " << muonP4.Pt() << " " << muonP4.Eta() << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz)) << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<< " " << (int)std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId))<<  endl;
 
 
-  bool tauBaselineSelection = tauP4.Pt()>30 && std::abs(tauP4.Eta())<2.3 &&
-    httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode)>0.5 &&
-    std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz))<0.2 &&
-    (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))==1;
+  bool tauBaselineSelection = tauP4.Pt()> 30 && std::abs(tauP4.Eta())<2.3 
+       && httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode)>0.5 
+       && std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz))<0.2 
+       && (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))==1;
 
   if (event==check_event_number) cout << "pS4b " << tauP4.Pt() << " " << tauP4.Eta() << " " << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " " << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " " << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
 
@@ -144,13 +147,13 @@ bool HMuTauhTreeFromNano::diMuonVeto(){
   else{
     for(unsigned int iMuon1=0;iMuon1<muonIndexes.size()-1;++iMuon1){
       for(unsigned int iMuon2=iMuon1+1;iMuon2<muonIndexes.size();++iMuon2){
-	TLorentzVector muon1P4 = httLeptonCollection[iMuon1].getP4();
-	int muon1Charge = (int)httLeptonCollection[iMuon1].getProperty(PropertyEnum::charge);
-	TLorentzVector muon2P4 = httLeptonCollection[iMuon2].getP4();
-	int muon2Charge = (int)httLeptonCollection[iMuon2].getProperty(PropertyEnum::charge);
-	float deltaR = muon1P4.DeltaR(muon2P4);
-	if(muon2Charge*muon1Charge==-1 &&
-	   deltaR>0.15) return true;
+        TLorentzVector muon1P4 = httLeptonCollection[iMuon1].getP4();
+        int muon1Charge = (int)httLeptonCollection[iMuon1].getProperty(PropertyEnum::charge);
+        TLorentzVector muon2P4 = httLeptonCollection[iMuon2].getP4();
+        int muon2Charge = (int)httLeptonCollection[iMuon2].getProperty(PropertyEnum::charge);
+        float deltaR = muon1P4.DeltaR(muon2P4);
+        if(muon2Charge*muon1Charge==-1 &&
+           deltaR>0.15) return true;
       }
     }
   }
