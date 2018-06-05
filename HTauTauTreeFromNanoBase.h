@@ -70,6 +70,7 @@ public :
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   bool muonSelection(unsigned int index);
   bool electronSelection(unsigned int index);
+  bool tauSelection(unsigned int index);
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
