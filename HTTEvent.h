@@ -21,7 +21,7 @@ class HTTEvent{
 
  public:
 
-  enum sampleTypeEnum {DUMMY = -1, DATA = 0, DY = 1, DYLowM = 2, WJets=3, TTbar=4, h=5, H=6, A=7};
+  enum sampleTypeEnum {DUMMY = -1, DATA = 0, DY = 1, DYLowM = 2, WJets=3, TTbar=4, Diboson=5, h=6, H=7, A=8};
 
   static const int ntauIds = 13;
   static const int againstMuIdOffset = 0;
