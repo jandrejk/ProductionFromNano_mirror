@@ -78,9 +78,9 @@ struct Parameter{
 
     struct TES{
       float one_prong_0p0   =  0.000;
-      float one_prong_1p0   =  0.095;
+      float one_prong_1p0   =  0.000;
       float three_prong_0p0 =  0.000;
-      float uncert          =  0.03;
+      float uncert          =  0.000;
     }TES;
 
     struct DiElectronVeto{
@@ -158,10 +158,10 @@ struct Parameter{
     } Baseline;
 
     struct TES{
-      float one_prong_0p0   = -0.002;
-      float one_prong_1p0   =  0.015;
+      float one_prong_0p0   =  0.000;
+      float one_prong_1p0   =  0.000;
       float three_prong_0p0 =  0.000;
-      float uncert          =  0.015;
+      float uncert          =  0.000;
     }TES;
 
     struct DiMuonVeto{
@@ -197,10 +197,10 @@ struct Parameter{
   struct Tau{
 
     struct TES{
-      float one_prong_0p0   = -0.018;
-      float one_prong_1p0   =  0.010;
-      float three_prong_0p0 =  0.004;
-      float uncert          =  0.012;
+      float one_prong_0p0   =  0.000;
+      float one_prong_1p0   =  0.000;
+      float three_prong_0p0 =  0.000;
+      float uncert          =  0.000;
     }TES;
 
 
