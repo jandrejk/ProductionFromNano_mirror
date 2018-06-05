@@ -10,3 +10,4 @@ build
 *.pcm
 FrameworkJobReport.xml
 HTT*root
+rundir_*
