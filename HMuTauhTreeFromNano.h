@@ -21,6 +21,8 @@ class HMuTauhTreeFromNano : public HTauTauTreeFromNanoBase {
   /// MT final state specific
   bool diMuonVeto();
   bool pairSelection(unsigned int index);
+  bool muonSelection(unsigned int index);
+  bool tauSelection(unsigned int index);
   /////////////////////////////////////////////////
   
   HMuTauhTreeFromNano(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<std::string> lumis = std::vector<std::string>(), std::string prefix="HTTMT");
