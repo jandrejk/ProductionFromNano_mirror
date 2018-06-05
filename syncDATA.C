@@ -450,8 +450,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   //////////////////////////////////////////////////////////////////
   TLorentzVector vis=leg1P4+leg2P4;
   TLorentzVector vmet; vmet.SetPtEtaPhiM(met,0,metphi,0);
-  TLorentzVector vis_met=vis+vmet;
-  pt_tt=vmet.Pt();
+  pt_tt=(vmet + vis).Pt();
   pt_vis=vis.Pt();
   mt_3=DEF;
   mt_tot=DEF;
