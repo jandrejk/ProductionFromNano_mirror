@@ -19,6 +19,8 @@ class HElTauhTreeFromNano : public HTauTauTreeFromNanoBase {
 
   /////////////////////////////////////////////////
   /// ET final state specific
+  bool electronSelection(unsigned int index);
+  bool tauSelection(unsigned int index);
   bool diElectronVeto();
   bool pairSelection(unsigned int index);
   /////////////////////////////////////////////////
