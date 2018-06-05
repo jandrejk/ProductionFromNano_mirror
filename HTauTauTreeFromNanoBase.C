@@ -39,7 +39,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
     r2 = strtol(block2,&pEnd,10);
     l2 = strtol(pEnd+1,NULL,10);
     edm::LuminosityBlockRange lumiRange(edm::LuminosityBlockID(r1,l1),
-					edm::LuminosityBlockID(r2,l2));
+                                        edm::LuminosityBlockID(r2,l2));
     jsonVector.push_back(lumiRange);
   }
   std::cout<<"[HTauTauTreeFromNanoBase]: Size of jsonVec: "<<jsonVector.size()<<std::endl;
@@ -151,13 +151,13 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
   //leptonPropertiesList.push_back("daughters_typeOfMuon");
   leptonPropertiesList.push_back("Tau_rawIso");
   leptonPropertiesList.push_back("Tau_photonsOutsideSignalCone");
-  leptonPropertiesList.push_back("Tau_rawMVAoldDM");
+  leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v1");
   leptonPropertiesList.push_back("Tau_rawAntiEleCat");
   leptonPropertiesList.push_back("dxy");
   leptonPropertiesList.push_back("dz");
   leptonPropertiesList.push_back("sip3d");
   leptonPropertiesList.push_back("Tau_idDecayMode");
-  leptonPropertiesList.push_back("Tau_idMVAoldDM");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT, 32-VVT 
+  leptonPropertiesList.push_back("Tau_idMVAoldDM2017v1");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT, 32-VVT
   leptonPropertiesList.push_back("Tau_idAntiEle");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT 
   leptonPropertiesList.push_back("Tau_idAntiMu");//bits: 1-L, 2-T
   leptonPropertiesList.push_back("pfRelIso03_all");//R=0.4 used for mu?
@@ -360,36 +360,36 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
       bestPairIndex_ = bestPairIndex;
 
       if(bestPairIndex<9999){
-	//if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event with good pair"<<std::endl;//FIXME
+        //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event with good pair"<<std::endl;//FIXME
 
-	if (event==check_event_number) cout << "5" << endl;
+        if (event==check_event_number) cout << "5" << endl;
 
-	///Call pairSelection again to set selection bits for the selected pair.
+        ///Call pairSelection again to set selection bits for the selected pair.
         pairSelection(bestPairIndex);
 
-	fillJets(bestPairIndex);
-	//fillLeptons();//moved
-	fillGenLeptons();
-	fillPairs(bestPairIndex);
-	applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
+        fillJets(bestPairIndex);
+        //fillLeptons();//moved
+        fillGenLeptons();
+        fillPairs(bestPairIndex);
+        applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
 
-	HTTPair & bestPair = httPairCollection[0];
+        HTTPair & bestPair = httPairCollection[0];
         for(unsigned int sysType = (unsigned int)HTTAnalysis::NOMINAL;
-	    sysType<(unsigned int)HTTAnalysis::DUMMY_SYS;++sysType){
-	  HTTAnalysis::sysEffects type = static_cast<HTTAnalysis::sysEffects>(sysType);
-	  computeSvFit(bestPair, type);
-	  //break; ///TEST for synch. ntuple
-	}
-	//	httTree->Fill();
-	SyncDATA->fill(httEvent,httJetCollection,&bestPair);
-	SyncDATA->entry=entry++;
-	SyncDATA->fileEntry=jentry;
-	t_TauCheck->Fill();
+            sysType<(unsigned int)HTTAnalysis::DUMMY_SYS;++sysType){
+          HTTAnalysis::sysEffects type = static_cast<HTTAnalysis::sysEffects>(sysType);
+          computeSvFit(bestPair, type);
+          //break; ///TEST for synch. ntuple
+        }
+        //      httTree->Fill();
+        SyncDATA->fill(httEvent,httJetCollection,&bestPair);
+        SyncDATA->entry=entry++;
+        SyncDATA->fileEntry=jentry;
+        t_TauCheck->Fill();
 
-	hStats->Fill(2);//Number of events saved to ntuple
-	hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
-	if(firstWarningOccurence_)//stop to warn once the first pair is found and filled
-	  firstWarningOccurence_ = false;
+        hStats->Fill(2);//Number of events saved to ntuple
+        hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
+        if(firstWarningOccurence_)//stop to warn once the first pair is found and filled
+          firstWarningOccurence_ = false;
       }
    }
 
@@ -490,10 +490,10 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
     if(dr<dRmin) continue;
     if(leptonPdg == 13 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && muonSelection(iLepton) && true) return true;
     /*       (std::abs(httLeptonCollection[signalLeg1].getPDGid())!=leptonPdg || muonSelection(signalLeg1Index)) &&
-	     (std::abs(httLeptonCollection[signalLeg2].getPDGid())!=leptonPdg || muonSelection(signalLeg2Index)) ) return true; */ //AP 25/05/17: this part is outdated
+             (std::abs(httLeptonCollection[signalLeg2].getPDGid())!=leptonPdg || muonSelection(signalLeg2Index)) ) return true; */ //AP 25/05/17: this part is outdated
     if(leptonPdg == 11 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && electronSelection(iLepton) && true) return true;
     /*       (std::abs(httLeptonCollection[signalLeg1].getPDGid())!=leptonPdg || electronSelection(signalLeg1Index)) &&
-	     (std::abs(httLeptonCollection[signalLeg2].getPDGid())!=leptonPdg || electronSelection(signalLeg2Index)) ) return true; */ //AP 25/05/17: this part is outdated
+             (std::abs(httLeptonCollection[signalLeg2].getPDGid())!=leptonPdg || electronSelection(signalLeg2Index)) ) return true; */ //AP 25/05/17: this part is outdated
   }
   return false;
 }
@@ -511,19 +511,19 @@ bool HTauTauTreeFromNanoBase::extraElectronVeto(unsigned int signalLeg1Index, un
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::muonSelection(unsigned int index){
 
-  TLorentzVector aP4 = httLeptonCollection[index].getP4();
+    TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-  //Should be fine with NanoAOD?
-  // int muonIdBit = 7;//Standard Medium ID
-  // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
-  
-  bool passSelection = aP4.Pt()>10 && std::abs(aP4.Eta())<2.4 &&
-                       std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 &&
-                       std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045 &&
-   		       httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0 &&
-   		       httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso04_all)<0.3;
+    //Should be fine with NanoAOD?
+    // int muonIdBit = 7;//Standard Medium ID
+    // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
 
-  return passSelection;
+    return  aP4.Pt()>10 && std::abs(aP4.Eta())<2.4
+            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
+            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
+            && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0
+            && httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso04_all)<0.3;
+    
+
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -531,15 +531,19 @@ bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index){
 
   TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-  bool passSelection = aP4.Pt()>10 && std::abs(aP4.Eta())<2.5 &&
-                       std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 &&
-                       std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045 &&
-                       httLeptonCollection[index].getProperty(PropertyEnum::mvaFall17Iso_WP80)>0.5 &&
-                       httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5 &&
-                       httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<=1 &&
-   		       httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso03_all)<0.3;
+  bool passSelection = aP4.Pt()>10 && std::abs(aP4.Eta())<2.5 
+                       && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
+                       && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
+                       && httLeptonCollection[index].getProperty(PropertyEnum::mvaFall17Iso_WP80)>0.5
+                       && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
+                       && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<=1
+                       && httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso03_all)<0.3;
 
   return passSelection;
+}
+bool HTauTauTreeFromNanoBase::tauSelection(unsigned index){
+    ///Requires channel specific implementation
+    return false;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -547,9 +551,9 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
 
   TLorentzVector aP4;
   aP4.SetPtEtaPhiM(Jet_pt[index],
-		   Jet_eta[index],
-		   Jet_phi[index],
-		   Jet_mass[index]);
+                   Jet_eta[index],
+                   Jet_phi[index],
+                   Jet_mass[index]);
 
   bool passSelection = aP4.Pt()>20 && std::abs(aP4.Eta())<4.7 &&
                        Jet_jetId[index]>=1;//it means at least loose
@@ -564,6 +568,8 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
 
   return passSelection;
 }
+
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillEvent(){
@@ -614,14 +620,14 @@ void HTauTauTreeFromNanoBase::fillEvent(){
       ///TT reweighting according to
       ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
       if(topP4.M()>1E-3 && antitopP4.M()>1E-3){
-	double topPt = topP4.Perp();
-	double antitopPt = antitopP4.Perp();
-	double weightTop = exp(0.0615-0.0005*topPt);
-	double weightAntitop= exp(0.0615-0.0005*antitopPt);
-	double weightTop_r1 = exp(0.156-0.00137*topPt);
-	double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
-	ptReWeight = sqrt(weightTop*weightAntitop);
-	ptReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+        double topPt = topP4.Perp();
+        double antitopPt = antitopP4.Perp();
+        double weightTop = exp(0.0615-0.0005*topPt);
+        double weightAntitop= exp(0.0615-0.0005*antitopPt);
+        double weightTop_r1 = exp(0.156-0.00137*topPt);
+        double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
+        ptReWeight = sqrt(weightTop*weightAntitop);
+        ptReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
       }
     }
     httEvent->setPtReWeight(ptReWeight);
@@ -631,146 +637,146 @@ void HTauTauTreeFromNanoBase::fillEvent(){
     for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart){
       int absPDGId = std::abs(GenPart_pdgId[iGenPart]);
       if(absPDGId == 25 || absPDGId == 23 || absPDGId == 35 || absPDGId == 36){
-	std::vector<unsigned int> daughterIndexes;
-	if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-	int ntau = 0, nele = 0, nmu = 0;
-	for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx) {
-	  int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-	  if(pdg_id == 11) nele++;
-	  else if(pdg_id == 13) nmu++;
-	  else if(pdg_id == 15) {
-	    ntau++;
-	    unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-	    std::vector<unsigned int> tauDaughterIndexes;
-	    if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-	      std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-		       <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-		       <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-	    //get DM and then translate it on the basics DM
-	    int dm = genTauDecayMode(tauDaughterIndexes);
-	    switch ( dm ){
-	    case HTTAnalysis::tauDecayMuon :
-	      nmu++;
-	      break;
-	    case HTTAnalysis::tauDecaysElectron :
-	      nele++;
-	      break;
-	    default :
-	      break;
-	    }
-	  }
-	}
-	// determine H/Z decay mode
-	int hzDecay = 8;//other
-	if (ntau == 0) {
-	    if(nele == 0 && nmu == 2) hzDecay = 7;
-	    else if(nele == 2 && nmu == 0) hzDecay = 6;
-	    else hzDecay = 8;
-	}
-	else if(ntau == 2) {
-	    if(nmu == 0 && nele == 0) hzDecay = 2;    
-	    else if(nmu == 0 && nele == 1) hzDecay = 1;    
-	    else if(nmu == 0 && nele == 2) hzDecay = 4;    
-	    else if(nmu == 1 && nele == 0) hzDecay = 0;    
-	    else if(nmu == 1 && nele == 1) hzDecay = 5;    
-	    else if(nmu == 2 && nele == 0) hzDecay = 3;    
-	}
-	httEvent->setDecayModeBoson(hzDecay);
+        std::vector<unsigned int> daughterIndexes;
+        if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        int ntau = 0, nele = 0, nmu = 0;
+        for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx) {
+          int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
+          if(pdg_id == 11) nele++;
+          else if(pdg_id == 13) nmu++;
+          else if(pdg_id == 15) {
+            ntau++;
+            unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
+            std::vector<unsigned int> tauDaughterIndexes;
+            if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
+              std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
+                       <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
+                       <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
+            //get DM and then translate it on the basics DM
+            int dm = genTauDecayMode(tauDaughterIndexes);
+            switch ( dm ){
+            case HTTAnalysis::tauDecayMuon :
+              nmu++;
+              break;
+            case HTTAnalysis::tauDecaysElectron :
+              nele++;
+              break;
+            default :
+              break;
+            }
+          }
+        }
+        // determine H/Z decay mode
+        int hzDecay = 8;//other
+        if (ntau == 0) {
+            if(nele == 0 && nmu == 2) hzDecay = 7;
+            else if(nele == 2 && nmu == 0) hzDecay = 6;
+            else hzDecay = 8;
+        }
+        else if(ntau == 2) {
+            if(nmu == 0 && nele == 0) hzDecay = 2;    
+            else if(nmu == 0 && nele == 1) hzDecay = 1;    
+            else if(nmu == 0 && nele == 2) hzDecay = 4;    
+            else if(nmu == 1 && nele == 0) hzDecay = 0;    
+            else if(nmu == 1 && nele == 1) hzDecay = 5;    
+            else if(nmu == 2 && nele == 0) hzDecay = 3;    
+        }
+        httEvent->setDecayModeBoson(hzDecay);
       }
       else if(absPDGId == 24) {
-	std::vector<unsigned int> daughterIndexes;
-	if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-	int ntau = 0, nele = 0, nmu = 0, nquark = 0;
-	for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx) {
-	  int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-	  if(pdg_id < 5 ) nquark++;
-	  else if(pdg_id == 11) nele++;
-	  else if(pdg_id == 13) nmu++;
-	  else if(pdg_id == 15) {
-	    ntau++;
-	    unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-	    std::vector<unsigned int> tauDaughterIndexes;
-	    if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-	      std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-		       <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-		       <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-	    //get DM and then translate it on the basics DM
-	    int dm = genTauDecayMode(tauDaughterIndexes);
-	    switch ( dm ){
-	    case HTTAnalysis::tauDecayMuon :
-	      nmu++;
-	      break;
-	    case HTTAnalysis::tauDecaysElectron :
-	      nele++;
-	      break;
-	    }
-	  }
-	}
-	// determine W decay mode
-	int wDecay = 6;//other
-	if(nquark == 2 && (nmu+nele+ntau)==0) wDecay = 0;
-	else if(nquark ==0 && ntau == 0) {
-	  if(nele == 0 && nmu == 1) wDecay = 1;
-	  else if(nele == 1 && nmu == 0) wDecay = 2;
-	  else wDecay = 6;
-	}
-	else if(nquark==0 && ntau == 1) {
-	  if(nmu == 0 && nele == 0) wDecay = 5;    
-	  if(nmu == 0 && nele == 1) wDecay = 4;    
-	  if(nmu == 1 && nele == 0) wDecay = 3;
-	  else wDecay = 6;
-	}
-	httEvent->setDecayModeBoson(10+wDecay);
+        std::vector<unsigned int> daughterIndexes;
+        if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        int ntau = 0, nele = 0, nmu = 0, nquark = 0;
+        for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx) {
+          int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
+          if(pdg_id < 5 ) nquark++;
+          else if(pdg_id == 11) nele++;
+          else if(pdg_id == 13) nmu++;
+          else if(pdg_id == 15) {
+            ntau++;
+            unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
+            std::vector<unsigned int> tauDaughterIndexes;
+            if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
+              std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
+                       <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
+                       <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
+            //get DM and then translate it on the basics DM
+            int dm = genTauDecayMode(tauDaughterIndexes);
+            switch ( dm ){
+            case HTTAnalysis::tauDecayMuon :
+              nmu++;
+              break;
+            case HTTAnalysis::tauDecaysElectron :
+              nele++;
+              break;
+            }
+          }
+        }
+        // determine W decay mode
+        int wDecay = 6;//other
+        if(nquark == 2 && (nmu+nele+ntau)==0) wDecay = 0;
+        else if(nquark ==0 && ntau == 0) {
+          if(nele == 0 && nmu == 1) wDecay = 1;
+          else if(nele == 1 && nmu == 0) wDecay = 2;
+          else wDecay = 6;
+        }
+        else if(nquark==0 && ntau == 1) {
+          if(nmu == 0 && nele == 0) wDecay = 5;    
+          if(nmu == 0 && nele == 1) wDecay = 4;    
+          if(nmu == 1 && nele == 0) wDecay = 3;
+          else wDecay = 6;
+        }
+        httEvent->setDecayModeBoson(10+wDecay);
       }
       else if(GenPart_pdgId[iGenPart]==15){
-	TLorentzVector p4;
-	p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-			GenPart_eta[iGenPart],
-			GenPart_phi[iGenPart],
-			1.777);//should use pdg mass as masses below 10GeV are zeroed
-	//do not consider low momentum candidates??
-	if( !(p4.P()>10) ) continue;
-	//find direct daughters
-	std::vector<unsigned int> daughterIndexes;
-	if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-	//get DM and then translate it on the basics DM
-	int dm = genTauDecayMode(daughterIndexes);
-	switch ( dm ){
-	case HTTAnalysis::tauDecayMuon ://0
-	  httEvent->setDecayModeMinus(0);
-	  break;
-	case HTTAnalysis::tauDecaysElectron ://1
-	  httEvent->setDecayModeMinus(1);
-	  break;
-	default: //2
-	  httEvent->setDecayModeMinus(2);
-	  break;
-	}
+        TLorentzVector p4;
+        p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
+                        GenPart_eta[iGenPart],
+                        GenPart_phi[iGenPart],
+                        1.777);//should use pdg mass as masses below 10GeV are zeroed
+        //do not consider low momentum candidates??
+        if( !(p4.P()>10) ) continue;
+        //find direct daughters
+        std::vector<unsigned int> daughterIndexes;
+        if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //get DM and then translate it on the basics DM
+        int dm = genTauDecayMode(daughterIndexes);
+        switch ( dm ){
+        case HTTAnalysis::tauDecayMuon ://0
+          httEvent->setDecayModeMinus(0);
+          break;
+        case HTTAnalysis::tauDecaysElectron ://1
+          httEvent->setDecayModeMinus(1);
+          break;
+        default: //2
+          httEvent->setDecayModeMinus(2);
+          break;
+        }
       }
       if(GenPart_pdgId[iGenPart]==-15){
-	TLorentzVector p4;
-	p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-			GenPart_eta[iGenPart],
-			GenPart_phi[iGenPart],
-			1.777);//should use pdg mass as masses below 10GeV are zeroed
-	//do not consider low momentum candidates??
-	if( !(p4.P()>10) ) continue;
-	//find direct daughters
-	std::vector<unsigned int> daughterIndexes;
-	if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-	//get DM and then translate it on the basics DM
-	int dm = genTauDecayMode(daughterIndexes);
-	switch ( dm ){
-	case HTTAnalysis::tauDecayMuon ://0
-	  httEvent->setDecayModePlus(0);
-	  break;
-	case HTTAnalysis::tauDecaysElectron ://1
-	  httEvent->setDecayModePlus(1);
-	  break;
-	default: //2
-	  httEvent->setDecayModePlus(2);
-	  break;
-	}
+        TLorentzVector p4;
+        p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
+                        GenPart_eta[iGenPart],
+                        GenPart_phi[iGenPart],
+                        1.777);//should use pdg mass as masses below 10GeV are zeroed
+        //do not consider low momentum candidates??
+        if( !(p4.P()>10) ) continue;
+        //find direct daughters
+        std::vector<unsigned int> daughterIndexes;
+        if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //get DM and then translate it on the basics DM
+        int dm = genTauDecayMode(daughterIndexes);
+        switch ( dm ){
+        case HTTAnalysis::tauDecayMuon ://0
+          httEvent->setDecayModePlus(0);
+          break;
+        case HTTAnalysis::tauDecaysElectron ://1
+          httEvent->setDecayModePlus(1);
+          break;
+        default: //2
+          httEvent->setDecayModePlus(2);
+          break;
+        }
       }      
     }
   }
@@ -796,9 +802,9 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex){
 
     TLorentzVector p4;
     p4.SetPtEtaPhiM(Jet_pt[iJet],
-		    Jet_eta[iJet],
-		    Jet_phi[iJet],
-		    Jet_mass[iJet]);
+                    Jet_eta[iJet],
+                    Jet_phi[iJet],
+                    Jet_mass[iJet]);
     std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
     ///Set jet PDG id by hand
     aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
@@ -835,9 +841,10 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
 
     p4.SetPtEtaPhiM(Muon_pt[iMu],
-		    Muon_eta[iMu]-eps,
-		    Muon_phi[iMu],
-		    0.10566); //muon mass
+                    Muon_eta[iMu]-eps,
+                    Muon_phi[iMu],
+                    0.10566); //muon mass
+    
     TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
     aLepton.setP4(p4);
     aLepton.setChargedP4(p4);//same as p4 for muon
@@ -847,6 +854,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setProperties(aProperties);
     httLeptonCollection.push_back(aLepton);
   }//Muons
+
   //Electrons
   for(unsigned int iEl=0; iEl<nElectron; ++iEl){
     float e_pt=Electron_pt[iEl];
@@ -859,9 +867,10 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     if (tweak_nano && (event==392156 || event==1352574) ) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
 
     p4.SetPtEtaPhiM(e_pt,
-		    Electron_eta[iEl]-eps,
-		    Electron_phi[iEl],
-		    0.51100e-3); //electron mass
+                    Electron_eta[iEl]-eps,
+                    Electron_phi[iEl],
+                    0.51100e-3); //electron mass
+
     TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
     aLepton.setP4(p4);
     aLepton.setChargedP4(p4);//same as p4 for electron
@@ -871,6 +880,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     aLepton.setProperties(aProperties);
     httLeptonCollection.push_back(aLepton);
   }//Electrons
+
   //Taus
   for(unsigned int iTau=0; iTau<nTau; ++iTau){
     if (event==check_event_number) std::cout << "T1 " << Tau_pt[iTau] << std::endl;
@@ -879,9 +889,9 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     HTTParticle aLepton;
 
     float tauES = 0.;
-    //    int genMatch_=Tau_genPartFlav[iTau];
     int genMatch_= getGenMatch(iTau,"Tau");
     int dm_=Tau_decayMode[iTau];
+
     if( genMatch_ == 5 ){       
       if(dm_ == 0 ) tauES = Parameter.Tau.TES.one_prong_0p0;
       if(dm_ == 1 ) tauES = Parameter.Tau.TES.one_prong_1p0;
@@ -901,7 +911,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     }
 
     if (event==check_event_number) std::cout << "T2 " << Tau_pt[iTau] << std::endl;
-    if( Tau_pt[iTau]*(1.0+tauES)<30 ) continue;
+    if( Tau_pt[iTau]*(1.0+tauES)<20 ) continue;
     if (event==check_event_number) std::cout << "T3 " << Tau_pt[iTau]*(1.0+tauES) << std::endl;
 
     float tauES_mass=tauES;
@@ -909,28 +919,32 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
 
     TLorentzVector p4;
     p4.SetPtEtaPhiM(Tau_pt[iTau]*(1.0+tauES),
-		    Tau_eta[iTau],
-		    Tau_phi[iTau],
-		    Tau_mass[iTau]*(1.0+tauES_mass) );
+                    Tau_eta[iTau],
+                    Tau_phi[iTau],
+                    Tau_mass[iTau]*(1.0+tauES_mass) );
 
 
     aLepton.setP4(p4);
     TLorentzVector chargedP4;//approximate by leadTrack p4
-    double leadTkPhi = Tau_phi[iTau]+Tau_leadTkDeltaPhi[iTau];
-    if(std::abs(leadTkPhi)>TMath::Pi())//limit phi to the [-pi,pi] range
-      leadTkPhi -= 2.*TMath::Pi()*std::round(leadTkPhi/(2.*TMath::Pi()));
+    double leadTkPhi = TVector2::Phi_mpi_pi(Tau_phi[iTau]+Tau_leadTkDeltaPhi[iTau]);
+
+    //limit phi to the [-pi,pi] range
+    // if(std::abs(leadTkPhi)>TMath::Pi()) leadTkPhi -= 2.*TMath::Pi()*std::round(leadTkPhi/(2.*TMath::Pi()));
+
     chargedP4.SetPtEtaPhiM(Tau_pt[iTau]*Tau_leadTkPtOverTauPt[iTau],
-			   Tau_eta[iTau]+Tau_leadTkDeltaEta[iTau],
-			   leadTkPhi,
-			   0.13957); //pi+/- mass
+                           Tau_eta[iTau]+Tau_leadTkDeltaEta[iTau],
+                           leadTkPhi,
+                           0.13957); //pi+/- mass
+
     aLepton.setChargedP4(chargedP4);
     aLepton.setNeutralP4(p4-chargedP4);
+
     TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
     aLepton.setPCA(pca);
     std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, p4, "Tau");
     if (tweak_nano && event==688698 && Tau_pt[iTau]>99 ){
       for (unsigned i=0; i<leptonPropertiesList.size(); i++){
-	if (leptonPropertiesList.at(i)=="Tau_rawMVAoldDM") aProperties.at(i)-=0.1;
+        if (leptonPropertiesList.at(i)=="Tau_rawMVAoldDM2017v1") aProperties.at(i)-=0.1;
       } 
     }
 
@@ -953,6 +967,7 @@ void HTauTauTreeFromNanoBase::fillLeptons(){
     //<--
     httLeptonCollection.push_back(aLepton);
   }//Taus
+
   //Sort leptons
   std::sort(httLeptonCollection.begin(),httLeptonCollection.end(),compareLeptons);
 
@@ -969,9 +984,9 @@ void HTauTauTreeFromNanoBase::fillGenLeptons(){
     if(std::abs(GenPart_pdgId[iGenPart])!=15) continue;
     TLorentzVector p4;
     p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-		    GenPart_eta[iGenPart],
-		    GenPart_phi[iGenPart],
-		    1.777);//should use pdg mass as masses below 10GeV are zeroed
+                    GenPart_eta[iGenPart],
+                    GenPart_phi[iGenPart],
+                    1.777);//should use pdg mass as masses below 10GeV are zeroed
     //do not consider low momentum candidates??
     if( !(p4.P()>10) ) continue;
     //find direct daughters
@@ -1008,19 +1023,19 @@ TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned i
     unsigned int pdg_id = std::abs(GenPart_pdgId[iGenPart]);
     if(pdg_id == 11 || pdg_id == 13) 
       aLeptonP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-			     GenPart_eta[iGenPart],
-			     GenPart_phi[iGenPart],
-			     (pdg_id==11?0.51100e-3:0.10566));//set mass
+                             GenPart_eta[iGenPart],
+                             GenPart_phi[iGenPart],
+                             (pdg_id==11?0.51100e-3:0.10566));//set mass
     else if(pdg_id == 211 || pdg_id == 321 )
       aChargedP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-			      GenPart_eta[iGenPart],
-			      GenPart_phi[iGenPart],
-			      (pdg_id==211?0.1396:0.4937));//set mass
+                              GenPart_eta[iGenPart],
+                              GenPart_phi[iGenPart],
+                              (pdg_id==211?0.1396:0.4937));//set mass
     else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 )
       aNeutralP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-			      GenPart_eta[iGenPart],
-			      GenPart_phi[iGenPart],
-			      (pdg_id==111?0.1350:0.4976));//set mass
+                              GenPart_eta[iGenPart],
+                              GenPart_phi[iGenPart],
+                              (pdg_id==111?0.1350:0.4976));//set mass
   }
 
   TLorentzVector aP4;
@@ -1040,23 +1055,23 @@ int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType
   if(colType=="Muon"){
     if(index>=nMuon) return -999;
     p4.SetPtEtaPhiM(Muon_pt[index],
-		    Muon_eta[index],
-		    Muon_phi[index],
-		    0.10566); //muon mass
+                    Muon_eta[index],
+                    Muon_phi[index],
+                    0.10566); //muon mass
   }
   else if(colType=="Electron"){
     if(index>=nElectron) return -999;
     p4.SetPtEtaPhiM(Electron_pt[index],
-		    Electron_eta[index],
-		    Electron_phi[index],
-		    0.51100e-3); //electron mass
+                    Electron_eta[index],
+                    Electron_phi[index],
+                    0.51100e-3); //electron mass
   }
   else if(colType=="Tau"){
     if(index>=nTau) return -999;
     p4.SetPtEtaPhiM(Tau_pt[index],
-		    Tau_eta[index],
-		    Tau_phi[index],
-		    Tau_mass[index]);
+                    Tau_eta[index],
+                    Tau_phi[index],
+                    Tau_mass[index]);
   }
   else
     return -999;
@@ -1102,52 +1117,52 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj){
 
       //tauhad
       if( fabs(GenPart_pdgId[iGen]) == 15 && GenPart_isPrompt){
-	TLorentzVector tmpLVec;
-	TLorentzVector remParticles;
-	remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
-	int nr_neutrinos = 0;
-	int nr_gammas = 0;
-	bool vetoLep = false;
+        TLorentzVector tmpLVec;
+        TLorentzVector remParticles;
+        remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
+        int nr_neutrinos = 0;
+        int nr_gammas = 0;
+        bool vetoLep = false;
 
-	for(unsigned int iDau=0;iDau<nGenPart;++iDau){
-	  if( ( fabs(GenPart_pdgId[iDau]) == 11
-		|| fabs(GenPart_pdgId[iDau]) == 13
-		)
-	      && (int)GenPart_genPartIdxMother[iDau] == (int)iGen
-	      ) vetoLep = true;
+        for(unsigned int iDau=0;iDau<nGenPart;++iDau){
+          if( ( fabs(GenPart_pdgId[iDau]) == 11
+                || fabs(GenPart_pdgId[iDau]) == 13
+                )
+              && (int)GenPart_genPartIdxMother[iDau] == (int)iGen
+              ) vetoLep = true;
 
-	  if( (fabs(GenPart_pdgId[iDau]) == 16
-	       // || (fabs(GenPart_pdgId[iDau]) == 22 && GenPart_isPrompt[iDau] )   // if gamma correction is necessary
-	       )
-	      && (int)GenPart_genPartIdxMother[iDau] ==  (int)iGen){
+          if( (fabs(GenPart_pdgId[iDau]) == 16
+               // || (fabs(GenPart_pdgId[iDau]) == 22 && GenPart_isPrompt[iDau] )   // if gamma correction is necessary
+               )
+              && (int)GenPart_genPartIdxMother[iDau] ==  (int)iGen){
 
-	    tmpLVec.SetPtEtaPhiM(GenPart_pt[iDau],
-				 GenPart_eta[iDau],
-				 GenPart_phi[iDau],
-				 GenPart_mass[iDau]
-				 );
-	    remParticles += tmpLVec;
-	    if(fabs(GenPart_pdgId[iDau]) == 16) nr_neutrinos++;
-	  }
+            tmpLVec.SetPtEtaPhiM(GenPart_pt[iDau],
+                                 GenPart_eta[iDau],
+                                 GenPart_phi[iDau],
+                                 GenPart_mass[iDau]
+                                 );
+            remParticles += tmpLVec;
+            if(fabs(GenPart_pdgId[iDau]) == 16) nr_neutrinos++;
+          }
 
-	}
+        }
       
-	if(vetoLep==false && nr_neutrinos == 1 ){
-	  TLorentzVector tau;
-	  tau.SetPtEtaPhiM(GenPart_pt[iGen],
-			   GenPart_eta[iGen],
-			   GenPart_phi[iGen],
-			   GenPart_mass[iGen]
-			   );
+        if(vetoLep==false && nr_neutrinos == 1 ){
+          TLorentzVector tau;
+          tau.SetPtEtaPhiM(GenPart_pt[iGen],
+                           GenPart_eta[iGen],
+                           GenPart_phi[iGen],
+                           GenPart_mass[iGen]
+                           );
 
-	  if((tau-remParticles).Pt() > 15){
-	    
-	    dRTmp = SyncDATA->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
-	    if( dRTmp < matchings[4] ){
-	      matchings[4] = dRTmp;
-	    }
-	  }
-	}
+          if((tau-remParticles).Pt() > 15){
+            
+            dRTmp = SyncDATA->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
+            if( dRTmp < matchings[4] ){
+              matchings[4] = dRTmp;
+            }
+          }
+        }
       }//end tauhad
 
     }
@@ -1240,6 +1255,31 @@ Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name){
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,
+                                                              unsigned int index,
+                                                              std::string colType){
+
+  TLorentzVector obj;
+  obj.SetPtEtaPhiM(0,0,0,999999);
+  return getProperties(propertiesList,index,obj,colType);
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,
+                                                              unsigned int index,
+                                                              TLorentzVector obj,
+                                                              std::string colType){
+
+  std::vector<Double_t> aProperties;
+
+  for(auto propertyName:propertiesList){
+    aProperties.push_back(getProperty(propertyName,index,obj,colType));
+  }
+
+  return aProperties;
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType){
   TLorentzVector obj;
   obj.SetPtEtaPhiM(0,0,0,999999);
@@ -1251,38 +1291,35 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, TLorentzVector obj, std::string colType){
 
   if(name=="mc_match") return getGenMatch(index,colType);
-  
   if(name=="isGoodTriggerType") return getTriggerMatching(index,obj,false,colType);
   if(name=="FilterFired") return getTriggerMatching(index,obj,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
 
   if(colType=="Electron"){
-    if(name.find("Muon_")!=std::string::npos ||
-       name.find("Tau_")!=std::string::npos ||
-       name.find("Jet_")!=std::string::npos ||
-       false)
-      return 0;
+    if(name.find("Muon_")!=std::string::npos
+       || name.find("Tau_")!=std::string::npos
+       || name.find("Jet_")!=std::string::npos
+       || false) return 0;
   }
   else if(colType=="Muon"){
-    if(name.find("Electron_")!=std::string::npos ||
-       name.find("Tau_")!=std::string::npos ||
-       name.find("Jet_")!=std::string::npos ||
-       false)
-      return 0;
+    if(name.find("Electron_")!=std::string::npos
+       || name.find("Tau_")!=std::string::npos
+       || name.find("Jet_")!=std::string::npos
+       || false) return 0;
   }
   else if(colType=="Tau"){
-    if(name.find("Electron_")!=std::string::npos ||
-       name.find("Muon_")!=std::string::npos ||
-       name.find("Jet_")!=std::string::npos ||
-       name.find("pfRelIso03_all")!=std::string::npos ||
-       name.find("sip3d")!=std::string::npos ||
-       false)
-      return 0;
+    if(name.find("Electron_")!=std::string::npos
+       || name.find("Muon_")!=std::string::npos
+       ||name.find("Jet_")!=std::string::npos
+       || name.find("pfRelIso03_all")!=std::string::npos
+       || name.find("sip3d")!=std::string::npos
+       || false) return 0;
+
     if(name.find("pdgId")!=std::string::npos){
       TBranch *branch = fChain->GetBranch("Tau_charge");
       if(!branch){
-	if(firstWarningOccurence_)
-	  std::cout<<"Branch: Tau_charge not found in the TTree, return pdgId=-15"<<std::endl;
-	return -15;
+        if(firstWarningOccurence_)
+          std::cout<<"Branch: Tau_charge not found in the TTree, return pdgId=-15"<<std::endl;
+        return -15;
       }
       TLeaf *leaf = branch->FindLeaf("Tau_charge");
       int charge = leaf!=nullptr ? leaf->GetValue(index) : 0;
@@ -1290,13 +1327,13 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
     }      
   }
   else if(colType=="Jet"){
-    if(name.find("Jet_")==std::string::npos)
-      return 0;
+    if(name.find("Jet_")==std::string::npos) return 0;
   }
 
   if(colType!="" && name.find(colType+"_")==std::string::npos){
     name = colType+"_"+name;
   }
+
   TBranch *branch = fChain->GetBranch(name.c_str());
   if(!branch){
     if(firstWarningOccurence_)
@@ -1433,31 +1470,7 @@ void  HTauTauTreeFromNanoBase::writePropertiesHeader(const std::vector<std::stri
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,
-							      unsigned int index,
-							      std::string colType){
 
-  TLorentzVector obj;
-  obj.SetPtEtaPhiM(0,0,0,999999);
-  return getProperties(propertiesList,index,obj,colType);
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,
-							      unsigned int index,
-							      TLorentzVector obj,
-							      std::string colType){
-
-  std::vector<Double_t> aProperties;
-
-  for(auto propertyName:propertiesList){
-    aProperties.push_back(getProperty(propertyName,index,obj,colType));
-  }
-
-  return aProperties;
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::string> & filtersList){
 
   std::vector<Int_t> aFilters;
@@ -1509,19 +1522,19 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     //first leg
     if(particleId==triggerBits_[iTrg].leg1Id){
       for(unsigned int iObj=0; iObj<nTrigObj; ++iObj){
-	if(TrigObj_id[iObj]!=(int)particleId) continue;
-	TLorentzVector p4_trg;
-	p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
-			    TrigObj_eta[iObj],
-			    TrigObj_phi[iObj],
-			    0.);
-	if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
-	if( triggerBits_[iTrg].leg1Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg1Pt) ) continue;
-	if( triggerBits_[iTrg].leg1Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg1Eta) ) continue;
-	if( triggerBits_[iTrg].leg1L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg1L1Pt) ) continue;
-	if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
-	decision = true;
-	if(decision) break;
+        if(TrigObj_id[iObj]!=(int)particleId) continue;
+        TLorentzVector p4_trg;
+        p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
+                            TrigObj_eta[iObj],
+                            TrigObj_phi[iObj],
+                            0.);
+        if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+        if( triggerBits_[iTrg].leg1Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg1Pt) ) continue;
+        if( triggerBits_[iTrg].leg1Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg1Eta) ) continue;
+        if( triggerBits_[iTrg].leg1L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg1L1Pt) ) continue;
+        if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+        decision = true;
+        if(decision) break;
       }
     }
     if(decision){
@@ -1532,19 +1545,19 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     //second leg
     if(particleId==triggerBits_[iTrg].leg2Id){
       for(unsigned int iObj=0; iObj<nTrigObj; ++iObj){
-	if(TrigObj_id[iObj]!=(int)particleId) continue;
-	TLorentzVector p4_trg;
-	p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
-			    TrigObj_eta[iObj],
-			    TrigObj_phi[iObj],
-			    0.);
-	if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
-	if( triggerBits_[iTrg].leg2Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg2Pt) ) continue;
-	if( triggerBits_[iTrg].leg2Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg2Eta) ) continue;
-	if( triggerBits_[iTrg].leg2L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg2L1Pt) ) continue;
-	if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
-	decision = true;
-	if(decision) break;
+        if(TrigObj_id[iObj]!=(int)particleId) continue;
+        TLorentzVector p4_trg;
+        p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
+                            TrigObj_eta[iObj],
+                            TrigObj_phi[iObj],
+                            0.);
+        if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+        if( triggerBits_[iTrg].leg2Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg2Pt) ) continue;
+        if( triggerBits_[iTrg].leg2Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg2Eta) ) continue;
+        if( triggerBits_[iTrg].leg2L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg2L1Pt) ) continue;
+        if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
+        decision = true;
+        if(decision) break;
       }
     }
     if(decision){
@@ -1597,9 +1610,9 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
 
     TLorentzVector p4;
     p4.SetPtEtaPhiM(GenPart_pt[iGen],
-		    GenPart_eta[iGen],
-		    GenPart_phi[iGen],
-		    mass);
+                    GenPart_eta[iGen],
+                    GenPart_phi[iGen],
+                    mass);
 
     std::vector<unsigned int> daughterIndexes;
     bool isFinal=getDirectDaughterIndexes(daughterIndexes,(int)iGen,false);//store neutrinos for further use
@@ -1625,20 +1638,20 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
     if ( fromHardProcessFinalState && (isMuon || isElectron || isNeutrino || isTau) ){
       bosonP4 += p4;
       if(!isNeutrino)
-	visBosonP4 += p4;
+        visBosonP4 += p4;
       if(isTau){
-	//subtract p4 of tau neutrinos from visBosonP4
-	for(unsigned int iDau=0; iDau<daughterIndexes.size(); ++iDau){
-	  unsigned int absPdgIdDau = std::abs(GenPart_pdgId[daughterIndexes[iDau]]);
-	  if(absPdgIdDau != 12 && absPdgIdDau != 14 && absPdgIdDau != 16 ) //neutrinos
-	    continue;
-	  TLorentzVector p4Dau;
-	  p4Dau.SetPtEtaPhiM(GenPart_pt[daughterIndexes[iDau]],
-			     GenPart_eta[daughterIndexes[iDau]],
-			     GenPart_phi[daughterIndexes[iDau]],
-			     0.);
-	  visBosonP4 -= p4Dau;
-	}
+        //subtract p4 of tau neutrinos from visBosonP4
+        for(unsigned int iDau=0; iDau<daughterIndexes.size(); ++iDau){
+          unsigned int absPdgIdDau = std::abs(GenPart_pdgId[daughterIndexes[iDau]]);
+          if(absPdgIdDau != 12 && absPdgIdDau != 14 && absPdgIdDau != 16 ) //neutrinos
+            continue;
+          TLorentzVector p4Dau;
+          p4Dau.SetPtEtaPhiM(GenPart_pt[daughterIndexes[iDau]],
+                             GenPart_eta[daughterIndexes[iDau]],
+                             GenPart_phi[daughterIndexes[iDau]],
+                             0.);
+          visBosonP4 -= p4Dau;
+        }
       }
     }
   }
@@ -1662,9 +1675,9 @@ bool HTauTauTreeFromNanoBase::findTopP4(TLorentzVector &topP4, TLorentzVector &a
     //mass is stored only m>10GeV and photons m>1GeV (fine for top)
     TLorentzVector p4;
     p4.SetPtEtaPhiM(GenPart_pt[iGen],
-		    GenPart_eta[iGen],
-		    GenPart_phi[iGen],
-		    GenPart_mass[iGen]);
+                    GenPart_eta[iGen],
+                    GenPart_phi[iGen],
+                    GenPart_mass[iGen]);
 
     std::vector<unsigned int> daughterIndexes;
     bool isFinal=getDirectDaughterIndexes(daughterIndexes,(int)iGen);
@@ -1699,7 +1712,7 @@ double HTauTauTreeFromNanoBase::getPtReweight(const TLorentzVector &genBosonP4, 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
-					   HTTAnalysis::sysEffects type){
+                                           HTTAnalysis::sysEffects type){
 
   if(svFitAlgo_==nullptr) return;
 
@@ -1745,9 +1758,9 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
   //Leptons for SvFit
   std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
   measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4(type).Pt(), leg1.getP4(type).Eta(),
-								leg1.getP4(type).Phi(), mass1, decay1) );
+                                                                leg1.getP4(type).Phi(), mass1, decay1) );
   measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4(type).Pt(), leg2.getP4(type).Eta(),
-								leg2.getP4(type).Phi(), mass2, decay2) );
+                                                                leg2.getP4(type).Phi(), mass2, decay2) );
   //MET
   TVector2 aMET = aPair.getMET(type);
   TMatrixD covMET(2, 2);
@@ -1775,7 +1788,7 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
-						     const TVector2 &aMET, const TMatrixD &covMET){
+                                                     const TVector2 &aMET, const TMatrixD &covMET){
 
   TLorentzVector p4SVFit;
   if(measuredTauLeptons.size()!=2 || svFitAlgo_==nullptr) return p4SVFit;
@@ -1800,21 +1813,21 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 
     classic_svFit::DiTauSystemHistogramAdapter* aHistogramAdapter = static_cast< classic_svFit::DiTauSystemHistogramAdapter*>(svFitAlgo_->getHistogramAdapter());
     p4SVFit.SetPtEtaPhiM(aHistogramAdapter->getPt(),
-			 aHistogramAdapter->getEta(),
-			 aHistogramAdapter->getPhi(),
-			 aHistogramAdapter->getMass());
+                         aHistogramAdapter->getEta(),
+                         aHistogramAdapter->getPhi(),
+                         aHistogramAdapter->getMass());
 
     /*not available with official version
     double tauMass = 1.77686; //GeV, PDG value
     p4Leg1SVFit.SetPtEtaPhiM(aHistogramAdapter->getLeg1Pt(),
-			     aHistogramAdapter->getLeg1Eta(),
-			     aHistogramAdapter->getLeg1Phi(),
-			     tauMass);
+                             aHistogramAdapter->getLeg1Eta(),
+                             aHistogramAdapter->getLeg1Phi(),
+                             tauMass);
 
     p4Leg2SVFit.SetPtEtaPhiM(aHistogramAdapter->getLeg2Pt(),
-			     aHistogramAdapter->getLeg2Eta(),
-			     aHistogramAdapter->getLeg2Phi(),
-			     tauMass);
+                             aHistogramAdapter->getLeg2Eta(),
+                             aHistogramAdapter->getLeg2Phi(),
+                             tauMass);
     */
   }
   else{
@@ -1983,11 +1996,11 @@ bool HTauTauTreeFromNanoBase::getDirectDaughterIndexes(std::vector<unsigned int>
     if(GenPart_genPartIdxMother[iDau]==(int)motherIndex){
       int aPdgId = std::abs(GenPart_pdgId[iDau]);
       if(aPdgId==std::abs(GenPart_pdgId[motherIndex])){
-	isFinal=false;
-	//break;
+        isFinal=false;
+        //break;
       }
       if((aPdgId==12 || aPdgId==14 || aPdgId==16)&&ignoreNeutrinos)
-	continue;
+        continue;
       indexes.push_back(iDau);
     }
     //if(!isFinal) break;
@@ -2004,8 +2017,8 @@ unsigned int HTauTauTreeFromNanoBase::findFinalCopy(unsigned int index){
   for(unsigned int iDau=0;iDau<daughterIndexes.size();++iDau){
     int pdgId = GenPart_pdgId[daughterIndexes[iDau]];
     if(pdgId==GenPart_pdgId[index]){
-	newIndex=daughterIndexes[iDau];
-	break;
+        newIndex=daughterIndexes[iDau];
+        break;
     }
   }
   //check if found copy is decaying (should not happen for unstable particles)
@@ -2046,8 +2059,8 @@ int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughter
     else if(pdg_id == 211 || pdg_id == 321 ) numChargedPions++; //Count both pi+ and K+
     else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 ) numNeutralPions++; //Count both pi0 and K0 {_L/S}
     else if(pdg_id == 12 || 
-	    pdg_id == 14 || 
-	    pdg_id == 16) {
+            pdg_id == 14 || 
+            pdg_id == 16) {
       numNeutrinos++;
     }
     else if(pdg_id == 22) numPhotons++;
@@ -2074,57 +2087,57 @@ int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughter
       //--- hadronic tau decays
       switch ( numChargedPions ){
       case 1 :
-	if( numPhotons != 0 ){
-	  tauDecayMode =  HTTAnalysis::tauDecayOther;
-	  break;
-	}
-	switch ( numNeutralPions ){
-	case 0:
-	  tauDecayMode = HTTAnalysis::tauDecay1ChargedPion0PiZero;
-	  break;
-	case 1:
-	  tauDecayMode = HTTAnalysis::tauDecay1ChargedPion1PiZero;
-	  break;
-	case 2:
-	  tauDecayMode = HTTAnalysis::tauDecay1ChargedPion2PiZero;
-	  break;
-	case 3:
-	  tauDecayMode = HTTAnalysis::tauDecay1ChargedPion3PiZero;
-	  break;
-	case 4:
-	  tauDecayMode = HTTAnalysis::tauDecay1ChargedPion4PiZero;
-	  break;
-	default:
-	  tauDecayMode = HTTAnalysis::tauDecayOther;
-	  break;
-	}
-	break;
+        if( numPhotons != 0 ){
+          tauDecayMode =  HTTAnalysis::tauDecayOther;
+          break;
+        }
+        switch ( numNeutralPions ){
+        case 0:
+          tauDecayMode = HTTAnalysis::tauDecay1ChargedPion0PiZero;
+          break;
+        case 1:
+          tauDecayMode = HTTAnalysis::tauDecay1ChargedPion1PiZero;
+          break;
+        case 2:
+          tauDecayMode = HTTAnalysis::tauDecay1ChargedPion2PiZero;
+          break;
+        case 3:
+          tauDecayMode = HTTAnalysis::tauDecay1ChargedPion3PiZero;
+          break;
+        case 4:
+          tauDecayMode = HTTAnalysis::tauDecay1ChargedPion4PiZero;
+          break;
+        default:
+          tauDecayMode = HTTAnalysis::tauDecayOther;
+          break;
+        }
+        break;
       case 3 : 
-	if( numPhotons != 0 ){
-	  tauDecayMode = HTTAnalysis::tauDecayOther;
-	  break;
-	}
-	switch ( numNeutralPions ){
-	case 0 : 
-	  tauDecayMode = HTTAnalysis::tauDecay3ChargedPion0PiZero;
-	  break;
-	case 1 : 
-	  tauDecayMode = HTTAnalysis::tauDecay3ChargedPion1PiZero;
-	  break;
-	case 2 : 
-	  tauDecayMode = HTTAnalysis::tauDecay3ChargedPion2PiZero;
-	  break;
-	case 3 : 
-	  tauDecayMode = HTTAnalysis::tauDecay3ChargedPion3PiZero;
-	  break;
-	case 4 : 
-	  tauDecayMode = HTTAnalysis::tauDecay3ChargedPion4PiZero;
-	  break;
-	default:
-	  tauDecayMode = HTTAnalysis::tauDecayOther;
-	  break;
-	}
-	break;
+        if( numPhotons != 0 ){
+          tauDecayMode = HTTAnalysis::tauDecayOther;
+          break;
+        }
+        switch ( numNeutralPions ){
+        case 0 : 
+          tauDecayMode = HTTAnalysis::tauDecay3ChargedPion0PiZero;
+          break;
+        case 1 : 
+          tauDecayMode = HTTAnalysis::tauDecay3ChargedPion1PiZero;
+          break;
+        case 2 : 
+          tauDecayMode = HTTAnalysis::tauDecay3ChargedPion2PiZero;
+          break;
+        case 3 : 
+          tauDecayMode = HTTAnalysis::tauDecay3ChargedPion3PiZero;
+          break;
+        case 4 : 
+          tauDecayMode = HTTAnalysis::tauDecay3ChargedPion4PiZero;
+          break;
+        default:
+          tauDecayMode = HTTAnalysis::tauDecayOther;
+          break;
+        }
+        break;
       }
     }
   }
