@@ -71,12 +71,23 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   bool muonBaselineSelection = muonSelection(indexMuonLeg);
 
-  if (event==check_event_number) cout << "pS4a " << muonP4.Pt() << " " << muonP4.Eta() << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz)) << " " << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<< " " << (int)std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId))<<  endl;
-
+  if (event==check_event_number){
+    cout << "pS4a " << muonP4.Pt() << " ";
+    cout << muonP4.Eta() << " ";
+    cout << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz)) << " ";
+    cout << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<< " ";
+    cout << (int)std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId))<<  endl;
+  }
   bool tauBaselineSelection = tauSelection(indexTauLeg);
 
-  if (event==check_event_number) cout << "pS4b " << tauP4.Pt() << " " << tauP4.Eta() << " " << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::rawMVAoldDM) << " " << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " " << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " " << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
-
+  if (event==check_event_number){
+    cout << "pS4b " << tauP4.Pt() << " ";
+    cout << tauP4.Eta() << " ";
+    cout << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::rawMVAoldDM) << " ";
+    cout << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " ";
+    cout << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " ";
+    cout << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
+  }
 
   /*
   bool triggerSelection_singlemu = muonP4.Pt()>23 &&
