@@ -70,7 +70,7 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   float abs_t2_eta=std::abs(tau2P4.Eta());
   if ( tweak_nano && (event==1321942 || event==577858 || event==392156) ) abs_t2_eta-=0.0001;
 
-  bool tauBaselineSelection1 = tau1P4.Pt()>50 && std::abs(tau1P4.Eta())<2.1 &&
+  bool tauBaselineSelection1 = tau1P4.Pt()>40 && std::abs(tau1P4.Eta())<2.1 &&
                                httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idDecayMode)>0 &&
                                std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::dz))<0.2 &&
                                (int)std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::charge))==1;
