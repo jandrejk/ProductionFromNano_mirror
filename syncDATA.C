@@ -115,9 +115,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   } else if ( pdg1==15 && pdg2==15 ){ //tau-tau
     trg_singletau=
       false;
-    trg_doubletau=
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) ) ||
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
+    trg_doubletau= ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) )
+                   || ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
   }
 
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
@@ -153,16 +152,17 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   d0_1=leg1.getProperty(PropertyEnum::dxy);
   dZ_1=leg1.getProperty(PropertyEnum::dz);
   mt_1=pair->getMTLeg1();
-  if (pdg1==15)      iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM);
+
+  if (pdg1==15)      iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
   else if (pdg1==13) iso_1=leg1.getProperty(PropertyEnum::pfRelIso04_all);
   else if (pdg1==11) iso_1=leg1.getProperty(PropertyEnum::pfRelIso03_all);;
 
   UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
-  againstElectronLooseMVA6_1=(bitmask & 0x2)>0;
-  againstElectronMediumMVA6_1=(bitmask & 0x4)>0;
-  againstElectronTightMVA6_1=(bitmask & 0x8)>0;
-  againstElectronVLooseMVA6_1=(bitmask & 0x1)>0;
-  againstElectronVTightMVA6_1=(bitmask & 0x10)>0;
+  againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
+  againstElectronLooseMVA6_1  =(bitmask & 0x2 )>0;
+  againstElectronMediumMVA6_1 =(bitmask & 0x4 )>0;
+  againstElectronTightMVA6_1  =(bitmask & 0x8 )>0;
+  againstElectronVTightMVA6_1 =(bitmask & 0x10)>0;
 
   bitmask=leg1.getProperty(PropertyEnum::idAntiMu);
   againstMuonLoose3_1=(bitmask & 0x1)>0;
@@ -173,16 +173,18 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byIsolationMVA3newDMwoLTraw_1=DEF;
-  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(PropertyEnum::rawMVAoldDM);
+  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
   byIsolationMVA3newDMwLTraw_1=DEF;
-  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(PropertyEnum::rawMVAoldDM); //same as above!?
+  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
-  bitmask=leg1.getProperty(PropertyEnum::idMVAoldDM);
+  bitmask=leg1.getProperty(PropertyEnum::idMVAoldDM2017v2);
   byVLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x1)>0;
   byLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x2)>0;;
   byMediumIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x4)>0;
   byTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x8)>0;
   byVTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x10)>0;
+
+  
 
   byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
   byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
@@ -232,15 +234,16 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   d0_2=leg2.getProperty(PropertyEnum::dxy);
   dZ_2=leg2.getProperty(PropertyEnum::dz);
   mt_2=pair->getMTLeg2();
-  if (pdg2==15)      iso_2=leg2.getProperty(PropertyEnum::rawMVAoldDM);
+
+  if (pdg2==15)      iso_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
   else if (pdg2==13) iso_2=leg2.getProperty(PropertyEnum::pfRelIso04_all);
   else if (pdg2==11) iso_2=leg2.getProperty(PropertyEnum::pfRelIso03_all);;
 
   bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
-  againstElectronLooseMVA6_2=(bitmask & 0x2)>0;
-  againstElectronMediumMVA6_2=(bitmask & 0x4)>0;
-  againstElectronTightMVA6_2=(bitmask & 0x8)>0;
   againstElectronVLooseMVA6_2=(bitmask & 0x1)>0;
+  againstElectronLooseMVA6_2= (bitmask & 0x2)>0;
+  againstElectronMediumMVA6_2=(bitmask & 0x4)>0;
+  againstElectronTightMVA6_2= (bitmask & 0x8)>0;
   againstElectronVTightMVA6_2=(bitmask & 0x10)>0;
 
   bitmask=leg2.getProperty(PropertyEnum::idAntiMu);
@@ -252,11 +255,11 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
   byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
   byIsolationMVA3newDMwoLTraw_2=DEF;
-  byIsolationMVA3oldDMwoLTraw_2=leg2.getProperty(PropertyEnum::rawMVAoldDM);
+  byIsolationMVA3oldDMwoLTraw_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
   byIsolationMVA3newDMwLTraw_2=DEF;
-  byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM); //same as above!?
+  byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
-  bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM);
+  bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM2017v2);
   byVLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x1)>0;
   byLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x2)>0;;
   byMediumIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x4)>0;
@@ -380,10 +383,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   }
 
   //////////////////////////////////////////////////////////////////
-  met   =ev->getMET().Mod();
-  met_ex=ev->getMET().X();
-  met_ey=ev->getMET().Y();
-  metphi=ev->getMET().Phi();
+  met   =pair->getMET().Mod();
+  met_ex=pair->getMET().X();
+  met_ey=pair->getMET().Y();
+  metphi=pair->getMET().Phi();
   if (metphi>TMath::Pi()) metphi-=2*TMath::Pi();
 
   metcov00=pair->getMETMatrix().at(0);
@@ -427,6 +430,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   if( pdg1==13 && pdg2==15 ) passesTauLepVetos = againstElectronLooseMVA6_2 && againstMuonTight3_2;
   if( pdg1==11 && pdg2==15 ) passesTauLepVetos = againstElectronTightMVA6_2 && againstMuonLoose3_2;
   if( pdg1==15 && pdg2==15 ) passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
+
   passesThirdLepVeto=!( ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto) && ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto) );
   passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
   passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
@@ -435,27 +439,22 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
   extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
   //////////////////////////////////////////////////////////////////
-  if ( ( pdg1==11 && pdg2==13 ) || ( pdg1==13 && pdg2==11 ) ){
-    double zetaX = TMath::Cos(phi_1) + TMath::Cos(phi_2);
-    double zetaY = TMath::Sin(phi_1) + TMath::Sin(phi_2);
-    double zetaR = TMath::Sqrt(zetaX*zetaX + zetaY*zetaY);
-    if ( zetaR > 0. ) {
-      zetaX /= zetaR;
-      zetaY /= zetaR;
-    }
-    pzetavis =  (leg1P4.Px() + leg2P4.Px())*zetaX + (leg1P4.Py() + leg2P4.Py())*zetaY;
-    pzetamiss = met_ex*zetaX + met_ey*zetaY;
-    dzeta = this->pzetamiss + (pzetavis - 1.85 * pzetavis);
+  double zetaX = TMath::Cos(phi_1) + TMath::Cos(phi_2);
+  double zetaY = TMath::Sin(phi_1) + TMath::Sin(phi_2);
+  double zetaR = TMath::Sqrt(zetaX*zetaX + zetaY*zetaY);
+  if ( zetaR > 0. ) {
+    zetaX /= zetaR;
+    zetaY /= zetaR;
   }
+  pzetavis =  (leg1P4.Px() + leg2P4.Px())*zetaX + (leg1P4.Py() + leg2P4.Py())*zetaY;
+  pzetamiss = met_ex*zetaX + met_ey*zetaY;
+  dzeta = this->pzetamiss + (pzetavis - 1.85 * pzetavis);
   //////////////////////////////////////////////////////////////////
-  TLorentzVector vis=leg1P4+leg2P4;
-  TLorentzVector vmet; vmet.SetPtEtaPhiM(met,0,metphi,0);
-  pt_tt=(vmet + vis).Pt();
-  pt_vis=vis.Pt();
-  mt_3=DEF;
-  mt_tot=DEF;
+  pt_tt=pair->getPTTOT();
+  pt_vis=pair->getPTVis();
+  mt_tot=pair->getMTTOT();
+  m_vis=pair->getMVis();
   pfpt_tt=pt_tt;
-  m_vis=vis.M();
   dphi=leg1P4.DeltaPhi(leg2P4);
 
   double x1 = pt_1 / ( pt_1 + met );
@@ -867,7 +866,6 @@ void syncDATA::setDefault(){
   //////////////////////////////////////////////////////////////////
   pt_tt=DEF;
   pt_vis=DEF;
-  mt_3=DEF;
   mt_tot=DEF;
   pfpt_tt=DEF;
   m_vis=DEF;
@@ -1106,7 +1104,6 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
   t->Branch("pt_tt", &pt_tt);
   t->Branch("pt_vis", &pt_vis);
   t->Branch("dphi", &dphi);
-  t->Branch("mt_3", &mt_3);
   t->Branch("mt_tot", &mt_tot);
   t->Branch("pfpt_tt", &pfpt_tt);
   t->Branch("m_vis", &m_vis);
