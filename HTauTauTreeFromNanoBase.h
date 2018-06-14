@@ -70,7 +70,6 @@ public :
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   bool muonSelection(unsigned int index);
   bool electronSelection(unsigned int index);
-  bool tauSelection(unsigned int index);
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
@@ -119,12 +118,11 @@ public :
   std::vector<TriggerData> triggerBits_;
   std::vector<std::string> filterBits_;
   TTree *t_TauCheck;
-  //  std::unique_ptr<syncDATA> SyncDATA;
-  syncDATA *SyncDATA;
-
   TTree *httTree;
-  TFile *httFile;
-  HTTEvent *httEvent;
+
+  std::unique_ptr<syncDATA> SyncDATA;
+  std::unique_ptr<TFile> httFile;
+  std::unique_ptr<HTTEvent> httEvent;
   TH1F* hStats;
   TH2F* zptmass_histo, *zptmass_histo_SUSY;
   
@@ -132,9 +130,9 @@ public :
 
   int passMask_;
 
-  ClassicSVfit *svFitAlgo_;
-  RecoilCorrector* recoilCorrector_;
-  TFile* zPtReweightFile, *zPtReweightSUSYFile;
+  std::unique_ptr<ClassicSVfit> svFitAlgo_;
+  std::unique_ptr<RecoilCorrector> recoilCorrector_;
+  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile;
   TLorentzVector p4SVFit, p4Leg1SVFit, p4Leg2SVFit;   
 
   std::vector<edm::LuminosityBlockRange> jsonVector;
