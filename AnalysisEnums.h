@@ -89,7 +89,9 @@ eventCategory *myQCDSFDenom;
 };
 
 enum sysEffects {NOMINAL,
-                 TESUp, TESDown,
+                 TES0p0Up, TES0p0Down,
+                 TES1p0Up, TES1p0Down,
+                 TES3p0Up, TES3p0Down,
                  M2TUp, M2TDown,
                  E2TUp, E2TDown,
                  DUMMY_SYS,
