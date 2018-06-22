@@ -61,10 +61,10 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   int tau1ID = (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu);
   tau1ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle);
-  tau1ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idMVAoldDM);
+  tau1ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idMVAoldDM2017v2);
   int tau2ID = (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu);
   tau2ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle);
-  tau2ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idMVAoldDM);
+  tau2ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idMVAoldDM2017v2);
 
   //"real" eta is just below 2.1 for the 2nd tau in these 3 events...
   float abs_t2_eta=std::abs(tau2P4.Eta());
@@ -126,8 +126,8 @@ unsigned int HTauhTauhTreeFromNano::bestPair(std::vector<unsigned int> &pairInde
       double pt_1_i = httLeptonCollection[indexLeg1].getP4().Pt();
       double pt_2_i = httLeptonCollection[indexLeg2].getP4().Pt();
       //MB: More isolated for MVAIso means higher value so inverted here to keep standard convention in comparison
-      double iso_1_i = -httLeptonCollection[indexLeg1].getProperty(PropertyEnum::rawMVAoldDM);
-      double iso_2_i = -httLeptonCollection[indexLeg2].getProperty(PropertyEnum::rawMVAoldDM);
+      double iso_1_i = -httLeptonCollection[indexLeg1].getProperty(PropertyEnum::rawMVAoldDM2017v2);
+      double iso_2_i = -httLeptonCollection[indexLeg2].getProperty(PropertyEnum::rawMVAoldDM2017v2);
 
       if(iso_1_i>iso_1) continue;
       if(iso_1_i==iso_1 && pt_1_i<pt_1) continue;
