@@ -40,12 +40,15 @@ class SteerNanoProduction():
         self.channel = channel
         self.svfit = False
         self.recoil = False
+
         self.debug = debug
 
         if debug:
             self.nthreads = 1
+            self.nevents = 10000
         else:
             self.nthreads = nthreads
+            self.nevents = -1
 
     def runOneSample(self, sample, version="v1"):
         threads = []
@@ -88,7 +91,8 @@ class SteerNanoProduction():
                                              channel = self.channel,
                                              outdir = outdir,
                                              svfit = int(self.svfit),
-                                             recoil = int(self.recoil) )
+                                             recoil = int(self.recoil),
+                                             nevents = int(self.nevents) )
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
@@ -113,7 +117,7 @@ class SteerNanoProduction():
 
         print "\033[93mrun\033[0m  Job {0}: ".format(njob) + file.split("/")[-1]
 
-        runcmd  = './convertNanoParallel.py {0} {1} {2} {3}'.format(self.channel, file, int(self.svfit), int(self.recoil))
+        runcmd  = './convertNanoParallel.py {0} {1} {2} {3} {4}'.format(self.channel, file, int(self.svfit), int(self.recoil), int(self.nevents))
         if self.debug:
                 p = sp.Popen(shlex.split( runcmd ),
                              stdout = sys.__stdout__,
