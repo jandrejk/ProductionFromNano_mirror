@@ -4,7 +4,7 @@ import os
 import sys
 import threading
 
-from ROOT import gSystem, TChain, TSystem, TFile, TString, vector, TFileCollection,edm
+from ROOT import gSystem, TChain, TSystem, TFile, TString, vector, TFileCollection, edm
 
 # from PSet import process
 import FWCore.PythonUtilities.LumiList as LumiList
@@ -42,15 +42,12 @@ channel =          sys.argv[1]
 aFile =            sys.argv[2]
 doSvFit =          int(sys.argv[3])
 applyRecoil=       int(sys.argv[4])
+nevents =          int(sys.argv[5])
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
 #sync_event=850381
 sync_event=0
-#doSvFit = True
-
-#applyRecoil=False
-nevents=-1      #all
 #nevents=5000
 
 
@@ -72,32 +69,31 @@ print "Compiling...."
 
 #Some system have problem runnig compilation (missing glibc-static library?).
 #First we try to compile, and only then we start time consuming cmssw
-status = 1
-gSystem.CompileMacro('HTTEvent.cxx','k')
-status *= gSystem.CompileMacro('syncDATA.C','k')
+
+assert gSystem.CompileMacro('HTTEvent.cxx','k') 
+assert gSystem.CompileMacro('syncDATA.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
-status *= gSystem.CompileMacro('NanoEventsSkeleton.C','k')
+assert gSystem.CompileMacro('NanoEventsSkeleton.C','k')
+
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
 
 
-status *= gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
-if channel=='mt' or channel=='all': status *= gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
-if channel=='et' or channel=='all': status *= gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
-if channel=='tt' or channel=='all': status *= gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
+assert gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
+if channel=='mt' or channel=='all': assert gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
+if channel=='et' or channel=='all': assert gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
+if channel=='tt' or channel=='all': assert gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
 
-print "Compilation status: ",status
-if status==0:
-    exit(-1)
 
 if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
 if channel=='et' or channel=='all': from ROOT import HElTauhTreeFromNano
 if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
 
 
-# JSONfile = ""
-JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+
+JSONfile = ""
+# JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 vlumis = getLumisToRun(JSONfile)
 
 
