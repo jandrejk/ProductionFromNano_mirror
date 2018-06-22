@@ -1,7 +1,7 @@
 #! /bin/sh
 #SBATCH -J ZoomZoom 
 #SBATCH -D ${rundir}
-#SBATCH -o ${rundir}/log.txt
+#SBATCH -o ${rundir}/%j.txt
 export X509_USER_PROXY='/afs/hephy.at/user/m/mspanring/proxy/x509_proxy'
 echo "---------------------"
 echo "Grid certificate"
