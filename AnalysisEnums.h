@@ -89,17 +89,17 @@ eventCategory *myQCDSFDenom;
 };
 
 enum sysEffects {NOMINAL,
-                 TES0p0Up, TES0p0Down,
-                 TES1p0Up, TES1p0Down,
-                 TES3p0Up, TES3p0Down,
+                 TES1p0p0Up, TES1p0p0Down,
+                 TES1p1p0Up, TES1p1p0Down,
+                 TES3p0p0Up, TES3p0p0Down,
 
-                 MES0p0Up, MES0p0Down,
-                 MES1p0Up, MES1p0Down,
-                 MES3p0Up, MES3p0Down,
+                 MES1p0p0Up, MES1p0p0Down,
+                 MES1p1p0Up, MES1p1p0Down,
+                 MES3p0p0Up, MES3p0p0Down,
 
-                 EES0p0Up, EES0p0Down,
-                 EES1p0Up, EES1p0Down,
-                 EES3p0Up, EES3p0Down,
+                 EES1p0p0Up, EES1p0p0Down,
+                 EES1p1p0Up, EES1p1p0Down,
+                 EES3p0p0Up, EES3p0p0Down,
                  DUMMY_SYS,
 ///Place systematic effects not affecting the SV calculation after DUMMY_SYS
 ///all quantities for following syst effects are calculated on fly, no need to rerun

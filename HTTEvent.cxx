@@ -208,27 +208,27 @@ float HTTParticle::getShiftedES( float ES, float uncert, int dm, HTTAnalysis::sy
 
     if(dm == 0)
     {
-        if(type == HTTAnalysis::TES0p0Up || type == HTTAnalysis::TES0p0Down
-           || type == HTTAnalysis::MES0p0Up || type == HTTAnalysis::MES0p0Down
-           || type == HTTAnalysis::EES0p0Up || type == HTTAnalysis::EES0p0Down)
+        if(type == HTTAnalysis::TES1p0p0Up || type == HTTAnalysis::TES1p0p0Down
+           || type == HTTAnalysis::MES1p0p0Up || type == HTTAnalysis::MES1p0p0Down
+           || type == HTTAnalysis::EES1p0p0Up || type == HTTAnalysis::EES1p0p0Down)
         {
             return ES + shift*uncert;
         }
     }
     if(dm == 1)
     {
-        if(type == HTTAnalysis::TES1p0Up || type == HTTAnalysis::TES1p0Down
-           || type == HTTAnalysis::MES1p0Up || type == HTTAnalysis::MES1p0Down
-           || type == HTTAnalysis::EES1p0Up || type == HTTAnalysis::EES1p0Down)
+        if(type == HTTAnalysis::TES1p1p0Up || type == HTTAnalysis::TES1p1p0Down
+           || type == HTTAnalysis::MES1p1p0Up || type == HTTAnalysis::MES1p1p0Down
+           || type == HTTAnalysis::EES1p1p0Up || type == HTTAnalysis::EES1p1p0Down)
         {
             return ES + shift*uncert;
         }
     }
     if(dm == 10)
     {
-        if(type == HTTAnalysis::TES3p0Up || type == HTTAnalysis::TES3p0Down
-           || type == HTTAnalysis::MES3p0Up || type == HTTAnalysis::MES3p0Down
-           || type == HTTAnalysis::EES3p0Up || type == HTTAnalysis::EES3p0Down)
+        if(type == HTTAnalysis::TES3p0p0Up || type == HTTAnalysis::TES3p0p0Down
+           || type == HTTAnalysis::MES3p0p0Up || type == HTTAnalysis::MES3p0p0Down
+           || type == HTTAnalysis::EES3p0p0Up || type == HTTAnalysis::EES3p0p0Down)
         {
             return ES + shift*uncert;
         }
