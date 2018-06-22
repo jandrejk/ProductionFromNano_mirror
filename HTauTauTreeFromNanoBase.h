@@ -11,7 +11,7 @@
 #undef NanoEventsSkeleton_cxx //undefine to protect againist problems with multile implementation
 #include "NanoEventsSkeleton.h"
 #include "syncDATA.h"
-#include "ParameterConfig.cc"
+// #include "ParameterConfig.cc"
 
 //#include <TROOT.h>
 //#include <TChain.h>
@@ -38,8 +38,12 @@
 
 #include "DataFormats/Provenance/interface/LuminosityBlockRange.h"
 
+
 class HTauTauTreeFromNanoBase : public NanoEventsSkeleton {
+
 public :
+
+  static std::map<string,PropertyEnum> usePropertyFor;
 
   /////////////////////////////////////////////////
   /// Lorentz vector
@@ -48,11 +52,12 @@ public :
   /// Trigger data struct
   struct TriggerData {
     std::string path_name;
-    unsigned int leg1Id, leg2Id;//0-undefined, 11-electron, 13-muon, 15-tau
-    int leg1BitMask, leg2BitMask;//definition depends on Id, cf. PhysicsTools/NanoAOD/python/triggerObjects_cff.py
-    float leg1Pt, leg2Pt, leg1L1Pt, leg2L1Pt;
-    float leg1Eta, leg2Eta;
-    float leg1OfflinePt;
+    unsigned int leg1Id,        leg2Id;//0-undefined, 11-electron, 13-muon, 15-tau
+    int          leg1BitMask,   leg2BitMask;//definition depends on Id, cf. PhysicsTools/NanoAOD/python/triggerObjects_cff.py
+    float        leg1Pt,        leg2Pt;
+    float        leg1L1Pt,      leg2L1Pt;
+    float        leg1Eta,       leg2Eta;
+    float        leg1OfflinePt, leg2OfflinePt;
   };
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
@@ -126,9 +131,6 @@ public :
   TH1F* hStats;
   TH2F* zptmass_histo, *zptmass_histo_SUSY;
   
-  unsigned int bestPairIndex_;
-
-  int passMask_;
 
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
@@ -138,15 +140,16 @@ public :
   std::vector<edm::LuminosityBlockRange> jsonVector;
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
-
-  unsigned int check_event_number;
-
   bool tweak_nano;
+  int passMask_;
+  unsigned int check_event_number;
+  unsigned int bestPairIndex_;
+
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
 
-  HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<std::string> lumis = std::vector<std::string>(), string prefix="HTT");
+  HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
   virtual void     Loop(Long64_t nentries_max=-1, unsigned int sync_event=-1);
