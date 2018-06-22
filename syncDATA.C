@@ -104,17 +104,17 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   //////////////////////////////////////////////////////////////////  
 
   //this is quite slow, calling the function for each trigger item...
-  if ( pdg1==13 && pdg2==15 ){ //mu-tau
-    trg_singlemuon=  
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
-    trg_mutaucross=
-      ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) );
-  } else if ( pdg1==11 && pdg2==15 ){ //e-tau
-    trg_singleelectron=
-      pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
+  if ( pdg1==13 && pdg2==15 ) //mu-tau
+  {
+    trg_singlemuon=  pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
+    trg_mutaucross=  pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
+                     && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
+
+  }else if ( pdg1==11 && pdg2==15 ){ //e-tau
+    trg_singleelectron= pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
+
   } else if ( pdg1==15 && pdg2==15 ){ //tau-tau
-    trg_singletau=
-      false;
+    trg_singletau= false;
     trg_doubletau= ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) )
                    || ( pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
   }
@@ -153,7 +153,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   dZ_1=leg1.getProperty(PropertyEnum::dz);
   mt_1=pair->getMTLeg1();
 
-  if (pdg1==15)      iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
+  if      (pdg1==15) iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
   else if (pdg1==13) iso_1=leg1.getProperty(PropertyEnum::pfRelIso04_all);
   else if (pdg1==11) iso_1=leg1.getProperty(PropertyEnum::pfRelIso03_all);;
 
@@ -183,8 +183,6 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   byMediumIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x4)>0;
   byTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x8)>0;
   byVTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x10)>0;
-
-  
 
   byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
   byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
