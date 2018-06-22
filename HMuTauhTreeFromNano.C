@@ -136,9 +136,9 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     //##################################################################
 
     return muonBaselineSelection && tauBaselineSelection && baselinePair
-      //&& postSynchTau && loosePostSynchMuon //comment out for sync
-      //&& !diMuonVeto() && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11) //comment out for sync
-      && true;
+          //&& postSynchTau && loosePostSynchMuon //comment out for sync
+          //&& !diMuonVeto() && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11) //comment out for sync
+          && true;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
