@@ -15,9 +15,10 @@ import string
 def main():
 
     parser = argparse.ArgumentParser()
+    parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE')
     parser.add_argument('-v', dest='version', help='Version of ntuples.', type=str, metavar = 'VERSION', default = 'v1')
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
-    parser.add_argument('-j', dest='jobs', help='If set: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
+    parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
 
     args = parser.parse_args()
@@ -25,10 +26,10 @@ def main():
     print 'Channel:',args.channel
 
     #2017 sync
-    sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
+    # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
 
     SNP = SteerNanoProduction(args.channel, args.jobs, args.debug)
-    SNP.runOneSample(sample)
+    SNP.runOneSample(args.sample)
 
 class SteerNanoProduction():
 
@@ -93,7 +94,7 @@ class SteerNanoProduction():
                 with open("submit.sh","w") as FSO:
                     FSO.write( runscript )
                 os.system( "sbatch submit.sh" )
-                sleep(0.5)
+                sleep(10)
 
         if self.nthreads > 0:
             for x in threads:
@@ -140,6 +141,7 @@ class SteerNanoProduction():
         addFiles = glob("zpt*root")
         addFiles.append('PSet.py')
         addFiles.append('convertNanoParallel.py')
+        addFiles.append('Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
 
 
         for f in headerfiles + Cfiles + addFiles:
