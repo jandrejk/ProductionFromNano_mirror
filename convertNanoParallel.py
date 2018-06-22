@@ -4,9 +4,38 @@ import os
 import sys
 import threading
 
-from ROOT import gSystem, TChain, TSystem, TFile, TString, vector, TFileCollection
+from ROOT import gSystem, TChain, TSystem, TFile, TString, vector, TFileCollection,edm
 
-from PSet import process
+# from PSet import process
+import FWCore.PythonUtilities.LumiList as LumiList
+import FWCore.ParameterSet.Config as cms
+import json
+
+def getLumisToRun(JSON):
+    if JSON == "": return vector( 'edm::LuminosityBlockRange' )()
+
+    vlumis = vector( 'edm::LuminosityBlockRange' )()
+    myList = LumiList.LumiList (filename = JSONfile).getCMSSWString().split(',')
+    lumisToProcess = cms.untracked.VLuminosityBlockRange( myList )
+
+
+    for BlockRange in lumisToProcess:
+        Block = BlockRange.split('-')
+
+        startRun =       int(Block[0].split(':')[0])
+        startLumiBlock = int(Block[0].split(':')[1])
+
+        if len(Block) > 1:
+            endRun =       int(Block[1].split(':')[0])
+            endLumiBlock = int(Block[1].split(':')[1])
+        else:
+            endRun = startRun
+            endLumiBlock = endLumiBlock
+
+        vlumis.push_back( edm.LuminosityBlockRange( edm.LuminosityBlockID(startRun, startLumiBlock),
+                                                    edm.LuminosityBlockID(endRun, endLumiBlock) ) )
+    return vlumis
+#######################################################################################################
 
 #dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
 channel =          sys.argv[1]
@@ -23,7 +52,9 @@ sync_event=0
 #applyRecoil=False
 nevents=-1      #all
 #nevents=5000
-vlumis = vector('string')()
+
+
+
 
 print 'Channel: ',channel
 
@@ -64,15 +95,10 @@ if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
 if channel=='et' or channel=='all': from ROOT import HElTauhTreeFromNano
 if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
 
-lumisToProcess = process.source.lumisToProcess
-#import FWCore.ParameterSet.Config as cms
-#lumisToProcess = cms.untracked.VLuminosityBlockRange( ("1:2047-1:2047", "1:2048-1:2048", "1:6145-1:6145", "1:4098-1:4098", "1:3-1:7", "1:6152-1:6152", "1:9-1:11", "1:273-1:273", "1:4109-1:4109", "1:4112-1:4112", "1:4115-1:4116") )
-for lumi in lumisToProcess:
-    vlumis.push_back(lumi)
 
-# for name in fileNames:
-
-    # aFile = "file://"+name
+# JSONfile = ""
+JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+vlumis = getLumisToRun(JSONfile)
 
 
 
