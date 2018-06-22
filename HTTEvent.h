@@ -15,10 +15,11 @@
 #include "FilterEnum.h"
 #include "SelectionBitsEnum.h"
 #include "AnalysisEnums.h"
-// #include "ParameterConfig.cc"
+// #include "EnergyScales.h"
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 class HTTEvent{
+
 
  public:
 
@@ -231,9 +232,14 @@ class HTTEvent{
 
 class HTTParticle
 {
+
+    
+
     public:
 
-        HTTParticle(){ clear();}
+        static HTTAnalysis::sysEffects corrType;
+
+        HTTParticle(){clear();}
 
         ~HTTParticle(){}
 
@@ -251,7 +257,7 @@ class HTTParticle
         void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
 
         ///Data member getters.
-        const TLorentzVector & getP4(HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL) const { return getSystScaleP4(type); }
+        const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
         const TLorentzVector & getChargedP4() const {return chargedP4;}
         const TLorentzVector getNeutralP4() const {return neutralP4;}
 
@@ -271,11 +277,7 @@ class HTTParticle
 
       ///Return four-momentum modified according DATA/MC energy scale factors.
       const TLorentzVector & getNominalShiftedP4() const;
-
-      ///Return four-momentum modified according to given systematic effect.
-      ///The method recognises particle type, e.g. muons are not affected by
-      ///TES variations etc.
-      const TLorentzVector & getSystScaleP4(HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL) const;
+      float getShiftedES( float ES, float uncert, int dm, HTTAnalysis::sysEffects type) const;
 
       ///Return four-momentum shifted with scale.
       ///Shift modifies three-momentum transverse part only, leaving mass constant.
@@ -314,12 +316,12 @@ class HTTPair
         void clear();
 
         ///Data member setters.
-        void setP4(const TLorentzVector &aP4, HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) {p4Vector[(unsigned int)type] = aP4;}
-        void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)type] = aP4;}
-        void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)type] = aP4;}
+        void setP4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {p4Vector[(unsigned int)defaultType] = aP4;}
+        void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)defaultType] = aP4;}
+        void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)defaultType] = aP4;}
 
         void setMET(const TVector2 &aVector) {met = aVector;}
-        void setSVMET(const TVector2 &aVector, HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) {svMetVector[(unsigned int)type] = aVector;}
+        void setSVMET(const TVector2 &aVector, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {svMetVector[(unsigned int)defaultType] = aVector;}
 
         void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
         void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
@@ -327,23 +329,23 @@ class HTTPair
         void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 
         ///Data member getters.
-        const TLorentzVector & getP4(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const;
-        const TLorentzVector & getLeg1P4(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const;
-        const TLorentzVector & getLeg2P4(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const;
+        const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+        const TLorentzVector & getLeg1P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+        const TLorentzVector & getLeg2P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
-        const TVector2 & getMET(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return getSystScaleMET(type);}
-        const TVector2 & getSVMET(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)type];}
+        const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return getSystScaleMET(defaultType);}
+        const TVector2 & getSVMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)defaultType];}
 
-        float getMTLeg1(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg1.getP4(type).Pt() * getSystScaleMET(type).Mod() * (1. - TMath::Cos(leg1.getP4(type).Phi()-getSystScaleMET(type).Phi())));}
-        float getMTLeg2(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg2.getP4(type).Pt() * getSystScaleMET(type).Mod() * (1. - TMath::Cos(leg2.getP4(type).Phi()-getSystScaleMET(type).Phi())));}
-        float getMTTOT(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const;
+        float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg1.getP4(defaultType).Pt() * getSystScaleMET(defaultType).Mod() * (1. - TMath::Cos(leg1.getP4(defaultType).Phi()-getSystScaleMET(defaultType).Phi())));}
+        float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg2.getP4(defaultType).Pt() * getSystScaleMET(defaultType).Mod() * (1. - TMath::Cos(leg2.getP4(defaultType).Phi()-getSystScaleMET(defaultType).Phi())));}
+        float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
         const HTTParticle & getLeg1() const {return leg1;}
         const HTTParticle & getLeg2() const {return leg2;}
 
-        float getMVis(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return  ( leg1.getP4(type) + leg2.getP4(type) ).M(); }
-        float getPTVis(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return ( leg1.getP4(type) + leg2.getP4(type) ).Pt(); }
-        float getPTTOT(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const; 
+        float getMVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return  ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).M(); }
+        float getPTVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).Pt(); }
+        float getPTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const; 
 
         int getIndexLeg1() {return indexLeg1;}
         int getIndexLeg2() {return indexLeg2;}
@@ -351,7 +353,7 @@ class HTTPair
         const HTTParticle & getMuon() const {return abs(leg1.getPDGid())==13 ? leg1 : leg2; }
         const HTTParticle & getTau() const {return abs(leg1.getPDGid())==15 ? leg1 : leg2; }
 
-        // float getMTMuon(HTTAnalysis::sysEffects type = HTTAnalysis::NOMINAL) const {return abs(leg1.getPDGid())==13 ? getMTLeg1(type) : getMTLeg2(type); }
+        // float getMTMuon(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return abs(leg1.getPDGid())==13 ? getMTLeg1(defaultType) : getMTLeg2(defaultType); }
 
         std::vector<float> getMETMatrix() const {return metMatrix;}
 
@@ -360,10 +362,10 @@ class HTTPair
         ///Return MET modified according to given systematic effect.
         ///The MET is corrected for accorging leptons corrections.
         ///The recoil correctino is not updated.
-        const TVector2 & getSystScaleMET(HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL) const;
+        const TVector2 & getSystScaleMET(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
 
         ///Return transverse mass caluculated according to the scale shifts.
-        float getSystScaleMT(const HTTParticle &aParticle, HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL) const;
+        float getSystScaleMT(const HTTParticle &aParticle, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
 
         ///Nominal met as calculated from PF.
         ///Includes recoil corrections.

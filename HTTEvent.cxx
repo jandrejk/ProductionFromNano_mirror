@@ -3,7 +3,10 @@
 #include "m2n/HTT/interface/GenInfoHelper.h"
 #else
 #include "HTTEvent.h"
+#include "EnergyScales.h"
 #endif
+
+HTTAnalysis::sysEffects HTTParticle::corrType = HTTAnalysis::NOMINAL;
 
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -99,25 +102,25 @@ const TLorentzVector & HTTParticle::getNominalShiftedP4() const
     if( std::abs(getPDGid())==15 )
     {
         int dm = getProperty(PropertyEnum::decayMode);
-        float tauES;
+        float tauES = 0.0;
 
         if( getProperty(PropertyEnum::mc_match)==5 )
         {
-            if(dm == 0 ) tauES = 0.0;
-            if(dm == 1 ) tauES = 0.0;
-            if(dm == 10) tauES = 0.0;
-        }
-        if( getProperty(PropertyEnum::mc_match)==1 )
+            if(dm == 0 ) tauES = ES.Tau.oneProng0p0;
+            if(dm == 1 ) tauES = ES.Tau.oneProng1p0;
+            if(dm == 10) tauES = ES.Tau.threeProng0p0;
+
+        }else if( getProperty(PropertyEnum::mc_match)==1 )
         {
-            if(dm == 0 ) tauES = 0.0;
-            if(dm == 1 ) tauES = 0.0;
-            if(dm == 10) tauES = 0.0;
-        }
-        if( getProperty(PropertyEnum::mc_match)==2 )
+            if(dm == 0 ) tauES = ES.Electron.oneProng0p0;
+            if(dm == 1 ) tauES = ES.Electron.oneProng1p0;
+            if(dm == 10) tauES = ES.Electron.threeProng0p0;
+
+        }else if( getProperty(PropertyEnum::mc_match)==2 )
         {
-            if(dm == 0 ) tauES = 0.0;
-            if(dm == 1 ) tauES = 0.0;
-            if(dm == 10) tauES = 0.0;
+            if(dm == 0 ) tauES = ES.Muon.oneProng0p0;
+            if(dm == 1 ) tauES = ES.Muon.oneProng1p0;
+            if(dm == 10) tauES = ES.Muon.threeProng0p0;
         }
 
         float tauES_mass = tauES;
@@ -134,67 +137,105 @@ const TLorentzVector & HTTParticle::getNominalShiftedP4() const
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTParticle::getSystScaleP4(HTTAnalysis::sysEffects type) const
+const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) const
 {
+    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : corrType;
 
     if(type==HTTAnalysis::DUMMY_SYS)
     {
-      lastSystEffect = type;
-      return p4;
+        lastSystEffect = type;
+        return p4;
 
     }else if(type==HTTAnalysis::NOMINAL){
-      lastSystEffect = type;
-      return getNominalShiftedP4();
+        lastSystEffect = type;
+        return getNominalShiftedP4();
+
+    }else if( (unsigned int)type < (unsigned int)HTTAnalysis::DUMMY_SYS)
+    {
+        lastSystEffect = type;
+
+        p4Cache = p4;
+
+        if( std::abs(getPDGid())==15 )
+        {
+            int dm = getProperty(PropertyEnum::decayMode);
+            float tauES = 0.0;
+
+            if( getProperty(PropertyEnum::mc_match)==1 ) // Prompt Electrons
+            {
+                if(dm == 0 ) tauES = getShiftedES( ES.Electron.oneProng0p0,   ES.Electron.uncertaintyShift ,dm,type );
+                if(dm == 1 ) tauES = getShiftedES( ES.Electron.oneProng1p0,   ES.Electron.uncertaintyShift ,dm,type );
+                if(dm == 10) tauES = getShiftedES( ES.Electron.threeProng0p0, ES.Electron.uncertaintyShift ,dm,type );
+
+            }else if( getProperty(PropertyEnum::mc_match)==2 ) // Prompt Muon
+            {
+                if(dm == 0 ) tauES = getShiftedES( ES.Muon.oneProng0p0,   ES.Muon.uncertaintyShift ,dm,type );
+                if(dm == 1 ) tauES = getShiftedES( ES.Muon.oneProng1p0,   ES.Muon.uncertaintyShift ,dm,type );
+                if(dm == 10) tauES = getShiftedES( ES.Muon.threeProng0p0, ES.Muon.uncertaintyShift ,dm,type );
+
+            }else if( getProperty(PropertyEnum::mc_match)==5 ) // Genuine Tau
+            {
+                if(dm == 0 ) tauES = getShiftedES( ES.Tau.oneProng0p0,   ES.Tau.uncertaintyShift ,dm,type );
+                if(dm == 1 ) tauES = getShiftedES( ES.Tau.oneProng1p0,   ES.Tau.uncertaintyShift ,dm,type );
+                if(dm == 10) tauES = getShiftedES( ES.Tau.threeProng0p0, ES.Tau.uncertaintyShift ,dm,type );
+            }
+
+            float tauES_mass = tauES;
+            if (dm == 0) tauES_mass=0;
+
+            p4Cache.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
+                                 p4.Eta(),
+                                 p4.Phi(),
+                                 p4.M() * (1.0+tauES_mass) );
+
+        }
+
+        return p4Cache;
+
     }
-    else if(lastSystEffect==type) return p4Cache;
 
-    lastSystEffect = type;
-
-    // if(std::abs(getPDGid())==15 && getProperty(PropertyEnum::mc_match)==5){
-    //   ///True taus
-    //   if(type!=HTTAnalysis::TESUp && type!=HTTAnalysis::TESDown) return getNominalShiftedP4();
-    //   float direction = 1;
-    //   if(type==HTTAnalysis::TESDown) direction*=-1;
-    //   float nominalShift = 1.0;
-    //   int dm = getProperty(PropertyEnum::decayMode);
-    //   if(dm==0) nominalShift = 1+TES_1p;
-    //   else if(dm==1 || dm==2) nominalShift = 1+TES_1ppi0;
-    //   else if(dm==10) nominalShift = 1+TES_3p;
-    //   float shift = nominalShift*(1+direction*TES);
-    //   return getShiftedP4(shift,getProperty(PropertyEnum::decayMode)==0);
-    // }
-    // if(std::abs(getPDGid())==15 && getProperty(PropertyEnum::mc_match)==3){
-    //   ///Fake e->tau
-    //   if(type!=HTTAnalysis::E2TUp && type!=HTTAnalysis::E2TDown) return p4;
-    //   float direction = 1;
-    //   if(type==HTTAnalysis::E2TDown) direction*=-1;
-    //   return getShiftedP4(1+direction*EES,getProperty(PropertyEnum::decayMode)==0);
-    // }
-    // if(std::abs(getPDGid())==15 && getProperty(PropertyEnum::mc_match)==4){
-    //   ///Fake mu->tau
-    //   if(type!=HTTAnalysis::M2TUp && type!=HTTAnalysis::M2TDown) return p4;
-    //   float direction = 1;
-    //   if(type==HTTAnalysis::M2TDown) direction*=-1;
-    //   return getShiftedP4(1+direction*MES,getProperty(PropertyEnum::decayMode)==0);
-    // }
-    // if(std::abs(getPDGid())==98){
-    //   if(type!=HTTAnalysis::JESUp && type!=HTTAnalysis::JESDown) return p4;
-    //   float JES = 0;
-    //   switch((int)type) {
-    //   case (int)HTTAnalysis::JESUp :
-    //     JES = getProperty(PropertyEnum((int)PropertyEnum::NONE+(int)JecUncEnum::Total));
-    //     break;
-    //   case (int)HTTAnalysis::JESDown :
-    //     //JES = -getProperty(PropertyEnum((int)PropertyEnum::NONE+(int)JecUncEnum::NONE+(int)JecUncEnum::Total));//Down uncertainties always with "-"
-    //     JES = -getProperty(PropertyEnum((int)PropertyEnum::NONE+(int)JecUncEnum::Total));//For "Total" use symmetrically Up uncert also for Down (correct?)
-    //     break;
-    //   }
-    //   return getShiftedP4(1+JES,false);
-    // }
 
     p4Cache = p4;
 
     return p4;
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+float HTTParticle::getShiftedES( float ES, float uncert, int dm, HTTAnalysis::sysEffects type) const
+{
+
+    float shift = (unsigned int)type % 2 == 0 ? -1.0 : 1.0;
+
+    if(dm == 0)
+    {
+        if(type == HTTAnalysis::TES0p0Up || type == HTTAnalysis::TES0p0Down
+           || type == HTTAnalysis::MES0p0Up || type == HTTAnalysis::MES0p0Down
+           || type == HTTAnalysis::EES0p0Up || type == HTTAnalysis::EES0p0Down)
+        {
+            return ES + shift*uncert;
+        }
+    }
+    if(dm == 1)
+    {
+        if(type == HTTAnalysis::TES1p0Up || type == HTTAnalysis::TES1p0Down
+           || type == HTTAnalysis::MES1p0Up || type == HTTAnalysis::MES1p0Down
+           || type == HTTAnalysis::EES1p0Up || type == HTTAnalysis::EES1p0Down)
+        {
+            return ES + shift*uncert;
+        }
+    }
+    if(dm == 10)
+    {
+        if(type == HTTAnalysis::TES3p0Up || type == HTTAnalysis::TES3p0Down
+           || type == HTTAnalysis::MES3p0Up || type == HTTAnalysis::MES3p0Down
+           || type == HTTAnalysis::EES3p0Up || type == HTTAnalysis::EES3p0Down)
+        {
+            return ES + shift*uncert;
+        }
+    }
+
+    return ES;
+
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -233,9 +274,6 @@ void HTTPair::clear()
 
     metMatrix.clear();
 
-    // mtLeg1= -999;
-    // mtLeg2 = -999;
-
     leg1.clear();
     leg2.clear();
 
@@ -243,29 +281,34 @@ void HTTPair::clear()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getP4(HTTAnalysis::sysEffects type) const
+const TLorentzVector & HTTPair::getP4(HTTAnalysis::sysEffects defaultType) const
 {
-    if(p4Vector.size()>(unsigned int)type) return p4Vector[(unsigned int)type];
+    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
+    if(p4Vector.size()>(unsigned int)defaultType) return p4Vector[(unsigned int)defaultType];
     return p4Vector[(unsigned int)HTTAnalysis::NOMINAL];
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getLeg1P4(HTTAnalysis::sysEffects type) const
+const TLorentzVector & HTTPair::getLeg1P4(HTTAnalysis::sysEffects defaultType) const
 {
-    if(leg1p4Vector.size()>(unsigned int)type) return leg1p4Vector[(unsigned int)type];
+    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
+    if(leg1p4Vector.size()>(unsigned int)defaultType) return leg1p4Vector[(unsigned int)defaultType];
     return leg1p4Vector[(unsigned int)HTTAnalysis::NOMINAL];
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getLeg2P4(HTTAnalysis::sysEffects type) const
+const TLorentzVector & HTTPair::getLeg2P4(HTTAnalysis::sysEffects defaultType) const
 {
-    if(leg2p4Vector.size()>(unsigned int)type) return leg2p4Vector[(unsigned int)type];
+    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
+    if(leg2p4Vector.size()>(unsigned int)defaultType) return leg2p4Vector[(unsigned int)defaultType];
     return leg2p4Vector[(unsigned int)HTTAnalysis::NOMINAL];
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TVector2 & HTTPair::getSystScaleMET(HTTAnalysis::sysEffects type) const
+const TVector2 & HTTPair::getSystScaleMET(HTTAnalysis::sysEffects defaultType) const
 {
+
+    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
 
     if(type==HTTAnalysis::NOMINAL
       || (unsigned int)type>(unsigned int)HTTAnalysis::DUMMY_SYS)
@@ -315,16 +358,20 @@ const TVector2 & HTTPair::getSystScaleMET(HTTAnalysis::sysEffects type) const
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-float HTTPair::getMTTOT(HTTAnalysis::sysEffects type) const
+float HTTPair::getMTTOT(HTTAnalysis::sysEffects defaultType) const
 {
+  HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
+
   float mt1 = 2. * leg1.getP4(type).Pt() * getSystScaleMET(type).Mod() * (1. - TMath::Cos(leg1.getP4(type).Phi()-getSystScaleMET(type).Phi()));
   float mt2 = 2. * leg2.getP4(type).Pt() * getSystScaleMET(type).Mod() * (1. - TMath::Cos(leg2.getP4(type).Phi()-getSystScaleMET(type).Phi()));
   float mt3 = 2. * leg1.getP4(type).Pt() * leg2.getP4(type).Pt() * (1. - TMath::Cos(leg1.getP4(type).Phi()-leg2.getP4(type).Phi()));
   return TMath::Sqrt( mt1 + mt2 + mt3 );
 }
 
-float HTTPair::getPTTOT(HTTAnalysis::sysEffects type) const
+float HTTPair::getPTTOT(HTTAnalysis::sysEffects defaultType) const
 {
+  HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
+
   TLorentzVector vmet; 
   vmet.SetPtEtaPhiM(getSystScaleMET(type).Mod(),0,getSystScaleMET(type).Phi(),0);
 
