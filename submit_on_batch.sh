@@ -9,7 +9,7 @@ voms-proxy-info --all
 echo "---------------------"
 
 eval `scramv1 runtime -sh`
-./convertNanoParallel.py ${channel} ${file} ${svfit} ${recoil}
+./convertNanoParallel.py ${channel} ${file} ${svfit} ${recoil} ${nevents}
 
 mv -f HTT*root ${outdir}
 rm *.h *.cxx *.C *.cc *.py *.pyc *.root *.d *.so *.pcm
