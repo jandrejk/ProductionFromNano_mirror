@@ -15,38 +15,21 @@
 //move these two to the configuration
 bool isSync=1;
 bool isMC=1;
+
+std::map<string,PropertyEnum> HTauTauTreeFromNanoBase::usePropertyFor = {};
 //const bool tweak_nano=true;
 
-HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<std::string> lumis, std::string prefix) : NanoEventsSkeleton(tree)
+HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
+
 
     tweak_nano=false; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
                      //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 
     ///Init HTT ntuple
     initHTTTree(tree, prefix);
+    jsonVector = lumiBlocks;
 
-    ///Parse lumis to be processed
-    for(unsigned int iL=0; iL<lumis.size(); ++iL)
-    {
-        std::size_t pos = lumis[iL].find("-");
-        const char *block1 = (lumis[iL].substr(0,pos)).c_str();
-        const char *block2 = (lumis[iL].substr(pos+1)).c_str();
-        char *pEnd = NULL;
-        long int r1, l1, r2, l2;
-        r1 = strtol(block1,&pEnd,10);
-        l1 = strtol(pEnd+1,NULL,10);
-        pEnd = NULL;
-        r2 = strtol(block2,&pEnd,10);
-        l2 = strtol(pEnd+1,NULL,10);
-        edm::LuminosityBlockRange lumiRange(edm::LuminosityBlockID(r1,l1),
-                                            edm::LuminosityBlockID(r2,l2));
-        jsonVector.push_back(lumiRange);
-    }
-    std::cout<<"[HTauTauTreeFromNanoBase]: Size of jsonVec: "<<jsonVector.size()<<std::endl;
-    //for(unsigned int iL=0; iL<jsonVector.size(); ++iL){
-    //  std::cout<<"\t lumi range: "<<jsonVector[iL]<<std::endl;
-    //}
 
     ///Initialization of SvFit
     if(doSvFit)
@@ -91,6 +74,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 HTauTauTreeFromNanoBase::~HTauTauTreeFromNanoBase()
 {
   httFile->Write();
+  cout << "Finished!" << endl;
 }
 
 /////////////////////////////////////////////////
@@ -136,10 +120,12 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     leptonPropertiesList.push_back("Tau_decayMode");
     leptonPropertiesList.push_back("Tau_rawIso");
     leptonPropertiesList.push_back("Tau_photonsOutsideSignalCone");
+    leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v1");
     leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v2");
+    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v1");
+    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v2");
     leptonPropertiesList.push_back("Tau_rawAntiEleCat");
     leptonPropertiesList.push_back("Tau_idDecayMode");
-    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v2");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT, 32-VVT
     leptonPropertiesList.push_back("Tau_idAntiEle");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT 
     leptonPropertiesList.push_back("Tau_idAntiMu");//bits: 1-L, 2-T
     leptonPropertiesList.push_back("Tau_leadTkPtOverTauPt");
@@ -175,11 +161,40 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     genLeptonPropertiesList.push_back("genpart_TauGenDetailedDecayMode");//needed?
 
     ////////////////////////////////////////////////////////////
+    HTauTauTreeFromNanoBase::usePropertyFor["electronIsolation"] = PropertyEnum::pfRelIso03_all;
+    HTauTauTreeFromNanoBase::usePropertyFor["muonIsolation"]     = PropertyEnum::pfRelIso04_all;
+    HTauTauTreeFromNanoBase::usePropertyFor["tauIsolation"]      = PropertyEnum::rawMVAoldDM2017v2;
+    HTauTauTreeFromNanoBase::usePropertyFor["tauID"]             = PropertyEnum::idMVAoldDM2017v2;
+
     ///Trigger bits to check
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
     TriggerData aTrgData;
-    // Single muon triggers
-    ///2nd bit (1<<1) for IsoMuon (not sure if correctly encoded in NanoAOD for 80X)
+
+    // 2017 94X  Filter
+
+    // Electron
+    // 0 CaloIdL_TrackIdL_IsoVL                CaloIdLTrackIdLIsoVL*TrackIso*Filter
+    // 1 WPLoose                               hltEle*WPTight*TrackIsoFilter*
+    // 2 WPTight                               hltEle*WPLoose*TrackIsoFilter
+    // 3 OverlapFilter PFTau                   *OverlapFilterIsoEle*PFTau*
+
+    // Muon
+    // 0 = TrkIsoVVL                           RelTrkIsoVVLFiltered0p4
+    // 1 = Iso                                 hltL3crIso*Filtered0p07
+    // 2 = OverlapFilter PFTau                 *OverlapFilterIsoMu*PFTau*
+
+    // Tau
+    // 0 = LooseChargedIso                     LooseChargedIso*
+    // 1 = MediumChargedIso                    *MediumChargedIso*
+    // 2 = TightChargedIso                     *TightChargedIso*
+    // 3 = TightID OOSC photons                *TightOOSCPhotons*
+    // 4 = L2p5 pixel iso                      hltL2TauIsoFilter
+    // 5 = OverlapFilter IsoMu                 *OverlapFilterIsoMu*
+    // 6 = OverlapFilter IsoEle                *OverlapFilterIsoEle*
+    // 7 = L1-HLT matched                      *L1HLTMatched*
+    // 8 = Dz                                  *Dz02*
+
+
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu24";
     triggerBits_.back().leg1Id=13;
@@ -203,11 +218,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     ///3rd mu bit (1<<2) for mu-tau overlap (should be OK)
     ///6th tau bit(1<<5) for mu-tau overlap  (is OK for all 80X triggers?)
     triggerBits_.push_back(aTrgData);
-  // 0 = CaloIdL_TrackIdL_IsoVL, 1 = 1e (WPTight),     2 = 1e (WPLoose),        3 = OverlapFilter PFTau,  4 = 2e,  5 = 1e-1mu,               6 = 1e-1tau,  7 = 3e,    8 = 2e-1mu, 9 = 1e-2mu for Electron (PixelMatched e/gamma);
-  // 0 = TrkIsoVVL,              1 = Iso,              2 = OverlapFilter PFTau, 3 = 1mu,                  4 = 2mu, 5 = 1mu-1e,               6 = 1mu-1tau, 7 = 3mu,   8 = 2mu-1e, 9 = 1mu-2e for Muon;
-  // 0 = LooseChargedIso,        1 = MediumChargedIso, 2 = TightChargedIso,     3 = TightID OOSC photons, 4 = HPS, 5 = single-tau + tau+MET, 6 = di-tau,   7 = e-tau, 8 = mu-tau, 9 = VBF+di-tau for Tau;
-  // 0 = VBF cross-cleaned from loose iso PFTau for Jet;
-    //  triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20";
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<1)+(1<<2); //iso+OL
@@ -217,7 +227,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     //  triggerBits_.back().leg1L1Pt=18;
     triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0)+(1<<5); //looseChargedIso+OL
+    triggerBits_.back().leg2BitMask=(1<<1)+(1<<2); //looseChargedIso+OL
     triggerBits_.back().leg2Pt=27;
     triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
@@ -359,7 +369,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             pairSelection(bestPairIndex);
 
             fillJets(bestPairIndex);
-            //fillLeptons();//moved
             fillGenLeptons();
             fillPairs(bestPairIndex);
             applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
@@ -382,6 +391,8 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if(firstWarningOccurence_) firstWarningOccurence_ = false; //stop to warn once the first pair is found and filled
         }
     }
+
+    cout << "Found " << entry << " pairs" << endl;
 
    //if you change any of the lists, uncomment and execute in this directory (i.e. not running parallel in another) and then run again.
    //  Or, if you run in another directory, copy the *Enum*h over after running the first time, then run again.
@@ -843,6 +854,9 @@ void HTauTauTreeFromNanoBase::fillLeptons()
 
     httLeptonCollection.clear();
 
+    // Only interested in events with hadronic taus
+    if(nTau == 0) return;
+
     //Muons //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iMu=0; iMu<nMuon; ++iMu)
     {
@@ -918,7 +932,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle
 
         if( aLepton.getP4().Pt() < 20 ) continue;
-        UChar_t bitmask=aLepton.getProperty(PropertyEnum::idMVAoldDM2017v2); //byIsolationMVArun2v1DBoldDMwLTraw
+        UChar_t bitmask=aLepton.getProperty( HTauTauTreeFromNanoBase::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
 
         TLorentzVector chargedP4;//approximate by leadTrack p4
@@ -1176,8 +1190,8 @@ void HTauTauTreeFromNanoBase::fillPairs(unsigned int bestPairIndex)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-bool HTauTauTreeFromNanoBase::buildPairs(){
-
+bool HTauTauTreeFromNanoBase::buildPairs()
+{
     httPairs_.clear();
     for(unsigned int iL1=0; iL1<httLeptonCollection.size()-1; ++iL1)
     {
@@ -1188,20 +1202,16 @@ bool HTauTauTreeFromNanoBase::buildPairs(){
             if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
             if (event==check_event_number) cout << "bP2 " << event << endl;
 
-            //??      TLorentzVector p4 = httLeptonCollection[iL1].getP4()+httLeptonCollection[iL2].getP4();
-            //mb ??      if( !(p4.M()>0) ) continue;
             TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
-            // double mTLeg1 = TMath::Sqrt(2.*httLeptonCollection[iL1].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL1].getP4().Phi()-MET_phi)));
-            // double mTLeg2 = TMath::Sqrt(2.*httLeptonCollection[iL2].getP4().Pt()*MET_pt*(1.-TMath::Cos(httLeptonCollection[iL2].getP4().Phi()-MET_phi)));
             HTTPair aHTTpair;
-            //      aHTTpair.setP4(p4);
+
             aHTTpair.setMET(met);
             aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
-            // aHTTpair.setMTLeg1(mTLeg1);
-            // aHTTpair.setMTLeg2(mTLeg2);
 
             aHTTpair.setLeg1(httLeptonCollection.at(iL1),iL1);
             aHTTpair.setLeg2(httLeptonCollection.at(iL2),iL2);
+
+            
             httPairs_.push_back(aHTTpair); 
         }
     }
@@ -1491,7 +1501,7 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     else return 0;
 
     int firedBits = 0;
-    for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg)
+    for(unsigned int iTrg=0; iTrg<triggerBits_.size(); iTrg++)
     {
         bool decision = false;
 
@@ -1504,16 +1514,14 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
             TLeaf *leaf = branch->FindLeaf(triggerBits_[iTrg].path_name.c_str());
             decision = leaf!=nullptr ? leaf->GetValue() : false;
         }
-        //  int xx=triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos;
-        //    if (triggerBits_[iTrg].path_name.find("Mu22") != std::string::npos) std::cout << triggerBits_[iTrg].path_name << " " << decision << " " << particleId  << std::endl;
         if(!decision) continue; // do not check rest if trigger is not fired
 
-        //check legs
+        //////////////////////// check legs //////////////////////////////////
+        //////  first leg   //////// 
         decision = false;
-        //first leg
         if(particleId==triggerBits_[iTrg].leg1Id)
         {
-            for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
+            for(unsigned int iObj=0; iObj<nTrigObj; iObj++)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
                 TLorentzVector p4_trg;
@@ -1523,9 +1531,9 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                                     0.);
 
                 if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
-                if( triggerBits_[iTrg].leg1Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg1Pt) ) continue;
-                if( triggerBits_[iTrg].leg1Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg1Eta) ) continue;
-                if( triggerBits_[iTrg].leg1L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg1L1Pt) ) continue;
+                if( triggerBits_[iTrg].leg1Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg1Pt) ) continue;
+                if( triggerBits_[iTrg].leg1Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg1Eta) ) continue;
+                if( triggerBits_[iTrg].leg1L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg1L1Pt) ) continue;
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
                 decision = true;
@@ -1536,12 +1544,12 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
             firedBits |= (1<<iTrg);
             continue;
         }
-
+        //////////////////////////////////////////////////////////////////////
+        //////  second leg   //////// 
         decision = false;
-        //second leg
         if(particleId==triggerBits_[iTrg].leg2Id)
         {
-            for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
+            for(unsigned int iObj=0; iObj<nTrigObj; iObj++)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
                 TLorentzVector p4_trg;
@@ -1551,9 +1559,9 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                                     0.);
 
                 if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
-                if( triggerBits_[iTrg].leg2Pt>0 && !(TrigObj_pt[iObj]>triggerBits_[iTrg].leg2Pt) ) continue;
-                if( triggerBits_[iTrg].leg2Eta>0 && !(std::abs(TrigObj_eta[iObj])<triggerBits_[iTrg].leg2Eta) ) continue;
-                if( triggerBits_[iTrg].leg2L1Pt>0 && !(TrigObj_l1pt[iObj]>triggerBits_[iTrg].leg2L1Pt) ) continue;
+                if( triggerBits_[iTrg].leg2Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg2Pt) ) continue;
+                if( triggerBits_[iTrg].leg2Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg2Eta) ) continue;
+                if( triggerBits_[iTrg].leg2L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg2L1Pt) ) continue;
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
                 decision = true;
@@ -1564,6 +1572,7 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
             firedBits |= (1<<iTrg);
             continue;
         }
+        ////////////////////////////////////////////////////////////////////// 
     }
     return firedBits;
 }
@@ -1935,63 +1944,60 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
 
     ////////////////////////////////////// Leg 1 ////////////////////////////////////////////////
     //step 0.5, leg 1 type: 2: tau, 1: e, 0: mu
-    i_type = std::abs(i.getLeg1().getPDGid())==15 ? 2: 
-             std::abs(i.getLeg1().getPDGid())==11 ? 1:
-             0; //else muon
 
-    j_type = std::abs(j.getLeg1().getPDGid())==15 ? 2:
-             std::abs(j.getLeg1().getPDGid())==11 ? 1:
-             0; //else muon
+    if( std::abs(i.getLeg1().getPDGid())==11 ) i_type = 1;
+    else if( std::abs(i.getLeg1().getPDGid())==13 ) i_type = 0;
+
+    if( std::abs(j.getLeg1().getPDGid())==11 ) j_type = 1;
+    else if( std::abs(j.getLeg1().getPDGid())==13 ) j_type = 0;
 
     if (i_type<j_type) return true;
     else if(i_type>j_type) return false;
 
-    //step 1, leg 1 ISO
-    i_iso = std::abs(i.getLeg1().getPDGid())==15 ? -i.getLeg1().getProperty(PropertyEnum::rawMVAoldDM2017v2) :
-            std::abs(i.getLeg1().getPDGid())==11 ? i.getLeg1().getProperty(PropertyEnum::pfRelIso03_all):
-            i.getLeg1().getProperty(PropertyEnum::pfRelIso04_all);
+    //step 1: two pairs with same leg1 lepton: leg 1 ISO
+    i_iso = std::abs(i.getLeg1().getPDGid())==15 ? -i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
+            std::abs(i.getLeg1().getPDGid())==11 ? i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
+            i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
 
-    j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(PropertyEnum::rawMVAoldDM2017v2) :
-            std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(PropertyEnum::pfRelIso03_all):
-            j.getLeg1().getProperty(PropertyEnum::pfRelIso04_all);
+    j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
+            std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
+            j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
     if(j_iso<-1) j_iso=999; //something went wrong
 
     if (i_iso<j_iso) return true;
     else if(i_iso>j_iso) return false;
 
-    //step 2, leg 1 Pt
+    //step 2: two pairs with same leg1 lepton that have same isolation: leg1 pt
     if(i.getLeg1().getP4().Pt()>j.getLeg1().getP4().Pt()) return true;
     else if(i.getLeg1().getP4().Pt()<j.getLeg1().getP4().Pt()) return false;
 
     ////////////////////////////////////// Leg 2 ////////////////////////////////////////////////
     //step 2.5, leg 2 type
-    i_type = std::abs(i.getLeg2().getPDGid())==15 ? 2:
-             std::abs(i.getLeg2().getPDGid())==11 ? 1:
-             0; //else muon
+    if( std::abs(i.getLeg2().getPDGid())==11 ) i_type = 1;
+    else if( std::abs(i.getLeg2().getPDGid())==13 ) i_type = 0;
 
-    j_type = std::abs(j.getLeg2().getPDGid())==15 ? 2:
-             std::abs(j.getLeg2().getPDGid())==11 ? 1:
-             0; //else muon
+    if( std::abs(j.getLeg2().getPDGid())==11 ) j_type = 1;
+    else if( std::abs(j.getLeg2().getPDGid())==13 ) j_type = 0;
 
     if (i_type<j_type) return true;
     else if(i_type>j_type) return false;
 
-    //step 3, leg 2 ISO
-    i_iso = std::abs(i.getLeg2().getPDGid())==15 ? -i.getLeg2().getProperty(PropertyEnum::rawMVAoldDM2017v2) :
-            std::abs(i.getLeg2().getPDGid())==11 ? i.getLeg2().getProperty(PropertyEnum::pfRelIso03_all):
-            i.getLeg2().getProperty(PropertyEnum::pfRelIso04_all);
+    //step 3: two pairs with same leg2 lepton: leg 2 ISO
+    i_iso = std::abs(i.getLeg2().getPDGid())==15 ? -i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
+            std::abs(i.getLeg2().getPDGid())==11 ? i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
+            i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
 
-    j_iso = std::abs(j.getLeg2().getPDGid())==15 ? -j.getLeg2().getProperty(PropertyEnum::rawMVAoldDM2017v2) :
-            std::abs(j.getLeg2().getPDGid())==11 ? j.getLeg2().getProperty(PropertyEnum::pfRelIso03_all):
-            j.getLeg2().getProperty(PropertyEnum::pfRelIso04_all);
+    j_iso = std::abs(j.getLeg2().getPDGid())==15 ? -j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
+            std::abs(j.getLeg2().getPDGid())==11 ? j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
+            j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
     if(j_iso<-1) j_iso=999; //something went wrong
 
     if (i_iso<j_iso) return true;
     else if(i_iso>j_iso) return false;
 
-    //step 4, leg 2 Pt
+    //step 4: two pairs with same leg2 lepton that have same isolation: leg2 pt
     if(i.getLeg2().getP4().Pt()>j.getLeg2().getP4().Pt()) return true;
 
     return false;
