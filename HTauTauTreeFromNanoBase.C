@@ -28,8 +28,8 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 
     ///Init HTT ntuple
     initHTTTree(tree, prefix);
-    jsonVector = lumiBlocks;
 
+    jsonVector = lumiBlocks;
 
     ///Initialization of SvFit
     if(doSvFit)
@@ -39,7 +39,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
         svFitAlgo_ = std::unique_ptr<ClassicSVfit>(new ClassicSVfit(verbosity) );
         svFitAlgo_->setHistogramAdapter(new classic_svFit::DiTauSystemHistogramAdapter());//needed?
         svFitAlgo_->setDiTauMassConstraint(-1);//argument>0 constraints di-tau mass to its value
-    } else{
+
+    } else
+    {
         std::cout<<"[HTauTauTreeFromNanoBase]: Run w/o SVFit"<<std::endl;
         svFitAlgo_=nullptr;
     }
@@ -50,7 +52,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root";
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
-    } else{
+
+    } else
+    {
         std::cout<<"[HTauTauTreeFromNanoBase]: Do not apply MET recoil corrections"<<std::endl;
         recoilCorrector_=nullptr;
     }
@@ -83,6 +87,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     if(prefix=="") prefix="HTT";
     prefix += "_";
+
     std::string filePath(tree->GetCurrentFile()->GetName());
     size_t location = filePath.find_last_of("/");
     if(location==std::string::npos) location = 0;
@@ -325,6 +330,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
     Long64_t nbytes = 0, nb = 0;
     int entry=0;
+    float perc = 0.0;
     for (Long64_t jentry=0; jentry<nentries_use;jentry++)
     {
         Long64_t ientry = LoadTree(jentry);
@@ -338,7 +344,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         if (check_event_number>0 && event!=check_event_number) continue;
         if (event==check_event_number) cout << "1" << endl;
 
-        if(jentry%10000==0) std::cout<<"Processing "<<jentry<<"th event"<<std::endl;//FIXME
+        if(jentry%10000==0)
+        {   
+            perc = jentry > 0 ? (float)nentries/(float)jentry : 0.0;
+            std::cout<<"Processing "<<jentry<<"th event  "<< perc << "%" <<std::endl;
+        }
+
         //Check if event is contained in JSon
         if( !eventInJson() ) continue;
         //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event in JSon"<<std::endl;//FIXME
@@ -1304,7 +1315,7 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
     }else if(colType=="Tau"){
         if(name.find("Electron_")!=std::string::npos
            || name.find("Muon_")!=std::string::npos
-           ||name.find("Jet_")!=std::string::npos
+           || name.find("Jet_")!=std::string::npos
            || name.find("pfRelIso03_all")!=std::string::npos
            || name.find("sip3d")!=std::string::npos
            || false) return 0;
