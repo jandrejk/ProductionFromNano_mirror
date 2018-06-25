@@ -40,7 +40,7 @@ def buildPathToSamples():
                 for tag in out:
 
                     if r["creation"] in tag:
-                        samples["_".join([sample, run ]) ] = "/".join([ path, tag ]) 
+                        samples["_".join([sample, run, r["creation"] ]) ] = "/".join([ path, tag ])
 
     return samples
 
