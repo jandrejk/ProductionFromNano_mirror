@@ -1,5 +1,5 @@
 #! /bin/sh
-#SBATCH -J ZoomZoom 
+#SBATCH -J >>-->  X 
 #SBATCH -D ${rundir}
 #SBATCH -o ${rundir}/%j.txt
 export X509_USER_PROXY='/afs/hephy.at/user/m/mspanring/proxy/x509_proxy'

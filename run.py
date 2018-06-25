@@ -45,7 +45,7 @@ class SteerNanoProduction():
 
         if debug:
             self.nthreads = 1
-            self.nevents = 10000
+            self.nevents = 10001
         else:
             self.nthreads = nthreads
             self.nevents = -1
@@ -87,9 +87,9 @@ class SteerNanoProduction():
             # Run on batch system
             else:
                 runscript = templ.substitute(rundir = rundir,
+                                             outdir = outdir,
                                              file = file,
                                              channel = self.channel,
-                                             outdir = outdir,
                                              svfit = int(self.svfit),
                                              recoil = int(self.recoil),
                                              nevents = int(self.nevents) )
@@ -117,7 +117,11 @@ class SteerNanoProduction():
 
         print "\033[93mrun\033[0m  Job {0}: ".format(njob) + file.split("/")[-1]
 
-        runcmd  = './convertNanoParallel.py {0} {1} {2} {3} {4}'.format(self.channel, file, int(self.svfit), int(self.recoil), int(self.nevents))
+        runcmd  = './convertNanoParallel.py {0} {1} {2} {3} {4}'.format( file,
+                                                                         self.channel,                                                                   
+                                                                         int(self.svfit),
+                                                                         int(self.recoil),
+                                                                         int(self.nevents) )
         if self.debug:
                 p = sp.Popen(shlex.split( runcmd ),
                              stdout = sys.__stdout__,

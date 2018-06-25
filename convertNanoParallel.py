@@ -38,20 +38,17 @@ def getLumisToRun(JSON):
 #######################################################################################################
 
 #dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
-channel =          sys.argv[1]
-aFile =            sys.argv[2]
+
+aFile =            sys.argv[1]
+channel =          sys.argv[2]
 doSvFit =          int(sys.argv[3])
 applyRecoil=       int(sys.argv[4])
 nevents =          int(sys.argv[5])
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
-#sync_event=850381
+
 sync_event=0
-#nevents=5000
-
-
-
 
 print 'Channel: ',channel
 
