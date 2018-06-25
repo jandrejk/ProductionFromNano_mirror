@@ -67,6 +67,7 @@ print "Compiling...."
 #Some system have problem runnig compilation (missing glibc-static library?).
 #First we try to compile, and only then we start time consuming cmssw
 
+
 assert gSystem.CompileMacro('HTTEvent.cxx','k') 
 assert gSystem.CompileMacro('syncDATA.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
@@ -76,18 +77,16 @@ gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
 
-
 assert gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
 if channel=='mt' or channel=='all': assert gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
 if channel=='et' or channel=='all': assert gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
 if channel=='tt' or channel=='all': assert gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
 
 
+
 if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
 if channel=='et' or channel=='all': from ROOT import HElTauhTreeFromNano
 if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
-
-
 
 JSONfile = ""
 # JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
@@ -98,6 +97,7 @@ vlumis = getLumisToRun(JSONfile)
 if channel=='mt' or channel=='all': HMuTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
 if channel=='et' or channel=='all': HElTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
 if channel=='tt' or channel=='all': HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
+
 
 
 exit(0)
