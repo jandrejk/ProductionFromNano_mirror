@@ -10,6 +10,7 @@ from ROOT import gSystem, TChain, TSystem, TFile, TString, vector, TFileCollecti
 import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Config as cms
 import json
+from glob import glob
 
 def getLumisToRun(JSON):
     if JSON == "": return vector( 'edm::LuminosityBlockRange' )()
@@ -41,9 +42,10 @@ def getLumisToRun(JSON):
 
 aFile =            sys.argv[1]
 channel =          sys.argv[2]
-doSvFit =          int(sys.argv[3])
-applyRecoil=       int(sys.argv[4])
-nevents =          int(sys.argv[5])
+systShift =        sys.argv[3]
+doSvFit =          int(sys.argv[4])
+applyRecoil=       int(sys.argv[5])
+nevents =          int(sys.argv[6])
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
@@ -78,26 +80,34 @@ gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
 gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
 
 assert gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
-if channel=='mt' or channel=='all': assert gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
-if channel=='et' or channel=='all': assert gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
-if channel=='tt' or channel=='all': assert gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
+from ROOT import HTTParticle, HTTAnalysis
 
+if channel=='mt':
+    assert gSystem.CompileMacro('HMuTauhTreeFromNano.C','k')
+    from ROOT import HMuTauhTreeFromNano as Ntuplizer
 
+if channel=='et':
+    assert gSystem.CompileMacro('HElTauhTreeFromNano.C','k')
+    from ROOT import HElTauhTreeFromNano as Ntuplizer
 
-if channel=='mt' or channel=='all': from ROOT import HMuTauhTreeFromNano
-if channel=='et' or channel=='all': from ROOT import HElTauhTreeFromNano
-if channel=='tt' or channel=='all': from ROOT import HTauhTauhTreeFromNano
+if channel=='tt':
+    assert gSystem.CompileMacro('HTauhTauhTreeFromNano.C','k')
+    from ROOT import HTauhTauhTreeFromNano as Ntuplizer
+
 
 JSONfile = ""
 # JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 vlumis = getLumisToRun(JSONfile)
 
+HTTParticle.corrType = getattr(HTTAnalysis, systShift )
+
+prefix = "-".join([channel, systShift])
+Ntuplizer(  aTree,doSvFit,applyRecoil,vlumis, prefix).Loop(nevents,sync_event)
 
 
-if channel=='mt' or channel=='all': HMuTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
-if channel=='et' or channel=='all': HElTauhTreeFromNano(  aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
-if channel=='tt' or channel=='all': HTauhTauhTreeFromNano(aTree,doSvFit,applyRecoil,vlumis).Loop(nevents,sync_event)
-
+for f in glob('*'):
+    if not f in glob(prefix + '*.root') and not f in glob("log*.txt"):
+        os.remove(f)
 
 
 exit(0)
