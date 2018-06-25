@@ -386,9 +386,6 @@ class HTTPair
         //MVAMET covariance matrix in order 00,01,10,11
         std::vector<float> metMatrix;
 
-        ///MT calculated for (leg1,MET) and (leg2,MET)
-        // float mtLeg1, mtLeg2;
-
         ///Pair legs
         HTTParticle leg1, leg2;
         int indexLeg1, indexLeg2;
