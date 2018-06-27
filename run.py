@@ -54,7 +54,7 @@ class SteerNanoProduction():
             self.nevents = 10001
         else:
             self.nthreads = nthreads
-            self.nevents = 100
+            self.nevents = -1
 
 
         shifts={'t0u' : 'TES1p0p0Up',
