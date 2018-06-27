@@ -275,10 +275,6 @@ class HTTParticle
 
    private:
 
-      ///Return four-momentum modified according DATA/MC energy scale factors.
-      const TLorentzVector & getNominalShiftedP4() const;
-      float getShiftedES( float ES, float uncert, int dm, HTTAnalysis::sysEffects type) const;
-
       ///Return four-momentum shifted with scale.
       ///Shift modifies three-momentum transverse part only, leaving mass constant.
       const TLorentzVector & getShiftedP4(float scale, bool preserveMass=true) const;

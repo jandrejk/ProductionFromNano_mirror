@@ -3,7 +3,7 @@
 #include "m2n/HTT/interface/GenInfoHelper.h"
 #else
 #include "HTTEvent.h"
-#include "EnergyScales.h"
+// #include "EnergyScales.h"
 #endif
 
 HTTAnalysis::sysEffects HTTParticle::corrType = HTTAnalysis::NOMINAL;
@@ -94,49 +94,6 @@ void HTTParticle::clear(){
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTParticle::getNominalShiftedP4() const
-{
-
-    p4Cache = p4;
-
-    if( std::abs(getPDGid())==15 )
-    {
-        int dm = getProperty(PropertyEnum::decayMode);
-        float tauES = 0.0;
-
-        if( getProperty(PropertyEnum::mc_match)==5 )
-        {
-            if(dm == 0 ) tauES = ES.Tau.oneProng0p0;
-            if(dm == 1 ) tauES = ES.Tau.oneProng1p0;
-            if(dm == 10) tauES = ES.Tau.threeProng0p0;
-
-        }else if( getProperty(PropertyEnum::mc_match)==1 )
-        {
-            if(dm == 0 ) tauES = ES.Electron.oneProng0p0;
-            if(dm == 1 ) tauES = ES.Electron.oneProng1p0;
-            if(dm == 10) tauES = ES.Electron.threeProng0p0;
-
-        }else if( getProperty(PropertyEnum::mc_match)==2 )
-        {
-            if(dm == 0 ) tauES = ES.Muon.oneProng0p0;
-            if(dm == 1 ) tauES = ES.Muon.oneProng1p0;
-            if(dm == 10) tauES = ES.Muon.threeProng0p0;
-        }
-
-        float tauES_mass = tauES;
-        if (dm == 0) tauES_mass=0;
-
-        p4Cache.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
-                             p4.Eta(),
-                             p4.Phi(),
-                             p4.M() * (1.0+tauES_mass) );
-
-    }
-
-    return p4Cache;
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
 const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) const
 {
     HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : corrType;
@@ -146,96 +103,31 @@ const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) c
         lastSystEffect = type;
         return p4;
 
-    }else if(type==HTTAnalysis::NOMINAL){
-        lastSystEffect = type;
-        return getNominalShiftedP4();
-
-    }else if( (unsigned int)type < (unsigned int)HTTAnalysis::DUMMY_SYS)
+    }else
     {
         lastSystEffect = type;
 
         p4Cache = p4;
+        int pdg = std::abs(getPDGid());
+        int dm = getProperty(PropertyEnum::decayMode);
+        int mc_match = getProperty(PropertyEnum::mc_match);
 
-        if( std::abs(getPDGid())==15 )
-        {
-            int dm = getProperty(PropertyEnum::decayMode);
-            float tauES = 0.0;
 
-            if( getProperty(PropertyEnum::mc_match)==1 ) // Prompt Electrons
-            {
-                if(dm == 0 ) tauES = getShiftedES( ES.Electron.oneProng0p0,   ES.Electron.uncertaintyShift ,dm,type );
-                if(dm == 1 ) tauES = getShiftedES( ES.Electron.oneProng1p0,   ES.Electron.uncertaintyShift ,dm,type );
-                if(dm == 10) tauES = getShiftedES( ES.Electron.threeProng0p0, ES.Electron.uncertaintyShift ,dm,type );
+        float tauES = HTTAnalysis::getEnergyScale(pdg, mc_match, dm, type);
+        float tauES_mass = tauES;
+        if (dm == 0) tauES_mass=0;
 
-            }else if( getProperty(PropertyEnum::mc_match)==2 ) // Prompt Muon
-            {
-                if(dm == 0 ) tauES = getShiftedES( ES.Muon.oneProng0p0,   ES.Muon.uncertaintyShift ,dm,type );
-                if(dm == 1 ) tauES = getShiftedES( ES.Muon.oneProng1p0,   ES.Muon.uncertaintyShift ,dm,type );
-                if(dm == 10) tauES = getShiftedES( ES.Muon.threeProng0p0, ES.Muon.uncertaintyShift ,dm,type );
-
-            }else if( getProperty(PropertyEnum::mc_match)==5 ) // Genuine Tau
-            {
-                if(dm == 0 ) tauES = getShiftedES( ES.Tau.oneProng0p0,   ES.Tau.uncertaintyShift ,dm,type );
-                if(dm == 1 ) tauES = getShiftedES( ES.Tau.oneProng1p0,   ES.Tau.uncertaintyShift ,dm,type );
-                if(dm == 10) tauES = getShiftedES( ES.Tau.threeProng0p0, ES.Tau.uncertaintyShift ,dm,type );
-            }
-
-            float tauES_mass = tauES;
-            if (dm == 0) tauES_mass=0;
-
-            p4Cache.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
-                                 p4.Eta(),
-                                 p4.Phi(),
-                                 p4.M() * (1.0+tauES_mass) );
-
-        }
+        p4Cache.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
+                             p4.Eta(),
+                             p4.Phi(),
+                             p4.M() * (1.0+tauES_mass) );
 
         return p4Cache;
-
     }
-
 
     p4Cache = p4;
 
     return p4;
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-float HTTParticle::getShiftedES( float ES, float uncert, int dm, HTTAnalysis::sysEffects type) const
-{
-
-    float shift = (unsigned int)type % 2 == 0 ? -1.0 : 1.0;
-
-    if(dm == 0)
-    {
-        if(type == HTTAnalysis::TES1p0p0Up || type == HTTAnalysis::TES1p0p0Down
-           || type == HTTAnalysis::MES1p0p0Up || type == HTTAnalysis::MES1p0p0Down
-           || type == HTTAnalysis::EES1p0p0Up || type == HTTAnalysis::EES1p0p0Down)
-        {
-            return ES + shift*uncert;
-        }
-    }
-    if(dm == 1)
-    {
-        if(type == HTTAnalysis::TES1p1p0Up || type == HTTAnalysis::TES1p1p0Down
-           || type == HTTAnalysis::MES1p1p0Up || type == HTTAnalysis::MES1p1p0Down
-           || type == HTTAnalysis::EES1p1p0Up || type == HTTAnalysis::EES1p1p0Down)
-        {
-            return ES + shift*uncert;
-        }
-    }
-    if(dm == 10)
-    {
-        if(type == HTTAnalysis::TES3p0p0Up || type == HTTAnalysis::TES3p0p0Down
-           || type == HTTAnalysis::MES3p0p0Up || type == HTTAnalysis::MES3p0p0Down
-           || type == HTTAnalysis::EES3p0p0Up || type == HTTAnalysis::EES3p0p0Down)
-        {
-            return ES + shift*uncert;
-        }
-    }
-
-    return ES;
-
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -315,8 +207,8 @@ const TVector2 & HTTPair::getSystScaleMET(HTTAnalysis::sysEffects defaultType) c
     {
       
         lastSystEffect = type;
-        if( (std::abs(leg1.getPDGid())==15 && leg1.getProperty(PropertyEnum::mc_match)==5) 
-            || (std::abs(leg2.getPDGid())==15 && leg2.getProperty(PropertyEnum::mc_match)==5) )
+        if( (std::abs(leg1.getPDGid())==15) 
+            || (std::abs(leg2.getPDGid())==15) )
         {
 
             double metX = met.X();
