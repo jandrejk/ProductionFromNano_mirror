@@ -14,11 +14,13 @@ import string
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE')
+    parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE', default = "")
     parser.add_argument('-v', dest='version', help='Version of ntuples.', type=str, metavar = 'VERSION', default = 'v1')
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','m0u','m1u','m10u','m0d','m1d','m10d','e0u','e1u','e10u','e0d','e1d','e10d'], default = '')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
+    parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
 
     args = parser.parse_args()
@@ -28,15 +30,19 @@ def main():
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
 
-    SNP = SteerNanoProduction(args.channel, args.shift, args.jobs, args.debug)
-    SNP.runOneSample(args.sample)
+    if not args.merge:
+        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug)
+        SNP.runOneSample(args.sample)
+
+    else:
+        mergeSample(args.version, args.outdir,args.sample)
 
 class SteerNanoProduction():
 
-    def __init__(self, channel, shift, nthreads=6, debug=False):
+    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False):
 
         self.basedir = os.getcwd()
-        self.outdir = '/afs/hephy.at/data/higgs01'
+        self.outdir = outdir
         self.channel = channel
         self.svfit = False
         self.recoil = False
@@ -79,10 +85,11 @@ class SteerNanoProduction():
     def runOneSample(self, sample, version="v1"):
         threads = []
 
+        assert sample
         with open("submit_on_batch.sh") as FSO:
             templ = string.Template( FSO.read() )
 
-        runpath = "/".join([self.basedir,"out" ,sample, 'rundir_'+self.channel+'_' ])
+        runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_'+self.channel+'_' ])
         outdir = "/".join([self.outdir, version, sample])
 
         if not os.path.exists(outdir):
@@ -93,7 +100,7 @@ class SteerNanoProduction():
         for idx,file in enumerate( self.getFiles(sample) ):
             if self.debug and idx > 0: break
 
-            rundir = runpath+str(idx)
+            rundir = runpath+str(idx+1)
 
             ##### Create rundir. Overwrite if it already exists
             if not os.path.exists(rundir):
@@ -136,14 +143,14 @@ class SteerNanoProduction():
                 x.join()
 
             if not self.debug:
-                os.chdir( "/".join([ self.basedir, "out" ,sample ]) )
+                os.chdir( "/".join([ self.basedir, "out", version ,sample ]) )
                 os.system('hadd -f -O '+'ntuple_{0}.root rundir_{0}_*/{1}_*root'.format(self.channel, "-".join([self.channel, self.systShift]) ) )
 
     def runOneFileLocal(self, rundir ,file):
 
 
         os.chdir(rundir )
-        njob = int(rundir.split("_")[-1]) + 1
+        njob = int(rundir.split("_")[-1])
         # Run local
 
         print "\033[93mrun\033[0m  Job {0}: ".format(njob) + file.split("/")[-1]
@@ -195,6 +202,43 @@ class SteerNanoProduction():
         with open( "{0}/samples/{1}.txt".format(self.basedir, sample) ) as FSO:
             buf = FSO.read()
         return buf.splitlines()
+
+
+def mergeSample(version, outdir, single_sample=""):
+
+    import ROOT as R
+    tchain = R.TChain("TauCheck")
+
+
+
+    path = "/".join([ outdir, version])
+
+    if single_sample: samples = [ "/".join([path, single_sample] ) ]
+    else: samples = glob(path + "/*")
+
+
+    for sample in samples:
+        files = glob( sample + "/*" )
+
+        types = {}
+        for f in files:
+            t = f.split("/")[-1].split("_")[0]
+            if "_all.root" in f or "rundir" in f: continue
+
+            if not t in types:
+                types[t] = {"chain":R.TChain("TauCheck"), "N":1}
+                types[t]["chain"].Add(f)
+            else:
+                types[t]["chain"].Add(f)
+                types[t]["N"] += 1
+
+        for t in types:
+            print "Merging {0} for sample {1}: total {2} files".format(t, sample.split("/")[-1], types[t]["N"] )
+
+            types[t]["chain"].Merge( "/".join([sample, t+"_all.root"]) )
+
+    
+
 
 
 if __name__ == '__main__':
