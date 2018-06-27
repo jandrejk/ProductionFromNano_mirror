@@ -109,12 +109,13 @@ bool HElTauhTreeFromNano::electronSelection(unsigned int index){
   TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
 
-    return aP4.Pt()>25 && std::abs(aP4.Eta())<=2.1
-           && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
+    return aP4.Pt()>LeptonCuts::Baseline.Electron.pt 
+           && std::abs(aP4.Eta())<=LeptonCuts::Baseline.Electron.eta
+           && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz)) <0.2
            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-           && httLeptonCollection[index].getProperty(PropertyEnum::mvaFall17Iso_WP80)>0.5
            && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
            && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
+           && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIDWP80"])>0.5           
 
 }
 
@@ -122,7 +123,8 @@ bool HElTauhTreeFromNano::tauSelection(unsigned int index){
 
     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    return  aP4.Pt()> 20 && std::abs(aP4.Eta())<2.3 
+    return  aP4.Pt()> 20
+            && std::abs(aP4.Eta())<2.3 
             && httLeptonCollection[index].getProperty(PropertyEnum::idDecayMode)>0.5 
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 
             && (int)std::abs(httLeptonCollection[index].getProperty(PropertyEnum::charge))==1;
@@ -138,10 +140,11 @@ bool HElTauhTreeFromNano::diElectronVeto(){
       if(std::abs(httLeptonCollection[iLepton].getPDGid())!=11) continue;
       TLorentzVector elecP4 = httLeptonCollection[iLepton].getP4();
 
-        bool passLepton = elecP4.Pt()> 15 && std::abs(elecP4.Eta())<2.5
+        bool passLepton = elecP4.Pt()> LeptonCuts::Di.Electron.pt
+             && std::abs(elecP4.Eta())< LeptonCuts::Di.Electron.eta
              && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
              && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
-             && httLeptonCollection[iLepton].getProperty(PropertyEnum::pfRelIso03_all)<0.3
+             && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["electronIsolation"] )<0.3
              && true;
 
         if(passLepton) elecIndexes.push_back(iLepton);

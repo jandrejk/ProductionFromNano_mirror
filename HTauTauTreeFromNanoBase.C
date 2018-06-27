@@ -13,10 +13,10 @@
 #include <algorithm>
 
 //move these two to the configuration
-bool isSync=1;
+bool isSync=0;
 bool isMC=1;
 
-std::map<string,PropertyEnum> HTauTauTreeFromNanoBase::usePropertyFor = {};
+
 //const bool tweak_nano=true;
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
@@ -97,13 +97,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
     //  httTree = new TTree("HTauTauTree","");
     //  httTree->SetDirectory(httFile);
-    /*
-    TBranch *eventBranch = httTree->Branch("HTTEvent.",&httEvent);
-    TBranch *pairBranch = httTree->Branch("HTTPairCollection",&httPairCollection);
-    TBranch *jetBranch = httTree->Branch("HTTJetCollection",&httJetCollection);
-    TBranch *leptonBranch = httTree->Branch("HTTLeptonCollection",&httLeptonCollection);
-    TBranch *genLeptonBranch = httTree->Branch("HTTGenLeptonCollection",&httGenLeptonCollection);
-    */
+
     hStats = new TH1F("hStats","Bookkeeping histogram",11,-0.5,10.5);
     //  hStats->SetDirectory(httFile);
 
@@ -166,10 +160,12 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     genLeptonPropertiesList.push_back("genpart_TauGenDetailedDecayMode");//needed?
 
     ////////////////////////////////////////////////////////////
-    HTauTauTreeFromNanoBase::usePropertyFor["electronIsolation"] = PropertyEnum::pfRelIso03_all;
-    HTauTauTreeFromNanoBase::usePropertyFor["muonIsolation"]     = PropertyEnum::pfRelIso04_all;
-    HTauTauTreeFromNanoBase::usePropertyFor["tauIsolation"]      = PropertyEnum::rawMVAoldDM2017v2;
-    HTauTauTreeFromNanoBase::usePropertyFor["tauID"]             = PropertyEnum::idMVAoldDM2017v2;
+    HTTEvent::usePropertyFor["electronIsolation"] = PropertyEnum::pfRelIso03_all;
+    HTTEvent::usePropertyFor["electronIDWP80"]    = PropertyEnum::mvaFall17Iso_WP80;
+    HTTEvent::usePropertyFor["electronIDWP90"]    = PropertyEnum::mvaFall17Iso_WP90;
+    HTTEvent::usePropertyFor["muonIsolation"]     = PropertyEnum::pfRelIso04_all;
+    HTTEvent::usePropertyFor["tauIsolation"]      = PropertyEnum::rawMVAoldDM2017v2;
+    HTTEvent::usePropertyFor["tauID"]             = PropertyEnum::idMVAoldDM2017v2;
 
     ///Trigger bits to check
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
@@ -346,13 +342,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
         if(jentry%10000==0)
         {   
-            perc = jentry > 0 ? (float)nentries/(float)jentry : 0.0;
+            perc = jentry > 0 ? (float)jentry/(float)nentries : 0.0;
             std::cout<<"Processing "<<jentry<<"th event  "<< perc << "%" <<std::endl;
         }
 
         //Check if event is contained in JSon
         if( !eventInJson() ) continue;
-        //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event in JSon"<<std::endl;//FIXME
 
         if (event==check_event_number) cout << "2" << endl;
 
@@ -392,7 +387,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
                 //break; ///TEST for synch. ntuple
             }
             //      httTree->Fill();
-            SyncDATA->fill(httEvent.get(),httJetCollection,&bestPair);
+            SyncDATA->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
             SyncDATA->entry=entry++;
             SyncDATA->fileEntry=jentry;
             t_TauCheck->Fill();
@@ -514,11 +509,12 @@ bool HTauTauTreeFromNanoBase::muonSelection(unsigned int index)
     // int muonIdBit = 7;//Standard Medium ID
     // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
 
-    return  aP4.Pt()>10 && std::abs(aP4.Eta())<2.4
+    return  aP4.Pt()>LeptonCuts::Extra.Muon.pt
+            && std::abs(aP4.Eta())<LeptonCuts::Extra.Muon.eta
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
             && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0
-            && httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso04_all)<0.3;
+            && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["muonIsolation"] )<0.3;
     
 
 }
@@ -529,13 +525,14 @@ bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index)
 
     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    return  aP4.Pt()>10 && std::abs(aP4.Eta())<2.5 
+    return  aP4.Pt()>LeptonCuts::Extra.Electron.pt
+            && std::abs(aP4.Eta())<LeptonCuts::Extra.Electron.eta
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-            && httLeptonCollection[index].getProperty(PropertyEnum::mvaFall17Iso_WP80)>0.5
             && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
             && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<=1
-            && httLeptonCollection[index].getProperty(PropertyEnum::pfRelIso03_all)<0.3;
+            && httLeptonCollection[index].getProperty( HTTEvent::usePropertyFor["electronIDWP90"] )>0.5
+            && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIsolation"] )<0.3;
 
 }
 /////////////////////////////////////////////////
@@ -872,7 +869,13 @@ void HTauTauTreeFromNanoBase::fillLeptons()
     for(unsigned int iMu=0; iMu<nMuon; ++iMu)
     {
         if (event==check_event_number) std::cout << "M1 " << Muon_pt[iMu] << std::endl;
-        if( !(Muon_pt[iMu]>5) ) continue;
+        float loosestMuonPtCut = min( { LeptonCuts::Baseline.Muon.pt,
+                                        LeptonCuts::Additional.Muon.pt,
+                                        LeptonCuts::Extra.Muon.pt, 
+                                        LeptonCuts::Di.Muon.pt
+                                      } );
+
+        if( !(Muon_pt[iMu] > loosestMuonPtCut ) ) continue;
         if (event==check_event_number) std::cout << "M2 " << Muon_pt[iMu] << std::endl;
         HTTParticle aLepton;
         TLorentzVector p4;
@@ -899,8 +902,15 @@ void HTauTauTreeFromNanoBase::fillLeptons()
     for(unsigned int iEl=0; iEl<nElectron; ++iEl)
     {
         float e_pt=Electron_pt[iEl];
+        float loosestElectronPtCut = min( { LeptonCuts::Baseline.Electron.pt,
+                                            LeptonCuts::Additional.Electron.pt,
+                                            LeptonCuts::Extra.Electron.pt, 
+                                            LeptonCuts::Di.Electron.pt
+
+                                          } );
+
         if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
-        if( !(e_pt>7) ) continue;
+        if( !(e_pt>loosestElectronPtCut) ) continue;
         HTTParticle aLepton;
         TLorentzVector p4;
 
@@ -943,7 +953,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle
 
         if( aLepton.getP4().Pt() < 20 ) continue;
-        UChar_t bitmask=aLepton.getProperty( HTauTauTreeFromNanoBase::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
+        UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
 
         TLorentzVector chargedP4;//approximate by leadTrack p4
@@ -1966,14 +1976,14 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
     else if(i_type>j_type) return false;
 
     //step 1: two pairs with same leg1 lepton: leg 1 ISO
-    i_iso = std::abs(i.getLeg1().getPDGid())==15 ? -i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
-            std::abs(i.getLeg1().getPDGid())==11 ? i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
-            i.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
+    i_iso = std::abs(i.getLeg1().getPDGid())==15 ? -i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
+            std::abs(i.getLeg1().getPDGid())==11 ? i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
+            i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
 
-    j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
-            std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
-            j.getLeg1().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
+    j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
+            std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
+            j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(j_iso<-1) j_iso=999; //something went wrong
 
     if (i_iso<j_iso) return true;
@@ -1995,14 +2005,14 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
     else if(i_type>j_type) return false;
 
     //step 3: two pairs with same leg2 lepton: leg 2 ISO
-    i_iso = std::abs(i.getLeg2().getPDGid())==15 ? -i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
-            std::abs(i.getLeg2().getPDGid())==11 ? i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
-            i.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
+    i_iso = std::abs(i.getLeg2().getPDGid())==15 ? -i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
+            std::abs(i.getLeg2().getPDGid())==11 ? i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
+            i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
 
-    j_iso = std::abs(j.getLeg2().getPDGid())==15 ? -j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("tauIsolation")) :
-            std::abs(j.getLeg2().getPDGid())==11 ? j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("electronIsolation")):
-            j.getLeg2().getProperty(HTauTauTreeFromNanoBase::usePropertyFor.at("muonIsolation"));
+    j_iso = std::abs(j.getLeg2().getPDGid())==15 ? -j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
+            std::abs(j.getLeg2().getPDGid())==11 ? j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
+            j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(j_iso<-1) j_iso=999; //something went wrong
 
     if (i_iso<j_iso) return true;

@@ -5,7 +5,7 @@ const float DEF = -10.;
   const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
   const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 
-void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
+void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
   lumiWeight=DEF;
   run_syncro=ev->getRunId();
@@ -153,9 +153,9 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   dZ_1=leg1.getProperty(PropertyEnum::dz);
   mt_1=pair->getMTLeg1();
 
-  if      (pdg1==15) iso_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
-  else if (pdg1==13) iso_1=leg1.getProperty(PropertyEnum::pfRelIso04_all);
-  else if (pdg1==11) iso_1=leg1.getProperty(PropertyEnum::pfRelIso03_all);;
+  if      (pdg1==15) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["tauIsolation"] );
+  else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["muonIsolation"] );
+  else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["electronIsolation"] );;
 
   UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
   againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
@@ -173,9 +173,9 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
   byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byIsolationMVA3newDMwoLTraw_1=DEF;
-  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2);
+  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(HTTEvent::usePropertyFor["tauID"]);
   byIsolationMVA3newDMwLTraw_1=DEF;
-  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
+  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor["tauID"]); //same as above!?
 
   bitmask=leg1.getProperty(PropertyEnum::idMVAoldDM2017v2);
   byVLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x1)>0;
@@ -368,7 +368,6 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, HTTPair *pair){
     brawf_1=jets.at(ind_b1).getProperty(PropertyEnum::rawFactor);
     bmva_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCMVA);
     bcsv_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2);
-    if (evt_syncro==1279980){ std::cout << ind_b1 << " " << ind_b1 << " " << jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2) << " " << jets.at(ind_b1).getP4().Pt() << " " << jets.at(ind_b1).getP4().Eta()  << " " << bcsv_1 << " XX " <<std::endl; }
   }
 
   if (ind_b2>=0){
@@ -880,6 +879,17 @@ void syncDATA::setDefault(){
   mvamet_centrality=DEF;
   lep_etacentrality=DEF;
   sphericity=DEF;
+
+  //////////////////////////////////////////////////////////////////
+  nadditionalMu = 0;
+  addmuon_pt.clear();
+  addmuon_eta.clear();
+  addmuon_phi.clear();
+  addmuon_m.clear();
+  addmuon_q.clear();
+  addmuon_iso.clear();
+  addmuon_gen_match.clear();
+
 }
 
 void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){

@@ -15,13 +15,15 @@
 #include "FilterEnum.h"
 #include "SelectionBitsEnum.h"
 #include "AnalysisEnums.h"
-// #include "EnergyScales.h"
+#include "LeptonCuts.h"
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 class HTTEvent{
 
 
  public:
+
+  static std::map<string,PropertyEnum> usePropertyFor;
 
   enum sampleTypeEnum {DUMMY = -1, DATA = 0, DY = 1, DYLowM = 2, WJets=3, TTbar=4, Diboson=5, h=6, H=7, A=8};
 
@@ -267,6 +269,7 @@ class HTTParticle
 
         int getPDGid() const {return getProperty(PropertyEnum::pdgId);}
         int getCharge() const {return getProperty(PropertyEnum::charge);}
+        float getMT(TVector2 met, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const { return TMath::Sqrt( 2. * getP4(defaultType).Pt() * met.Mod() * (1. - TMath::Cos( getP4(defaultType).Phi()-met.Phi()))); }
 
         Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 
@@ -332,8 +335,8 @@ class HTTPair
         const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return getSystScaleMET(defaultType);}
         const TVector2 & getSVMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)defaultType];}
 
-        float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg1.getP4(defaultType).Pt() * getSystScaleMET(defaultType).Mod() * (1. - TMath::Cos(leg1.getP4(defaultType).Phi()-getSystScaleMET(defaultType).Phi())));}
-        float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return TMath::Sqrt( 2. * leg2.getP4(defaultType).Pt() * getSystScaleMET(defaultType).Mod() * (1. - TMath::Cos(leg2.getP4(defaultType).Phi()-getSystScaleMET(defaultType).Phi())));}
+        float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getSystScaleMET(defaultType), defaultType ); }
+        float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getSystScaleMET(defaultType), defaultType ); }
         float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
         const HTTParticle & getLeg1() const {return leg1;}

@@ -146,9 +146,10 @@ bool HMuTauhTreeFromNano::muonSelection(unsigned int index){
 
     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    return  aP4.Pt()>20 && std::abs(aP4.Eta())<=2.1
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
+    return  aP4.Pt() > LeptonCuts::Baseline.Muon.pt
+            && std::abs(aP4.Eta()) <= LeptonCuts::Baseline.Muon.eta
+            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz)) < 0.2
+            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))< 0.045
             && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0;
 }
 
@@ -156,7 +157,8 @@ bool HMuTauhTreeFromNano::tauSelection(unsigned int index){
 
     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    return  aP4.Pt()> 20 && std::abs(aP4.Eta())<2.3 
+    return  aP4.Pt()> 20
+            && std::abs(aP4.Eta())<2.3 
             && httLeptonCollection[index].getProperty(PropertyEnum::idDecayMode)>0.5 
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 
             && (int)std::abs(httLeptonCollection[index].getProperty(PropertyEnum::charge))==1;
@@ -171,10 +173,11 @@ bool HMuTauhTreeFromNano::diMuonVeto(){
         if(std::abs(httLeptonCollection[iLepton].getPDGid())!=13) continue;
         TLorentzVector muonP4 = httLeptonCollection[iLepton].getP4();
 
-        bool passLepton = muonP4.Pt()> 15 && std::abs(muonP4.Eta())<2.4
+        bool passLepton = muonP4.Pt()> LeptonCuts::Di.Muon.pt
+                          && std::abs(muonP4.Eta())< LeptonCuts::Di.Muon.pt
                           && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
                           && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
-                          && httLeptonCollection[iLepton].getProperty(PropertyEnum::pfRelIso04_all)<0.3
+                          && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["muonIsolation"] )<0.3
                           //FIXME && ((daughters_typeOfMuon->at(iLepton) & ((1<<0) + (1<<1) + (1<<2))) == ((1<<0) + (1<<1) + (1<<2))) //0=PF, 1=Global, 2=Tracker, muons in Nano are loose, i.e. PF&(Global|Tracker)
                           && true;
 

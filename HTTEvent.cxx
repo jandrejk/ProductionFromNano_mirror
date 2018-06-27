@@ -6,6 +6,7 @@
 // #include "EnergyScales.h"
 #endif
 
+std::map<string,PropertyEnum> HTTEvent::usePropertyFor = {};
 HTTAnalysis::sysEffects HTTParticle::corrType = HTTAnalysis::NOMINAL;
 
 ////////////////////////////////////////////////

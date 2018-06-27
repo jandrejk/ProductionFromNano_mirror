@@ -43,8 +43,6 @@ class HTauTauTreeFromNanoBase : public NanoEventsSkeleton {
 
 public :
 
-  static std::map<string,PropertyEnum> usePropertyFor;
-
   /////////////////////////////////////////////////
   /// Lorentz vector
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
