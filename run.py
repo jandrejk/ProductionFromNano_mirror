@@ -54,7 +54,7 @@ class SteerNanoProduction():
             self.nevents = 10001
         else:
             self.nthreads = nthreads
-            self.nevents = -1
+            self.nevents = 100
 
 
         shifts={'t0u' : 'TES1p0p0Up',
@@ -125,18 +125,18 @@ class SteerNanoProduction():
             else:
                 runscript = templ.substitute(rundir = rundir,
                                              outdir = outdir,
+                                             sleeping = idx*10,
                                              file = file,
                                              channel = self.channel,
                                              systShift = self.systShift,
                                              svfit = int(self.svfit),
                                              recoil = int(self.recoil),
-                                             nevents = int(self.nevents) )
+                                             nevents = int(self.nevents))
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
                     FSO.write( runscript )
                 os.system( "sbatch submit.sh" )
-                sleep(10)
 
         if self.nthreads > 0:
             for x in threads:

@@ -8,7 +8,12 @@ echo "Grid certificate"
 voms-proxy-info --all
 echo "---------------------"
 
+echo "Good night..."
+date
+sleep ${sleeping}
+echo "Good morning..."
+date
 eval `scramv1 runtime -sh`
 ./convertNanoParallel.py ${file} ${channel} ${systShift} ${svfit} ${recoil} ${nevents}
-
+date
 mv -f ${channel}*root ${outdir}
