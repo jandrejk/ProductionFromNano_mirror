@@ -256,6 +256,7 @@ class HTTParticle
         void setPCARefitPV(const TVector3 &aV3) {pcaRefitPV = aV3;}
         void setPCAGenPV(const TVector3 &aV3) {pcaGenPV = aV3;}
 
+        void setCutBitmask(int bitmask) {cutBitmask = bitmask; }
         void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
 
         ///Data member getters.
@@ -270,6 +271,12 @@ class HTTParticle
         int getPDGid() const {return getProperty(PropertyEnum::pdgId);}
         int getCharge() const {return getProperty(PropertyEnum::charge);}
         float getMT(TVector2 met, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const { return TMath::Sqrt( 2. * getP4(defaultType).Pt() * met.Mod() * (1. - TMath::Cos( getP4(defaultType).Phi()-met.Phi()))); }
+
+        int getCutBitmask() {return cutBitmask;}
+        bool isBaseline()         { return (cutBitmask & 0x1) > 0; }
+        bool isDiLepton()         { return (cutBitmask & 0x2) > 0; }
+        bool isExtraLepton()      { return (cutBitmask & 0x4) > 0; }
+        bool isAdditionalLepton() { return (cutBitmask & 0x4) > 0; }
 
         Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 
@@ -300,6 +307,8 @@ class HTTParticle
       ///Index generated automatically during conversion from
       ///LLR ntuple format
       std::vector<Double_t> properties;
+
+      int cutBitmask = 0;
  
 };
 ///////////////////////////////////////////////////

@@ -1,5 +1,5 @@
 #! /bin/sh
-#SBATCH -J Forest 
+#SBATCH -J Forrest 
 #SBATCH -D ${rundir}
 #SBATCH -o ${rundir}/log_%j.txt
 export X509_USER_PROXY='/afs/hephy.at/user/m/mspanring/proxy/x509_proxy'

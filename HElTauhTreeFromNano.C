@@ -17,12 +17,21 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
   ///Indices for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
   ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
 
-  if (event==check_event_number) cout << "pS1 " << endl;
+  //##################################################################
+  if (event==check_event_number)  cout << "pS1 " << httPairs_.empty() << endl;
+  //##################################################################
 
   if(httPairs_.empty()) return false;
 
-  if (event==check_event_number) cout << "pS2 " << endl;
-
+  //##################################################################
+  if (event==check_event_number)
+  {
+      cout << "pS2 ";
+      cout << std::abs(httPairs_[iPair].getLeg1().getPDGid()) << "  ";
+      cout << std::abs(httPairs_[iPair].getLeg2().getPDGid()) << endl;
+  }
+  //##################################################################
+  
   int pdgIdLeg1 = std::abs(httPairs_[iPair].getLeg1().getPDGid());
   int pdgIdLeg2 = std::abs(httPairs_[iPair].getLeg2().getPDGid());
 
@@ -52,12 +61,18 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
   }
 
   TLorentzVector elecP4 = httLeptonCollection[indexElecLeg].getP4();
-  TLorentzVector tauP4 = httLeptonCollection[indexTauLeg].getP4();
+  TLorentzVector tauP4 =  httLeptonCollection[indexTauLeg].getP4();
 
   //  if (event==check_event_number) cout << "pS4 " << endl;
 
-    bool electronBaselineSelection =  electronSelection(indexElecLeg);
-    bool tauBaselineSelection = tauSelection(indexTauLeg);
+    // bool electronBaselineSelection =  electronSelection(indexElecLeg);
+    bool electronBaselineSelection = httLeptonCollection[indexElecLeg].isBaseline();
+
+    // bool tauBaselineSelection = tauSelection(indexTauLeg);
+    bool tauBaselineSelection = tauP4.Pt()> LeptonCuts::Baseline.Tau.SemiLep.pt
+                                 && std::abs(tauP4.Eta())<LeptonCuts::Baseline.Tau.SemiLep.eta;
+
+
 
     if (event==check_event_number){
 
@@ -114,8 +129,8 @@ bool HElTauhTreeFromNano::electronSelection(unsigned int index){
            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz)) <0.2
            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
            && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
-           && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
-           && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIDWP80"])>0.5           
+           && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<1.5 //0 or 1
+           && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor.at("electronIDWP80") )>0.5;        
 
 }
 
@@ -128,6 +143,7 @@ bool HElTauhTreeFromNano::tauSelection(unsigned int index){
             && httLeptonCollection[index].getProperty(PropertyEnum::idDecayMode)>0.5 
             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 
             && (int)std::abs(httLeptonCollection[index].getProperty(PropertyEnum::charge))==1;
+
 }
 
 
@@ -140,13 +156,13 @@ bool HElTauhTreeFromNano::diElectronVeto(){
       if(std::abs(httLeptonCollection[iLepton].getPDGid())!=11) continue;
       TLorentzVector elecP4 = httLeptonCollection[iLepton].getP4();
 
-        bool passLepton = elecP4.Pt()> LeptonCuts::Di.Electron.pt
-             && std::abs(elecP4.Eta())< LeptonCuts::Di.Electron.eta
-             && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
-             && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
-             && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["electronIsolation"] )<0.3
-             && true;
-
+        // bool passLepton = elecP4.Pt()> LeptonCuts::Di.Electron.pt
+        //      && std::abs(elecP4.Eta())< LeptonCuts::Di.Electron.eta
+        //      && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
+        //      && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
+        //      && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["electronIsolation"] )<0.3
+        //      && true;
+        bool passLepton = httLeptonCollection[iLepton].isDiLepton();
         if(passLepton) elecIndexes.push_back(iLepton);
     }
 

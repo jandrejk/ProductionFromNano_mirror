@@ -70,14 +70,11 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   float abs_t2_eta=std::abs(tau2P4.Eta());
   if ( tweak_nano && (event==1321942 || event==577858 || event==392156) ) abs_t2_eta-=0.0001;
 
-  bool tauBaselineSelection1 = tau1P4.Pt()>40 && std::abs(tau1P4.Eta())<2.1 &&
-                               httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idDecayMode)>0 &&
-                               std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::dz))<0.2 &&
-                               (int)std::abs(httLeptonCollection[indexLeg1].getProperty(PropertyEnum::charge))==1;
-  bool tauBaselineSelection2 = tau2P4.Pt()>40 && abs_t2_eta < 2.1 &&
-                               httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idDecayMode)>0 &&
-                               std::abs(httLeptonCollection[indexLeg2].getProperty(PropertyEnum::dz))<0.2 &&
-                               (int)std::abs(httLeptonCollection[indexLeg2].getProperty(PropertyEnum::charge))==1;
+  bool tauBaselineSelection1 = tau1P4.Pt()> LeptonCuts::Baseline.Tau.FullHad.lead_pt
+                               && std::abs(tau1P4.Eta())<LeptonCuts::Baseline.Tau.FullHad.eta;
+
+  bool tauBaselineSelection2 = tau2P4.Pt()> LeptonCuts::Baseline.Tau.FullHad.sublead_pt
+                               && std::abs(tau2P4.Eta())<LeptonCuts::Baseline.Tau.FullHad.eta;
 
   bool baselinePair = tau1P4.DeltaR(tau2P4) > 0.5;
   bool postSynchTau1 = (tau1ID & tauIDmask) == tauIDmask;

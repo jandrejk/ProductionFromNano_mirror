@@ -501,40 +501,40 @@ bool HTauTauTreeFromNanoBase::extraElectronVeto(unsigned int signalLeg1Index, un
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-bool HTauTauTreeFromNanoBase::muonSelection(unsigned int index)
-{
-    TLorentzVector aP4 = httLeptonCollection[index].getP4();
+// bool HTauTauTreeFromNanoBase::muonSelection(unsigned int index)
+// {
+//     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    //Should be fine with NanoAOD?
-    // int muonIdBit = 7;//Standard Medium ID
-    // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
+//     //Should be fine with NanoAOD?
+//     // int muonIdBit = 7;//Standard Medium ID
+//     // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
 
-    return  aP4.Pt()>LeptonCuts::Extra.Muon.pt
-            && std::abs(aP4.Eta())<LeptonCuts::Extra.Muon.eta
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-            && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0
-            && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["muonIsolation"] )<0.3;
+//     return  aP4.Pt()>LeptonCuts::Extra.Muon.pt
+//             && std::abs(aP4.Eta())<LeptonCuts::Extra.Muon.eta
+//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
+//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
+//             && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0
+//             && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["muonIsolation"] )<0.3;
     
 
-}
+// }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index)
-{
+// bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index)
+// {
 
-    TLorentzVector aP4 = httLeptonCollection[index].getP4();
+//     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-    return  aP4.Pt()>LeptonCuts::Extra.Electron.pt
-            && std::abs(aP4.Eta())<LeptonCuts::Extra.Electron.eta
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-            && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
-            && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<=1
-            && httLeptonCollection[index].getProperty( HTTEvent::usePropertyFor["electronIDWP90"] )>0.5
-            && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIsolation"] )<0.3;
+//     return  aP4.Pt()>LeptonCuts::Extra.Electron.pt
+//             && std::abs(aP4.Eta())<LeptonCuts::Extra.Electron.eta
+//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
+//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
+//             && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
+//             && httLeptonCollection[index].getProperty(PropertyEnum::lostHits) < 1.5
+//             && httLeptonCollection[index].getProperty( HTTEvent::usePropertyFor["electronIDWP90"] )>0.5
+//             && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIsolation"] )<0.3;
 
-}
+// }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin)
@@ -549,8 +549,8 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
         TLorentzVector leptonP4 = httLeptonCollection[iLepton].getP4();
         double dr = std::min(leg1P4.DeltaR(leptonP4),leg2P4.DeltaR(leptonP4));
         if(dr<dRmin) continue;
-        if(leptonPdg == 13 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && muonSelection(iLepton)) return true;
-        if(leptonPdg == 11 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && electronSelection(iLepton)) return true;
+        if(leptonPdg == 13 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && httLeptonCollection[iLepton].isExtraLepton() ) return true;
+        if(leptonPdg == 11 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && httLeptonCollection[iLepton].isExtraLepton() ) return true;
     }
     return false;
 }
@@ -857,6 +857,99 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+int HTauTauTreeFromNanoBase::muonSelectionExperimental(HTTParticle aLepton)
+{
+    int bitmask = 0;
+
+    if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
+       && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
+    {
+        float muonIso = aLepton.getProperty(HTTEvent::usePropertyFor.at("muonIsolation") ) < 0.3;
+        float muonID = aLepton.getProperty(PropertyEnum::mediumId) > 0.5;
+        float muonPt = aLepton.getP4().Pt();
+        float muonEta = std::abs( aLepton.getP4().Eta() );
+
+        // Passes Baseline cuts 
+        if(muonPt > LeptonCuts::Baseline.Muon.pt
+           && muonEta < LeptonCuts::Baseline.Muon.eta
+           && muonID
+        ) bitmask += LeptonCuts::Baseline.bitmask;
+
+        
+        if(muonIso)
+        {
+            // Passes ilepton cuts
+            if(muonPt > LeptonCuts::Di.Muon.pt
+               && muonEta < LeptonCuts::Di.Muon.eta
+            ) bitmask += LeptonCuts::Di.bitmask; 
+
+            if(muonID)
+            {
+                // Passes extra lepton cuts
+                if(muonPt > LeptonCuts::Extra.Muon.pt
+                   && muonEta < LeptonCuts::Extra.Muon.eta
+                ) bitmask += LeptonCuts::Extra.bitmask;
+
+                // Passes additional lepton cuts
+                if(muonPt > LeptonCuts::Additional.Muon.pt
+                   && muonEta < LeptonCuts::Additional.Muon.eta
+                ) bitmask += LeptonCuts::Additional.bitmask;
+            }
+        }
+    }
+    return bitmask;
+}
+
+int HTauTauTreeFromNanoBase::electronSelectionExperimental(HTTParticle aLepton)
+{
+    int bitmask = 0;
+
+    if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
+       && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
+    {
+
+        float elePt = aLepton.getP4().Pt();
+        float eleEta = std::abs( aLepton.getP4().Eta() );
+
+        bool eleIso =    aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIsolation") ) < 0.3;
+        bool eleIDWP80 = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP80")) > 0.5;
+        bool eleIDWP90 = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP90")) > 0.5;
+        bool convVeto  = aLepton.getProperty(PropertyEnum::convVeto)>0.5;
+        bool lostHits  = aLepton.getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
+
+        // Passes dilepton cuts
+        if(elePt >  LeptonCuts::Di.Electron.pt
+            && eleEta < LeptonCuts::Di.Electron.eta
+            && eleIso
+        ) bitmask += LeptonCuts::Di.bitmask;
+
+        if(convVeto && lostHits)
+        {
+            // Passes baseline cuts
+            if(elePt >  LeptonCuts::Baseline.Electron.pt
+                && eleEta < LeptonCuts::Baseline.Electron.eta
+                && eleIDWP80
+            ) bitmask += LeptonCuts::Baseline.bitmask;
+
+            // Passes additional lepton cuts
+            if(elePt >  LeptonCuts::Additional.Electron.pt
+                && eleEta < LeptonCuts::Additional.Electron.eta
+                && eleIDWP80
+                && eleIso
+            ) bitmask += LeptonCuts::Additional.bitmask;
+
+            // Passes extra lepton cuts
+            if(elePt >  LeptonCuts::Extra.Electron.pt
+                && eleEta < LeptonCuts::Extra.Electron.eta
+                && eleIDWP90
+                && eleIso
+            ) bitmask += LeptonCuts::Extra.bitmask;
+        }
+
+    }
+    return bitmask;
+}
+
 void HTauTauTreeFromNanoBase::fillLeptons()
 {
 
@@ -895,6 +988,8 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setPCA(pca);
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
         aLepton.setProperties(aProperties);
+        aLepton.setCutBitmask( muonSelectionExperimental(aLepton) );
+
         httLeptonCollection.push_back(aLepton);
     }//Muons
 
@@ -929,6 +1024,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setPCA(pca);
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
         aLepton.setProperties(aProperties);
+        aLepton.setCutBitmask( electronSelectionExperimental(aLepton) );
         httLeptonCollection.push_back(aLepton);
     }//Electrons
 
@@ -950,9 +1046,12 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
 
         aLepton.setP4(newp4);
-        aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle
+        aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle (mc_match needed)
 
         if( aLepton.getP4().Pt() < 20 ) continue;
+        if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
+        if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
+
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
 

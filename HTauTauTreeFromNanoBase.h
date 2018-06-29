@@ -71,8 +71,10 @@ public :
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
-  bool muonSelection(unsigned int index);
-  bool electronSelection(unsigned int index);
+  // bool muonSelection(unsigned int index);
+  int muonSelectionExperimental(HTTParticle aLepton);
+  int electronSelectionExperimental(HTTParticle aLepton);
+  // bool electronSelection(unsigned int index);
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
