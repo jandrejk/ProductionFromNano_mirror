@@ -472,7 +472,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
 
       if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
 
-      int lepPDGId = leptons[i].getPDGid();
+      int lepPDGId = std::abs( leptons[i].getPDGid() );
       if( lepPDGId == 13 )
       {
           nadditionalMu++;
@@ -504,6 +504,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
           addtau_m.push_back( leptons[i].getP4().M() );
           addtau_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
           addtau_byIsolationMVArun2v1DBnewDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
+          addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
           bitmask = leptons[i].getProperty(PropertyEnum::idAntiEle);
           bool antiEle = ( bitmask & 0x8) > 0;
@@ -516,7 +517,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
           addtau_decayMode.push_back( leptons[i].getProperty(PropertyEnum::decayMode) );
           addtau_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
           addtau_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
-          addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
+
 
           addtau_mt.push_back( leptons[i].getMT( pair->getMET() ) );
           addtau_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );

@@ -14,7 +14,7 @@
 
 //move these two to the configuration
 bool isSync=0;
-bool isMC=1;
+bool isMC=0;
 
 
 //const bool tweak_nano=true;

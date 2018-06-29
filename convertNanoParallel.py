@@ -95,8 +95,8 @@ if channel=='tt':
     from ROOT import HTauhTauhTreeFromNano as Ntuplizer
 
 
-JSONfile = ""
-# JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+# JSONfile = ""
+JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
 vlumis = getLumisToRun(JSONfile)
 
 HTTParticle.corrType = getattr(HTTAnalysis, systShift )
