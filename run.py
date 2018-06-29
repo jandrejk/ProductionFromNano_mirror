@@ -144,7 +144,7 @@ class SteerNanoProduction():
 
             if not self.debug:
                 os.chdir( "/".join([ self.basedir, "out", version ,sample ]) )
-                os.system('hadd -f -O '+'ntuple_{0}.root rundir_{0}_*/{1}_*root'.format(self.channel, "-".join([self.channel, self.systShift]) ) )
+                os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, self.systShift]), self.channel ) )
 
     def runOneFileLocal(self, rundir ,file):
 
@@ -207,9 +207,6 @@ class SteerNanoProduction():
 def mergeSample(version, outdir, single_sample=""):
 
     import ROOT as R
-    tchain = R.TChain("TauCheck")
-
-
 
     path = "/".join([ outdir, version])
 
