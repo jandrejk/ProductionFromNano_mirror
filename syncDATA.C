@@ -153,9 +153,9 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
   dZ_1=leg1.getProperty(PropertyEnum::dz);
   mt_1=pair->getMTLeg1();
 
-  if      (pdg1==15) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["tauIsolation"] );
-  else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["muonIsolation"] );
-  else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor["electronIsolation"] );;
+  if      (pdg1==15) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") );
+  else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
+  else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
   UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
   againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
@@ -173,11 +173,11 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
   byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
   byIsolationMVA3newDMwoLTraw_1=DEF;
-  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(HTTEvent::usePropertyFor["tauID"]);
+  byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
   byIsolationMVA3newDMwLTraw_1=DEF;
-  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor["tauID"]); //same as above!?
+  byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID")); //same as above!?
 
-  bitmask=leg1.getProperty(PropertyEnum::idMVAoldDM2017v2);
+  bitmask=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
   byVLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x1)>0;
   byLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x2)>0;;
   byMediumIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x4)>0;
@@ -463,6 +463,77 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
     m_coll =  m_vis / sqrt( x1 * x2 ) ;
   }
   else m_coll = -999;
+
+  //////////////////////////////////////////////////////////////////
+  unsigned int indexLeg1 = (unsigned int)pair->getIndexLeg1();
+  unsigned int indexLeg2 = (unsigned int)pair->getIndexLeg2();
+  for(unsigned int i = 0; i<leptons.size(); i++)
+  {
+
+      if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
+
+      int lepPDGId = leptons[i].getPDGid();
+      if( lepPDGId == 13 )
+      {
+          nadditionalMu++;
+          addmuon_pt.push_back( leptons[i].getP4().Pt() );
+          addmuon_eta.push_back( leptons[i].getP4().Eta() );
+          addmuon_phi.push_back( leptons[i].getP4().Phi() );
+          addmuon_m.push_back( leptons[i].getP4().M() );
+          addmuon_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
+          addmuon_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) );
+          addmuon_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
+
+      }else if( lepPDGId == 11 )
+      {
+          nadditionalEle++;
+          addele_pt.push_back( leptons[i].getP4().Pt() );
+          addele_eta.push_back( leptons[i].getP4().Eta() );
+          addele_phi.push_back( leptons[i].getP4().Phi() );
+          addele_m.push_back( leptons[i].getP4().M() );
+          addele_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
+          addele_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("electronIsolation") ) );
+          addele_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
+
+      }else if( lepPDGId == 15 && !(pdg1 == 15 && pdg2 == 15) )
+      {
+          nadditionalTau++;
+          addtau_pt.push_back( leptons[i].getP4().Pt() );
+          addtau_eta.push_back( leptons[i].getP4().Eta() );
+          addtau_phi.push_back( leptons[i].getP4().Phi() );
+          addtau_m.push_back( leptons[i].getP4().M() );
+          addtau_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
+          addtau_byIsolationMVArun2v1DBnewDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
+
+          bitmask = leptons[i].getProperty(PropertyEnum::idAntiEle);
+          bool antiEle = ( bitmask & 0x8) > 0;
+
+          bitmask = leptons[i].getProperty(PropertyEnum::idAntiMu);
+          bool antiMu  = (bitmask & 0x1 ) > 0;
+
+          addtau_passesTauLepVetos.push_back( antiEle & antiMu );
+
+          addtau_decayMode.push_back( leptons[i].getProperty(PropertyEnum::decayMode) );
+          addtau_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
+          addtau_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
+          addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
+
+          addtau_mt.push_back( leptons[i].getMT( pair->getMET() ) );
+          addtau_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
+
+
+          addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
+
+          bitmask=leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID"));
+          addtau_byVLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x1)>0 );
+          addtau_byLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x2)>0 );
+          addtau_byMediumIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x4)>0 );
+          addtau_byTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x8)>0 );
+          addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x10)>0 );
+
+
+      }
+  }
 
   //////////////////////////////////////////////////////////////////
   pfmt_1=mt_1;
@@ -889,6 +960,51 @@ void syncDATA::setDefault(){
   addmuon_q.clear();
   addmuon_iso.clear();
   addmuon_gen_match.clear();
+  //////////////////////////////////////////////////////////////////
+  nadditionalEle = 0;
+  addele_pt.clear();
+  addele_eta.clear();
+  addele_phi.clear();
+  addele_m.clear();
+  addele_q.clear();
+  addele_iso.clear();
+  addele_gen_match.clear();
+  //////////////////////////////////////////////////////////////////
+  nadditionalTau = 0;
+  addtau_pt.clear();
+  addtau_eta.clear();
+  addtau_phi.clear();
+  addtau_m.clear();
+  addtau_q.clear();
+  addtau_byIsolationMVArun2v1DBnewDMwLTraw.clear();
+  addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.clear();
+  addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits.clear();
+  addtau_byTightCombinedIsolationDeltaBetaCorr3Hits.clear();
+  addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits.clear();
+  addtau_byVLooseIsolationMVArun2v1DBoldDMwLT.clear();
+  addtau_byLooseIsolationMVArun2v1DBoldDMwLT.clear();
+  addtau_byMediumIsolationMVArun2v1DBoldDMwLT.clear();
+  addtau_byTightIsolationMVArun2v1DBoldDMwLT.clear();
+  addtau_byVTightIsolationMVArun2v1DBoldDMwLT.clear();
+  addtau_byVLooseIsolationMVArun2v1DBnewDMwLT.clear();
+  addtau_byLooseIsolationMVArun2v1DBnewDMwLT.clear();
+  addtau_byMediumIsolationMVArun2v1DBnewDMwLT.clear();
+  addtau_byTightIsolationMVArun2v1DBnewDMwLT.clear();
+  addtau_byVTightIsolationMVArun2v1DBnewDMwLT.clear();
+  addtau_NewMVAIDVLoose.clear();
+  addtau_NewMVAIDLoose.clear();
+  addtau_NewMVAIDMedium.clear();
+  addtau_NewMVAIDTight.clear();
+  addtau_NewMVAIDVTight.clear();
+  addtau_NewMVAIDVVTight.clear();
+  addtau_passesTauLepVetos.clear();
+  addtau_decayMode.clear();
+  addtau_d0.clear();
+  addtau_dZ.clear();
+  addtau_gen_match.clear();
+  addtau_mt.clear();
+  addtau_mvis.clear();
+  //////////////////////////////////////////////////////////////////
 
 }
 
