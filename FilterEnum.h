@@ -1,10 +1,12 @@
-enum class FilterEnum { Flag_HBHENoiseFilter = 0, 
-Flag_HBHENoiseIsoFilter = 1, 
-Flag_EcalDeadCellTriggerPrimitiveFilter = 2, 
-Flag_goodVertices = 3, 
-Flag_eeBadScFilter = 4, 
-Flag_globalTightHalo2016Filter = 5, 
-Flag_chargedHadronTrackResolutionFilter = 6, 
-Flag_muonBadTrackFilter = 7, 
-NONE = 8
+enum class FilterEnum { 
+Flag_goodVertices = 0,
+Flag_globalTightHalo2016Filter = 1,
+Flag_HBHENoiseFilter = 2,
+Flag_HBHENoiseIsoFilter = 3,
+Flag_EcalDeadCellTriggerPrimitiveFilter = 4,
+Flag_BadPFMuonFilter = 5,
+Flag_BadChargedCandidateFilter = 6,
+Flag_eeBadScFilter = 7,
+Flag_ecalBadCalibFilter = 8,
+NONE = 9
 };
