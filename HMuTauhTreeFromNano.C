@@ -57,7 +57,6 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     TLorentzVector muonP4 = httLeptonCollection[indexMuonLeg].getP4();
     TLorentzVector tauP4 = httLeptonCollection[indexTauLeg].getP4();
 
-    // bool muonBaselineSelection = muonSelection(indexMuonLeg);
     bool muonBaselineSelection = httLeptonCollection[indexMuonLeg].isBaseline();
 
     debugWayPoint("[pairSelection] Electron",
@@ -65,8 +64,7 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
                   {(int)muonBaselineSelection},
                   {"pt","eta","passCuts"});
 
-    bool tauBaselineSelection = tauP4.Pt()> LeptonCuts::Baseline.Tau.SemiLep.pt
-                                 && std::abs(tauP4.Eta())<LeptonCuts::Baseline.Tau.SemiLep.eta;
+    bool tauBaselineSelection = httLeptonCollection[indexTauLeg].isSemiLepTau();
 
     debugWayPoint("[pairSelection] Tau",
               {(double)tauP4.Pt(), (double)tauP4.Eta()},
@@ -96,25 +94,6 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
           //&& postSynchTau && loosePostSynchMuon //comment out for sync
           //&& !diMuonVeto() && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11) //comment out for sync
           && true;
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-bool HMuTauhTreeFromNano::muonSelection(unsigned int index){
-
-    TLorentzVector aP4 = httLeptonCollection[index].getP4();
-
-    return  aP4.Pt() > LeptonCuts::Baseline.Muon.pt
-            && std::abs(aP4.Eta()) <= LeptonCuts::Baseline.Muon.eta
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz)) < 0.2
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))< 0.045
-            && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0;
-}
-
-bool HMuTauhTreeFromNano::tauSelection(unsigned int index){
-
-    TLorentzVector aP4 = httLeptonCollection[index].getP4();
-
-    return  aP4.Pt()> 20 && std::abs(aP4.Eta())<2.3;
 }
 
 bool HMuTauhTreeFromNano::diMuonVeto(){

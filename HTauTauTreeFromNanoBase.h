@@ -60,7 +60,7 @@ public :
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
   void initJecUnc(std::string correctionFile);
-
+  void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
   void fillEvent();
   virtual bool buildPairs();
   virtual void fillPairs(unsigned int bestPairIndex);
@@ -71,10 +71,9 @@ public :
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
-  // bool muonSelection(unsigned int index);
-  int muonSelectionExperimental(HTTParticle aLepton);
-  int electronSelectionExperimental(HTTParticle aLepton);
-  // bool electronSelection(unsigned int index);
+  int muonSelection(HTTParticle aLepton);
+  int electronSelection(HTTParticle aLepton);
+  int tauSelection(HTTParticle aLepton);
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);

@@ -62,16 +62,12 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
                   {(int)electronBaselineSelection},
                   {"pt","eta","passCuts"});
 
-    bool tauBaselineSelection = tauP4.Pt()> LeptonCuts::Baseline.Tau.SemiLep.pt
-                                 && std::abs(tauP4.Eta())<LeptonCuts::Baseline.Tau.SemiLep.eta;
+    bool tauBaselineSelection = httLeptonCollection[indexTauLeg].isSemiLepTau();
 
     debugWayPoint("[pairSelection] Tau",
               {(double)tauP4.Pt(), (double)tauP4.Eta()},
               {(int)tauBaselineSelection},
               {"pt","eta","passCuts"});
-
-
-
 
     bool baselinePair = elecP4.DeltaR(tauP4) > 0.5;
     bool postSynchElectron = httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::pfRelIso03_all)<0.1;
@@ -97,36 +93,6 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
     //&& !diMuonVeto() && !thirdLeptonVeto(indexElecLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexElecLeg, indexTauLeg, 11) //comment out for sync
     && true;
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-bool HElTauhTreeFromNano::electronSelection(unsigned int index){
-
-  TLorentzVector aP4 = httLeptonCollection[index].getP4();
-
-
-    return aP4.Pt()>LeptonCuts::Baseline.Electron.pt 
-           && std::abs(aP4.Eta())<=LeptonCuts::Baseline.Electron.eta
-           && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz)) <0.2
-           && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-           && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
-           && httLeptonCollection[index].getProperty(PropertyEnum::lostHits)<1.5 //0 or 1
-           && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor.at("electronIDWP80") )>0.5;        
-
-}
-
-bool HElTauhTreeFromNano::tauSelection(unsigned int index){
-
-    TLorentzVector aP4 = httLeptonCollection[index].getP4();
-
-    return  aP4.Pt()> 20
-            && std::abs(aP4.Eta())<2.3 
-            && httLeptonCollection[index].getProperty(PropertyEnum::idDecayMode)>0.5 
-            && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2 
-            && (int)std::abs(httLeptonCollection[index].getProperty(PropertyEnum::charge))==1;
-
-}
-
-
 
 bool HElTauhTreeFromNano::diElectronVeto(){
 

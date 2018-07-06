@@ -23,6 +23,7 @@ namespace LeptonCuts
 			{
 				float pt  = 20.0;
 				float eta = 2.3;
+				int bitmask = 16;
 			}SemiLep;
 
 			struct FullHad
@@ -30,6 +31,9 @@ namespace LeptonCuts
 				float lead_pt  = 40.0;
 				float sublead_pt  = 40.0;
 				float eta = 2.1;
+				int lead_bitmask = 32;
+				int sub_bitmask  = 64;
+				
 			}FullHad;
 
 		}Tau;

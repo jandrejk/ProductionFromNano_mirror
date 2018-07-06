@@ -276,7 +276,10 @@ class HTTParticle
         bool isBaseline()         { return (cutBitmask & 0x1) > 0; }
         bool isDiLepton()         { return (cutBitmask & 0x2) > 0; }
         bool isExtraLepton()      { return (cutBitmask & 0x4) > 0; }
-        bool isAdditionalLepton() { return (cutBitmask & 0x4) > 0; }
+        bool isAdditionalLepton() { return (cutBitmask & 0x8) > 0; }
+        bool isSemiLepTau()       { return (cutBitmask & 0x10) > 0; }
+        bool isFullHadLeadTau()   { return (cutBitmask & 0x20) > 0; }
+        bool isFullHadSubTau()    { return (cutBitmask & 0x40) > 0; }
 
         Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 

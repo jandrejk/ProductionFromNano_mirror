@@ -13,8 +13,8 @@
 #include <algorithm>
 
 //move these two to the configuration
-bool isSync=0;
-bool isMC=0;
+bool isSync=1;
+bool isMC=1;
 
 
 //const bool tweak_nano=true;
@@ -160,12 +160,14 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     genLeptonPropertiesList.push_back("genpart_TauGenDetailedDecayMode");//needed?
 
     ////////////////////////////////////////////////////////////
-    HTTEvent::usePropertyFor["electronIsolation"] = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]    = PropertyEnum::mvaFall17Iso_WP80;
-    HTTEvent::usePropertyFor["electronIDWP90"]    = PropertyEnum::mvaFall17Iso_WP90;
-    HTTEvent::usePropertyFor["muonIsolation"]     = PropertyEnum::pfRelIso04_all;
-    HTTEvent::usePropertyFor["tauIsolation"]      = PropertyEnum::rawMVAoldDM2017v2;
-    HTTEvent::usePropertyFor["tauID"]             = PropertyEnum::idMVAoldDM2017v2;
+    HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80;
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90;
+    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
+    HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
+    HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
+    HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
+    HTTEvent::usePropertyFor["tauID"]              = PropertyEnum::idMVAoldDM2017v2;
 
     ///Trigger bits to check
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
@@ -298,14 +300,16 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
+
+    filterBits_.push_back("Flag_goodVertices");
+    filterBits_.push_back("Flag_globalTightHalo2016Filter");
     filterBits_.push_back("Flag_HBHENoiseFilter");
     filterBits_.push_back("Flag_HBHENoiseIsoFilter");
     filterBits_.push_back("Flag_EcalDeadCellTriggerPrimitiveFilter");
-    filterBits_.push_back("Flag_goodVertices");
+    filterBits_.push_back("Flag_BadPFMuonFilter");
+    filterBits_.push_back("Flag_BadChargedCandidateFilter");
     filterBits_.push_back("Flag_eeBadScFilter");
-    filterBits_.push_back("Flag_globalTightHalo2016Filter");
-    filterBits_.push_back("Flag_chargedHadronTrackResolutionFilter");//bad ChargedCand filter?
-    filterBits_.push_back("Flag_muonBadTrackFilter");//bad pfMuonFilter filter?
+    filterBits_.push_back("Flag_ecalBadCalibFilter");
 
     for ( unsigned ib=0; ib<filterBits_.size(); ib++ ) passMask_+= (1<<ib);
 
@@ -334,11 +338,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
+        if (check_event_number>0 && event!=check_event_number) continue;
         httEvent->clear();
         SyncDATA->setDefault();
 
-        if (check_event_number>0 && event!=check_event_number) continue;
-        if (event==check_event_number) cout << "1" << endl;
+
+        debugWayPoint("## FOUND EVENT ##", {},{(int)event});
 
         if(jentry%10000==0)
         {   
@@ -346,22 +351,21 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             std::cout<<"Processing "<<jentry<<"th event  "<< perc << "%" <<std::endl;
         }
 
-        //Check if event is contained in JSon
         if( !eventInJson() ) continue;
 
-        if (event==check_event_number) cout << "2" << endl;
+        debugWayPoint("[Loop] passes json");
 
         unsigned int bestPairIndex = Cut(ientry);
 
         fillEvent(); //could avoid doing this for each event if MC weight is filled differently!
-        if (event==check_event_number) cout << "3 " << bestPairIndex << endl;
+        debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
         hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
         if ( failsGlobalSelection() ) continue;
 
-        if (event==check_event_number) cout << "4 " << event << endl;
+        debugWayPoint("[Loop] passes global selection");
 
         bestPairIndex_ = bestPairIndex;
 
@@ -369,7 +373,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         {
             //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event with good pair"<<std::endl;//FIXME
 
-            if (event==check_event_number) cout << "5" << endl;
+            debugWayPoint("[Loop] good pair index found");
 
             ///Call pairSelection again to set selection bits for the selected pair.
             pairSelection(bestPairIndex);
@@ -437,32 +441,30 @@ Cut
 Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry)
 {
 
+    debugWayPoint("[Cut] ------ Begin -------");
+    debugWayPoint("[Cut] Fill leptons");
     fillLeptons();
-
-    if (event==check_event_number) cout << "C1 " << endl;
 
     if( !(httLeptonCollection.size()>1) ) return 9999;
 
-    if (event==check_event_number) cout << "C2 " << endl;
+    debugWayPoint("[Cut] Found at least two leptons");
 
     //build pairs
     if(!buildPairs()) return 9999;
 
-    if (event==check_event_number) cout << "C3 " << httPairs_.size() << endl;
-    //std::cout<<"pairs: "<<httPairs_.size()<<std::endl;
+    debugWayPoint("[Cut] Found pairs", {},{(int)httPairs_.size()});
+
     std::vector<unsigned int> pairIndices;
     for(unsigned int iPair=0;iPair<httPairs_.size();iPair++)
     {
-        if (event==check_event_number) cout << "C4 A " << iPair << endl;
+        debugWayPoint("[Cut] Check pair", {},{(int)iPair});
         if(pairSelection(iPair))
         {
             pairIndices.push_back(iPair);
-            if (event==check_event_number) cout << "C4 B " << iPair << endl;
+            debugWayPoint("[Cut] Pair passes pairSelection");
         }
     }
-    //std::cout<<"passed pairs: "<<pairIndices.size()<<std::endl;
-
-    if (event==check_event_number) cout << "C5 " << pairIndices.size() << endl;
+    debugWayPoint("[Cut] Pairs passing pairSelection", {}, {(int)pairIndices.size()  });
     
     return bestPair(pairIndices);
 }
@@ -499,44 +501,7 @@ bool HTauTauTreeFromNanoBase::extraElectronVeto(unsigned int signalLeg1Index, un
 {
     return thirdLeptonVeto(signalLeg1Index,signalLeg2Index,11,dRmin);
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// bool HTauTauTreeFromNanoBase::muonSelection(unsigned int index)
-// {
-//     TLorentzVector aP4 = httLeptonCollection[index].getP4();
 
-//     //Should be fine with NanoAOD?
-//     // int muonIdBit = 7;//Standard Medium ID
-//     // if(RunNumber<278808 && RunNumber>100000) muonIdBit = 6;//ICHEP Medium MuonID
-
-//     return  aP4.Pt()>LeptonCuts::Extra.Muon.pt
-//             && std::abs(aP4.Eta())<LeptonCuts::Extra.Muon.eta
-//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
-//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-//             && httLeptonCollection[index].getProperty(PropertyEnum::mediumId)>0
-//             && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["muonIsolation"] )<0.3;
-    
-
-// }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// bool HTauTauTreeFromNanoBase::electronSelection(unsigned int index)
-// {
-
-//     TLorentzVector aP4 = httLeptonCollection[index].getP4();
-
-//     return  aP4.Pt()>LeptonCuts::Extra.Electron.pt
-//             && std::abs(aP4.Eta())<LeptonCuts::Extra.Electron.eta
-//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dz))<0.2
-//             && std::abs(httLeptonCollection[index].getProperty(PropertyEnum::dxy))<0.045
-//             && httLeptonCollection[index].getProperty(PropertyEnum::convVeto)>0.5
-//             && httLeptonCollection[index].getProperty(PropertyEnum::lostHits) < 1.5
-//             && httLeptonCollection[index].getProperty( HTTEvent::usePropertyFor["electronIDWP90"] )>0.5
-//             && httLeptonCollection[index].getProperty(HTTEvent::usePropertyFor["electronIsolation"] )<0.3;
-
-// }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin)
 {
 
@@ -857,17 +822,18 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-int HTauTauTreeFromNanoBase::muonSelectionExperimental(HTTParticle aLepton)
+int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
 {
     int bitmask = 0;
+    float muonPt = aLepton.getP4().Pt();
+    float muonEta = std::abs( aLepton.getP4().Eta() );
+ 
 
     if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
        && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
     {
-        float muonIso = aLepton.getProperty(HTTEvent::usePropertyFor.at("muonIsolation") ) < 0.3;
-        float muonID = aLepton.getProperty(PropertyEnum::mediumId) > 0.5;
-        float muonPt = aLepton.getP4().Pt();
-        float muonEta = std::abs( aLepton.getP4().Eta() );
+        float muonIso = aLepton.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) < 0.3;
+        float muonID = aLepton.getProperty(  HTTEvent::usePropertyFor.at("muonID")) > 0.5;
 
         // Passes Baseline cuts 
         if(muonPt > LeptonCuts::Baseline.Muon.pt
@@ -896,31 +862,47 @@ int HTauTauTreeFromNanoBase::muonSelectionExperimental(HTTParticle aLepton)
                 ) bitmask += LeptonCuts::Additional.bitmask;
             }
         }
+
     }
+    debugWayPoint("[muonSelection]",
+        {(double)muonPt,
+         (double)muonEta,
+         (double)aLepton.getProperty(PropertyEnum::dz) ,
+         (double)aLepton.getProperty(PropertyEnum::dxy),         
+         (double)aLepton.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ),
+         (double)aLepton.getProperty( HTTEvent::usePropertyFor.at("muonID")),
+         (double)bitmask
+        },
+        {},
+        {"pt","eta","dz","dxy","iso","id","mask"}
+    ); 
     return bitmask;
 }
 
-int HTauTauTreeFromNanoBase::electronSelectionExperimental(HTTParticle aLepton)
+int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
 {
     int bitmask = 0;
+    float elePt = aLepton.getP4().Pt();
+    float eleEta = std::abs( aLepton.getP4().Eta() );
+
 
     if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
        && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
     {
 
-        float elePt = aLepton.getP4().Pt();
-        float eleEta = std::abs( aLepton.getP4().Eta() );
-
         bool eleIso =    aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIsolation") ) < 0.3;
         bool eleIDWP80 = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP80")) > 0.5;
         bool eleIDWP90 = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP90")) > 0.5;
+        bool eleIDCB   = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDCutBased") ) > 0;
         bool convVeto  = aLepton.getProperty(PropertyEnum::convVeto)>0.5;
         bool lostHits  = aLepton.getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
+
 
         // Passes dilepton cuts
         if(elePt >  LeptonCuts::Di.Electron.pt
             && eleEta < LeptonCuts::Di.Electron.eta
             && eleIso
+            && eleIDCB
         ) bitmask += LeptonCuts::Di.bitmask;
 
         if(convVeto && lostHits)
@@ -947,12 +929,63 @@ int HTauTauTreeFromNanoBase::electronSelectionExperimental(HTTParticle aLepton)
         }
 
     }
+
+    debugWayPoint("[electronSelection]",
+        {(double)elePt,
+         (double)eleEta,
+         (double)aLepton.getProperty(PropertyEnum::dz) ,
+         (double)aLepton.getProperty(PropertyEnum::dxy),
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIsolation") ),
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP80")),
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP90")),
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDCutBased")),
+         (double)aLepton.getProperty(PropertyEnum::convVeto),
+         (double)aLepton.getProperty(PropertyEnum::lostHits),
+         (double)bitmask
+        },
+        {},
+        {"pt","eta","dz","dxy","iso","id80","id90","idcb","coVe","loHi","mask"}
+    );
+
+    return bitmask;
+}
+
+int HTauTauTreeFromNanoBase::tauSelection(HTTParticle aLepton)
+{
+    int bitmask = 0;
+
+    float tauPt = aLepton.getP4().Pt();
+    float tauEta = std::abs( aLepton.getP4().Eta() );
+
+    if(tauPt > LeptonCuts::Baseline.Tau.SemiLep.pt
+       && tauEta < LeptonCuts::Baseline.Tau.SemiLep.eta
+    ) bitmask += LeptonCuts::Baseline.Tau.SemiLep.bitmask;
+
+    if(tauEta < LeptonCuts::Baseline.Tau.FullHad.eta)
+    {
+        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.lead_pt) bitmask += LeptonCuts::Baseline.Tau.FullHad.lead_bitmask;
+        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.sublead_pt) bitmask += LeptonCuts::Baseline.Tau.FullHad.sub_bitmask;
+    }
+
+    debugWayPoint("[tauSelection]",
+        {(double)tauPt,
+         (double)tauEta,
+         (double)aLepton.getProperty(PropertyEnum::dz) ,
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("tauIsolation") ),
+         (double)aLepton.getProperty(HTTEvent::usePropertyFor.at("tauID") ),
+         (double)bitmask
+        },
+        {},
+        {"pt","eta","dz","iso","id","mask"}
+    );
+
     return bitmask;
 }
 
 void HTauTauTreeFromNanoBase::fillLeptons()
 {
 
+    debugWayPoint("[fillLeptons] ------ Begin -------");
     httLeptonCollection.clear();
 
     // Only interested in events with hadronic taus
@@ -961,7 +994,6 @@ void HTauTauTreeFromNanoBase::fillLeptons()
     //Muons //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iMu=0; iMu<nMuon; ++iMu)
     {
-        if (event==check_event_number) std::cout << "M1 " << Muon_pt[iMu] << std::endl;
         float loosestMuonPtCut = min( { LeptonCuts::Baseline.Muon.pt,
                                         LeptonCuts::Additional.Muon.pt,
                                         LeptonCuts::Extra.Muon.pt, 
@@ -969,15 +1001,12 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                       } );
 
         if( !(Muon_pt[iMu] > loosestMuonPtCut ) ) continue;
-        if (event==check_event_number) std::cout << "M2 " << Muon_pt[iMu] << std::endl;
+        debugWayPoint("[fillLeptons] Muon passes loosest pt cut");
         HTTParticle aLepton;
         TLorentzVector p4;
 
-        float eps=0;
-        if (tweak_nano && event==1171228) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
-
         p4.SetPtEtaPhiM(Muon_pt[iMu],
-                        Muon_eta[iMu]-eps,
+                        Muon_eta[iMu],
                         Muon_phi[iMu],
                         0.10566); //muon mass
         
@@ -988,7 +1017,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setPCA(pca);
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
         aLepton.setProperties(aProperties);
-        aLepton.setCutBitmask( muonSelectionExperimental(aLepton) );
+        aLepton.setCutBitmask( muonSelection(aLepton) );
 
         httLeptonCollection.push_back(aLepton);
     }//Muons
@@ -1006,14 +1035,12 @@ void HTauTauTreeFromNanoBase::fillLeptons()
 
         if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
         if( !(e_pt>loosestElectronPtCut) ) continue;
+        debugWayPoint("[fillLeptons] Electron passes loosest pt cut");
         HTTParticle aLepton;
         TLorentzVector p4;
 
-        float eps=0;
-        if (tweak_nano && (event==392156 || event==1352574) ) eps=0.0001; //this is needed to make up for NanoAOD precision difference to MiniAOD...        
-
         p4.SetPtEtaPhiM(e_pt,
-                        Electron_eta[iEl]-eps,
+                        Electron_eta[iEl],
                         Electron_phi[iEl],
                         0.51100e-3); //electron mass
 
@@ -1024,19 +1051,18 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         aLepton.setPCA(pca);
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
         aLepton.setProperties(aProperties);
-        aLepton.setCutBitmask( electronSelectionExperimental(aLepton) );
+        aLepton.setCutBitmask( electronSelection(aLepton) );
         httLeptonCollection.push_back(aLepton);
     }//Electrons
 
     //Taus //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iTau=0; iTau<nTau; ++iTau)
     {
-        if (event==check_event_number) std::cout << "T1 " << Tau_pt[iTau] << std::endl;
         if( std::abs(Tau_eta[iTau])>2.3 ) continue;
         if( Tau_idDecayMode[iTau]<0.5 ) continue; //oldDMs
-        HTTParticle aLepton;
+        debugWayPoint("[fillLeptons] Tau passes eta cut and DMId");
 
-        
+        HTTParticle aLepton;
 
         TLorentzVector newp4;
         newp4.SetPtEtaPhiM(Tau_pt[iTau],
@@ -1047,10 +1073,12 @@ void HTauTauTreeFromNanoBase::fillLeptons()
 
         aLepton.setP4(newp4);
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle (mc_match needed)
+        aLepton.setCutBitmask( tauSelection(aLepton) );
 
         if( aLepton.getP4().Pt() < 20 ) continue;
         if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
         if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
+        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES");
 
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
@@ -1318,9 +1346,9 @@ bool HTauTauTreeFromNanoBase::buildPairs()
         for(unsigned int iL2=iL1+1; iL2<httLeptonCollection.size(); ++iL2)
         {
 
-            if (event==check_event_number) cout << "bP1 " << event << endl;
+            debugWayPoint("[buildPairs] Try pair",{},{(int)iL1,(int)iL2});
             if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
-            if (event==check_event_number) cout << "bP2 " << event << endl;
+            debugWayPoint("[buildPairs] No overlap");
 
             TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
             HTTPair aHTTpair;
@@ -2323,5 +2351,28 @@ bool HTauTauTreeFromNanoBase::eventInJson()
     }
     return false;
 }
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+void HTauTauTreeFromNanoBase::debugWayPoint(string description, vector<double> dbls, vector<int> ints, vector<string> descr)
+{
+    if (event==check_event_number)
+    {   int ind = 0;
+        bool what = dbls.size() + ints.size() == descr.size();
+
+        cout << description << ": ";
+        for( auto &d : dbls )
+        {   
+            cout << descr[ind] << "(" << d << ") ";
+            if(what) ind++;
+        }
+        for( auto &i : ints )
+        {
+            cout << descr[ind] << "(" << i << ") ";
+            if(what) ind++;
+        }
+        cout << endl;
+    }
+}
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
