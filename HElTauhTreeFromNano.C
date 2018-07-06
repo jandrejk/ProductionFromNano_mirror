@@ -16,38 +16,29 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
   ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorking2016#Baseline_e_tau_h
   ///Indices for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
   ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
-
-  //##################################################################
-  if (event==check_event_number)  cout << "pS1 " << httPairs_.empty() << endl;
-  //##################################################################
-
+  debugWayPoint("[pairSelection] ------ Begin -------");
   if(httPairs_.empty()) return false;
 
-  //##################################################################
-  if (event==check_event_number)
-  {
-      cout << "pS2 ";
-      cout << std::abs(httPairs_[iPair].getLeg1().getPDGid()) << "  ";
-      cout << std::abs(httPairs_[iPair].getLeg2().getPDGid()) << endl;
-  }
   //##################################################################
   
   int pdgIdLeg1 = std::abs(httPairs_[iPair].getLeg1().getPDGid());
   int pdgIdLeg2 = std::abs(httPairs_[iPair].getLeg2().getPDGid());
+
+  debugWayPoint("[pairSelection] pdgid of pair",{},{(int)pdgIdLeg1,(int)pdgIdLeg2});
 
   unsigned int indexElecLeg = -1;
   if(pdgIdLeg1==11)      indexElecLeg = httPairs_[iPair].getIndexLeg1();
   else if(pdgIdLeg2==11) indexElecLeg = httPairs_[iPair].getIndexLeg2();
   else return 0;
 
-  if (event==check_event_number) cout << "pS3 " << endl;
+  debugWayPoint("[pairSelection] Found Electron",{},{(int)indexElecLeg});
 
   unsigned int indexTauLeg = -1;
   if(pdgIdLeg1==15)      indexTauLeg = httPairs_[iPair].getIndexLeg1();
   else if(pdgIdLeg2==15) indexTauLeg = httPairs_[iPair].getIndexLeg2();
   else return 0;
 
-  if (event==check_event_number) cout << "pS4 " << endl;
+  debugWayPoint("[pairSelection] Found Tau",{},{(int)indexTauLeg});
 
   int tauIDmask = 0;
   int tauID = (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu);
@@ -63,31 +54,23 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
   TLorentzVector elecP4 = httLeptonCollection[indexElecLeg].getP4();
   TLorentzVector tauP4 =  httLeptonCollection[indexTauLeg].getP4();
 
-  //  if (event==check_event_number) cout << "pS4 " << endl;
 
-    // bool electronBaselineSelection =  electronSelection(indexElecLeg);
     bool electronBaselineSelection = httLeptonCollection[indexElecLeg].isBaseline();
 
-    // bool tauBaselineSelection = tauSelection(indexTauLeg);
+    debugWayPoint("[pairSelection] Electron",
+                  {(double)elecP4.Pt(), (double)elecP4.Eta()},
+                  {(int)electronBaselineSelection},
+                  {"pt","eta","passCuts"});
+
     bool tauBaselineSelection = tauP4.Pt()> LeptonCuts::Baseline.Tau.SemiLep.pt
                                  && std::abs(tauP4.Eta())<LeptonCuts::Baseline.Tau.SemiLep.eta;
 
+    debugWayPoint("[pairSelection] Tau",
+              {(double)tauP4.Pt(), (double)tauP4.Eta()},
+              {(int)tauBaselineSelection},
+              {"pt","eta","passCuts"});
 
 
-    if (event==check_event_number){
-
-        cout << "pS4a " << elecP4.Pt() << " ";
-        cout << elecP4.Eta() << " ";
-        cout << std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dz)) << " ";
-        cout << std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::dxy))<< " ";
-        cout << (int)std::abs(httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::mvaFall17Iso_WP80))<< endl;
-
-        cout << "pS4b " << tauP4.Pt() << " ";
-        cout << tauP4.Eta() << " ";
-        cout << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " ";
-        cout << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " ";
-        cout << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
-    }
 
 
     bool baselinePair = elecP4.DeltaR(tauP4) > 0.5;
@@ -95,10 +78,7 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
     bool loosePostSynchElectron = httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::pfRelIso03_all)<0.3;
     bool postSynchTau = (tauID & tauIDmask) == tauIDmask;
 
-      ///SUSY synch selection
-      //electronBaselineSelection &= elecP4.Pt()>23 && std::abs(elecP4.Eta())<2.1;
-      //tauBaselineSelection &= tauP4.Pt()>30 && std::abs(tauP4.Eta())<2.3;
-      ///////////////////////
+    debugWayPoint("[pairSelection] Overlap",{(double)elecP4.DeltaR(tauP4)}, {(int)baselinePair},{"DR","noOL"});
 
     httEvent->clearSelectionWord();
     httEvent->setSelectionBit(SelectionBitsEnum::electronBaselineSelection,electronBaselineSelection);
@@ -110,7 +90,7 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
     httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 13));
     httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 11));
 
-    if (event==check_event_number) cout << "pS5 " << electronBaselineSelection << " " << tauBaselineSelection << " " << baselinePair << endl;
+
 
   return electronBaselineSelection && tauBaselineSelection && baselinePair
     //&& postSynchTau && loosePostSynchMuon //comment out for sync
@@ -156,25 +136,31 @@ bool HElTauhTreeFromNano::diElectronVeto(){
       if(std::abs(httLeptonCollection[iLepton].getPDGid())!=11) continue;
       TLorentzVector elecP4 = httLeptonCollection[iLepton].getP4();
 
-        // bool passLepton = elecP4.Pt()> LeptonCuts::Di.Electron.pt
-        //      && std::abs(elecP4.Eta())< LeptonCuts::Di.Electron.eta
-        //      && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
-        //      && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
-        //      && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["electronIsolation"] )<0.3
-        //      && true;
         bool passLepton = httLeptonCollection[iLepton].isDiLepton();
+        debugWayPoint("[diElectronVeto] dilep cut",{},
+                      {(int)iLepton,(int)passLepton},
+                      {"iLep","pass"});
+
         if(passLepton) elecIndexes.push_back(iLepton);
     }
 
     if(elecIndexes.size()<2) return false;
     else{
-        for(unsigned int iElec1=0;iElec1<elecIndexes.size()-1;++iElec1){
-            for(unsigned int iElec2=iElec1+1;iElec2<elecIndexes.size();++iElec2){
+        for(auto &iE1 : elecIndexes)
+        {
+          for(auto &iE2 : elecIndexes)
+          {
+                if(iE1 == iE2) continue;
 
-                TLorentzVector elec1P4 = httLeptonCollection[iElec1].getP4();
-                TLorentzVector elec2P4 = httLeptonCollection[iElec2].getP4();
-                int elec1Charge = (int)httLeptonCollection[iElec1].getProperty(PropertyEnum::charge);
-                int elec2Charge = (int)httLeptonCollection[iElec2].getProperty(PropertyEnum::charge);
+                TLorentzVector elec1P4 = httLeptonCollection[iE1].getP4();
+                TLorentzVector elec2P4 = httLeptonCollection[iE2].getP4();
+                int elec1Charge = (int)httLeptonCollection[iE1].getProperty(PropertyEnum::charge);
+                int elec2Charge = (int)httLeptonCollection[iE2].getProperty(PropertyEnum::charge);
+
+                debugWayPoint("[diElectronVeto] find dilep",
+                              {(double)elec1P4.DeltaR(elec2P4) },
+                              {(int)elec1Charge,(int)elec2Charge,(int)iE1,(int)iE2},
+                              {"DR","q1","q2","iE1","iE2"});
 
                 if(elec2Charge*elec1Charge==-1 && elec1P4.DeltaR(elec2P4)>0.15) return true;
             }

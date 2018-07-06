@@ -18,20 +18,11 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     ///Indices for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
     ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
 
-    //##################################################################
-    if (event==check_event_number)  cout << "pS1 " << httPairs_.empty() << endl;
-    //##################################################################
+    debugWayPoint("[pairSelection] ------ Begin -------");
 
     if(httPairs_.empty()) return false;
 
-    //##################################################################
-    if (event==check_event_number)
-    {
-        cout << "pS2 ";
-        cout << std::abs(httPairs_[iPair].getLeg1().getPDGid()) << "  ";
-        cout << std::abs(httPairs_[iPair].getLeg2().getPDGid()) << endl;
-    }
-    //##################################################################
+    debugWayPoint("[pairSelection] pdgid of pair",{},{(int)pdgIdLeg1,(int)pdgIdLeg2});
 
     int pdgIdLeg1 = std::abs(httPairs_[iPair].getLeg1().getPDGid());
     int pdgIdLeg2 = std::abs(httPairs_[iPair].getLeg2().getPDGid());
@@ -42,18 +33,14 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     else if(pdgIdLeg2==13) indexMuonLeg = httPairs_[iPair].getIndexLeg2();
     else return 0;
 
-    ///////////////////////////////////////////////////////////////////
-    if (event==check_event_number) cout << "pS3 " << endl;
-    ///////////////////////////////////////////////////////////////////
+    debugWayPoint("[pairSelection] Found Muon",{},{(int)indexMuonLeg});
 
     unsigned int indexTauLeg = -1;
     if(pdgIdLeg1==15)      indexTauLeg = httPairs_[iPair].getIndexLeg1();
     else if(pdgIdLeg2==15) indexTauLeg = httPairs_[iPair].getIndexLeg2();
     else return 0;
 
-    //##################################################################
-    if (event==check_event_number) cout << "pS4 " << endl;
-    //##################################################################
+    debugWayPoint("[pairSelection] Found Tau",{},{(int)indexTauLeg});
 
     int tauIDmask = 0;
     int tauID = (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu);
@@ -73,55 +60,26 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     // bool muonBaselineSelection = muonSelection(indexMuonLeg);
     bool muonBaselineSelection = httLeptonCollection[indexMuonLeg].isBaseline();
 
-    //##################################################################
-    if (event==check_event_number)
-    {
-        cout << "pS4a " << muonP4.Pt() << " ";
-        cout << muonP4.Eta() << " ";
-        cout << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dz)) << " ";
-        cout << std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::dxy))<< " ";
-        cout << (int)std::abs(httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::mediumId))<<  endl;
-    }
-    //##################################################################
+    debugWayPoint("[pairSelection] Electron",
+                  {(double)muonP4.Pt(), (double)muonP4.Eta()},
+                  {(int)muonBaselineSelection},
+                  {"pt","eta","passCuts"});
 
     bool tauBaselineSelection = tauP4.Pt()> LeptonCuts::Baseline.Tau.SemiLep.pt
                                  && std::abs(tauP4.Eta())<LeptonCuts::Baseline.Tau.SemiLep.eta;
 
-    //##################################################################
-    if (event==check_event_number)
-    {
-        cout << "pS4b " << tauP4.Pt() << " ";
-        cout << tauP4.Eta() << " ";
-        cout << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::rawMVAoldDM2017v2) << " ";
-        cout << httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idDecayMode) << " ";
-        cout << std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::dz)) << " ";
-        cout << (int)std::abs(httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::charge))<<  endl;
-    }
-    //##################################################################
+    debugWayPoint("[pairSelection] Tau",
+              {(double)tauP4.Pt(), (double)tauP4.Eta()},
+              {(int)tauBaselineSelection},
+              {"pt","eta","passCuts"});
 
-    /*
-    bool triggerSelection_singlemu = muonP4.Pt()>23 &&
-      ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu22) ||
-        httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu22_eta2p1) ||
-        httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22) ||
-        httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22_eta2p1) );
-
-    bool triggerSelection_mutau = 
-      ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) && httLeptonCollection[indexTauLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) ) ||
-      ( httLeptonCollection[indexMuonLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && httLeptonCollection[indexTauLeg].hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1) && muonP4.Pt()<23 );
-
-    bool triggerSelection = triggerSelection_singlemu || triggerSelection_mutau;
-    */
 
     bool baselinePair = muonP4.DeltaR(tauP4) > 0.5;
     bool postSynchMuon = httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::pfRelIso04_all)<0.15;
     bool loosePostSynchMuon = httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::pfRelIso04_all)<0.3;
     bool postSynchTau = (tauID & tauIDmask) == tauIDmask;
 
-    ///SUSY synch selection
-    //muonBaselineSelection &= muonP4.Pt()>23 && std::abs(muonP4.Eta())<2.1;
-    //tauBaselineSelection &= tauP4.Pt()>30 && std::abs(tauP4.Eta())<2.3;
-    ///////////////////////
+    debugWayPoint("[pairSelection] Overlap",{(double)muonP4.DeltaR(tauP4)}, {(int)baselinePair},{"DR","noOL"});
 
     httEvent->clearSelectionWord();
     httEvent->setSelectionBit(SelectionBitsEnum::muonBaselineSelection,muonBaselineSelection);
@@ -133,9 +91,6 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13));
     httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11));
 
-    //##################################################################
-    if (event==check_event_number) cout << "pS5 " << muonBaselineSelection << " " << tauBaselineSelection << " " << baselinePair << endl;
-    //##################################################################
 
     return muonBaselineSelection && tauBaselineSelection && baselinePair
           //&& postSynchTau && loosePostSynchMuon //comment out for sync
@@ -186,10 +141,11 @@ bool HMuTauhTreeFromNano::diMuonVeto(){
 
     if(muonIndexes.size()<2) return false;
     else{
-        for(unsigned int iMuon1=0;iMuon1<muonIndexes.size()-1;iMuon1++)
+        for(auto &iMuon1 : muonIndexes)
         {
-            for(unsigned int iMuon2=iMuon1+1;iMuon2<muonIndexes.size();iMuon2++)
+            for(auto &iMuon2 : muonIndexes)
             {
+                if(iMuon1 == iMuon2) continue;
 
                 TLorentzVector muon1P4 = httLeptonCollection[iMuon1].getP4();
                 TLorentzVector muon2P4 = httLeptonCollection[iMuon2].getP4();
