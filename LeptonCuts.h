@@ -13,7 +13,7 @@ namespace LeptonCuts
 
 		struct Muon
 		{
-			float pt  = 20.0;
+			float pt  = 21.0;
 			float eta = 2.1;
 		}Muon;
 
