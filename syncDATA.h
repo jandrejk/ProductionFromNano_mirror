@@ -87,20 +87,22 @@ class syncDATA
   int trg_singletau; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
   int trg_doubletau; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-  int passBadMuonFilter;
-  int passBadChargedHadronFilter;
+  int flagMETFilter;
+  int Flag_goodVertices;
+  int Flag_globalTightHalo2016Filter;
   int Flag_HBHENoiseFilter;
   int Flag_HBHENoiseIsoFilter;
   int Flag_EcalDeadCellTriggerPrimitiveFilter;
-  int Flag_goodVertices;
+  int Flag_BadPFMuonFilter;
+  int Flag_BadChargedCandidateFilter;
   int Flag_eeBadScFilter;
-  int Flag_globalTightHalo2016Filter;
+  int Flag_ecalBadCalibFilter;
   int failBadGlobalMuonTagger;
   int failCloneGlobalMuonTagger;
   int Flag_duplicateMuons;
   int Flag_badMuons;
   int Flag_noBadMuons;
-  int passesMetMuonFilter;
+
   //////////////////////////////////////////////////////////////////  
   float pt_1;
   float phi_1;

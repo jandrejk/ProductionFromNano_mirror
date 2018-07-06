@@ -120,25 +120,33 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
   }
 
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-
-  passBadMuonFilter=ev->getFilter(FilterEnum::Flag_muonBadTrackFilter); //?
-  passBadChargedHadronFilter=ev->getFilter(FilterEnum::Flag_chargedHadronTrackResolutionFilter); //?
-
-  Flag_HBHENoiseFilter=ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
-  Flag_HBHENoiseIsoFilter=ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
-  Flag_EcalDeadCellTriggerPrimitiveFilter=ev->getFilter(FilterEnum::Flag_EcalDeadCellTriggerPrimitiveFilter);
-  Flag_goodVertices=ev->getFilter(FilterEnum::Flag_goodVertices);
-  Flag_eeBadScFilter=ev->getFilter(FilterEnum::Flag_eeBadScFilter);
-  Flag_globalTightHalo2016Filter=ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
-
-  Flag_badMuons=ev->getFilter(FilterEnum::Flag_muonBadTrackFilter); //??
-
   failBadGlobalMuonTagger=DEF;
   failCloneGlobalMuonTagger=DEF;
   Flag_duplicateMuons=DEF;
   Flag_noBadMuons=DEF;
 
-  passesMetMuonFilter=passBadMuonFilter && passBadChargedHadronFilter && Flag_HBHENoiseFilter && Flag_HBHENoiseIsoFilter && Flag_EcalDeadCellTriggerPrimitiveFilter && Flag_goodVertices && Flag_eeBadScFilter && Flag_globalTightHalo2016Filter;
+
+  Flag_goodVertices = ev->getFilter(FilterEnum::Flag_goodVertices);
+  Flag_globalTightHalo2016Filter = ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
+  Flag_HBHENoiseFilter = ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
+  Flag_HBHENoiseIsoFilter = ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
+  Flag_EcalDeadCellTriggerPrimitiveFilter = ev->getFilter(FilterEnum::Flag_EcalDeadCellTriggerPrimitiveFilter);
+  Flag_BadPFMuonFilter = ev->getFilter(FilterEnum::Flag_BadPFMuonFilter);
+  Flag_BadChargedCandidateFilter = ev->getFilter(FilterEnum::Flag_BadChargedCandidateFilter);
+  Flag_eeBadScFilter = ev->getFilter(FilterEnum::Flag_eeBadScFilter);
+  Flag_ecalBadCalibFilter = ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
+
+  flagMETFilter = Flag_goodVertices 
+                  && Flag_globalTightHalo2016Filter 
+                  && Flag_HBHENoiseFilter
+                  && Flag_HBHENoiseIsoFilter
+                  && Flag_EcalDeadCellTriggerPrimitiveFilter
+                  && Flag_BadPFMuonFilter
+                  && Flag_BadChargedCandidateFilter
+                  && Flag_eeBadScFilter
+                  && Flag_ecalBadCalibFilter;
+
+
 
   //////////////////////////////////////////////////////////////////  
   HTTParticle leg1=pair->getLeg1();
@@ -718,8 +726,6 @@ void syncDATA::setDefault(){
   trg_singletau=DEF; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
   trg_doubletau=DEF; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
   trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-  passBadMuonFilter=DEF;
-  passBadChargedHadronFilter=DEF;
   Flag_HBHENoiseFilter=DEF;
   Flag_HBHENoiseIsoFilter=DEF;
   Flag_EcalDeadCellTriggerPrimitiveFilter=DEF;
@@ -728,10 +734,7 @@ void syncDATA::setDefault(){
   Flag_globalTightHalo2016Filter=DEF;
   failBadGlobalMuonTagger=DEF;
   failCloneGlobalMuonTagger=DEF;
-  Flag_duplicateMuons=DEF;
-  Flag_badMuons=DEF;
-  Flag_noBadMuons=DEF;
-  passesMetMuonFilter=DEF;
+
   //////////////////////////////////////////////////////////////////  
   pt_1=DEF;
   phi_1=DEF;
@@ -1070,14 +1073,16 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
   t->Branch("rho", &rho);
   t->Branch("NUP", &NUP);
   
-  t->Branch("passBadMuonFilter", &passBadMuonFilter);
-  t->Branch("passBadChargedHadronFilter", &passBadChargedHadronFilter);
-  t->Branch("flagHBHENoiseFilter", &Flag_HBHENoiseFilter);
-  t->Branch("flagHBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
-  t->Branch("flagEcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
-  t->Branch("flagGoodVertices", &Flag_goodVertices);
-  t->Branch("flagEeBadScFilter", &Flag_eeBadScFilter);
-  t->Branch("flagGlobalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
+  t->Branch("flagMETFilter", &flagMETFilter);
+  t->Branch("Flag_goodVertices", &Flag_goodVertices);
+  t->Branch("Flag_globalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
+  t->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
+  t->Branch("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
+  t->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
+  t->Branch("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter);
+  t->Branch("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter);
+  t->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter);
+  t->Branch("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter);
 
   if(isMC){
     t->Branch("Flag_badMuons", &failBadGlobalMuonTagger);
@@ -1087,8 +1092,6 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("Flag_badMuons", &Flag_badMuons);
     t->Branch("Flag_duplicateMuons", &Flag_duplicateMuons);
   }
-
-  t->Branch("passesFilter", &passesMetMuonFilter);
 
   t->Branch("matchedJetPt03_1", &matchedJetPt03_1);
   t->Branch("matchedJetPt05_1", &matchedJetPt05_1);
