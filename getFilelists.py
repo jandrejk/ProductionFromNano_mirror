@@ -10,8 +10,11 @@ def main():
 
     print "Searching on DPM"
     samples = buildPathToSamples()
-    print "Found {0} samples".format(len(samples))
-    for i,sample in enumerate(samples):
+
+    for sample in samples:
+
+        if not os.path.exists( "/".join( ["samples"] + sample.split("/")[:-1] ) ):
+            os.makedirs( "/".join( ["samples"] + sample.split("/")[:-1] ) )
 
         if not os.path.exists( "samples/{0}.txt".format(sample) ):
             with open( "samples/{0}.txt".format(sample), "w" ) as FSO:
@@ -25,7 +28,7 @@ def buildPathToSamples():
     sampleFormat = {"mc":"NANOAODSIM","data":"NANOAOD"}
     dpm_path = "/dpm/oeaw.ac.at/home/cms/store/"
 
-    samples = {}
+    sample_collection= {}
 
     for frmt in config:
         f = config[frmt]
@@ -33,16 +36,18 @@ def buildPathToSamples():
         for run in f["run"]:
             r = f["run"][run]
 
-
             for sample in r["samples"]:
-                path = "/".join([ dpm_path, frmt, run, sample, sampleFormat[frmt] ])
-                out = lsDPM(path)
-                for tag in out:
+                parts = r["samples"][sample]
 
-                    if r["creation"] in tag:
-                        samples["_".join([sample, run, r["creation"] ]) ] = "/".join([ path, tag ])
+                for part in parts:
+                    path = "/".join([ dpm_path, frmt, run, part, sampleFormat[frmt] ])
+                    out = lsDPM(path)
+                    for tag in out:
 
-    return samples
+                        if r["creation"] in tag:
+                            sample_collection[ "/".join([frmt, sample, "_".join([part, run, r["creation"] ]) ])  ] = "/".join([ path, tag ])
+
+    return sample_collection
 
 def getFilelist(sample):
 
