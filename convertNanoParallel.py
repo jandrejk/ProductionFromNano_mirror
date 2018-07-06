@@ -38,19 +38,20 @@ def getLumisToRun(JSON):
     return vlumis
 #######################################################################################################
 
-#dir = "/data/higgs/nanonaod_2016/PUMoriond17_05Feb2018_94X_mcRun2_asymptotic_v2-v1/VBFHToTauTau_M125_13TeV_powheg_pythia8/"
+with open("configBall.json","r") as FSO:
+    configBall = json.load(FSO)
 
-aFile =            sys.argv[1]
-channel =          sys.argv[2]
-systShift =        sys.argv[3]
-doSvFit =          int(sys.argv[4])
-applyRecoil=       int(sys.argv[5])
-nevents =          int(sys.argv[6])
+aFile =            configBall["file"]
+channel =          str(configBall["channel"])
+systShift =        str(configBall["systShift"])
+JSONfile =         str(configBall["certJson"])
+doSvFit =          int(configBall["svfit"])
+applyRecoil =      int(configBall["recoil"])
+nevents =          int(configBall["nevents"])
+check_event =      int(configBall["check_event"])
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
-
-sync_event=0
 
 print 'Channel: ',channel
 
@@ -95,19 +96,18 @@ if channel=='tt':
     from ROOT import HTauhTauhTreeFromNano as Ntuplizer
 
 
-# JSONfile = ""
-JSONfile = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+
 vlumis = getLumisToRun(JSONfile)
 
 HTTParticle.corrType = getattr(HTTAnalysis, systShift )
 
 prefix = "-".join([channel, systShift])
-Ntuplizer(  aTree,doSvFit,applyRecoil,vlumis, prefix).Loop(nevents,sync_event)
+Ntuplizer(  aTree,doSvFit,applyRecoil,vlumis, prefix).Loop(nevents,check_event)
 
 
-for f in glob('*'):
-    if not f in glob(prefix + '*.root') and not f in glob("log*.txt"):
-        os.remove(f)
+# for f in glob('*'):
+#     if not f in glob(prefix + '*.root') and not f in glob("log*.txt"):
+#         os.remove(f)
 
 
 exit(0)

@@ -14,6 +14,7 @@ sleep ${sleeping}
 echo "Good morning..."
 date
 eval `scramv1 runtime -sh`
-./convertNanoParallel.py ${file} ${channel} ${systShift} ${svfit} ${recoil} ${nevents}
+./convertNanoParallel.py
 date
+echo ${outdir}
 mv -f ${channel}*root ${outdir}

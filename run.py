@@ -10,6 +10,7 @@ import multiprocessing as mp
 import shlex
 import argparse
 import string
+import json
 
 def main():
 
@@ -22,16 +23,18 @@ def main():
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
+    parser.add_argument('--event', dest='event', help='Debug', default = 0)
+
 
     args = parser.parse_args()
-
-    print 'Channel:',args.channel
 
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
 
     if not args.merge:
-        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug)
+        print 'Channel:',args.channel
+        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug, args.event)
+        # print SNP.makeConfigBalls(args.sample)
         SNP.runOneSample(args.sample)
 
     else:
@@ -39,7 +42,7 @@ def main():
 
 class SteerNanoProduction():
 
-    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False):
+    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False, event = 0):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
@@ -47,15 +50,17 @@ class SteerNanoProduction():
         self.svfit = False
         self.recoil = False
 
+
         self.debug = debug
+        self.event = event
 
         if debug:
             self.nthreads = 1
-            self.nevents = 10001
+            self.nevents = 10001 if not event else -1
+
         else:
             self.nthreads = nthreads
             self.nevents = -1
-
 
         shifts={'t0u' : 'TES1p0p0Up',
                 't1u' : 'TES1p1p0Up',
@@ -82,22 +87,27 @@ class SteerNanoProduction():
         else:
             self.systShift = "NOMINAL"
 
+        self.certJson = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+
     def runOneSample(self, sample, version="v1"):
         threads = []
 
         assert sample
+        sample = sample.split("/")[-1].replace(".txt","")
+
         with open("submit_on_batch.sh") as FSO:
             templ = string.Template( FSO.read() )
 
         runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_'+self.channel+'_' ])
         outdir = "/".join([self.outdir, version, sample])
-
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
         print "Submitting: ", sample
 
-        for idx,file in enumerate( self.getFiles(sample) ):
+        for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
+            file = configBall["file"]
+
             if self.debug and idx > 0: break
 
             rundir = runpath+str(idx+1)
@@ -109,8 +119,10 @@ class SteerNanoProduction():
                 shutil.rmtree(rundir)
                 os.makedirs(rundir)
 
+
             os.chdir(self.basedir)
             self.prepareRunDir(rundir)
+            self.throwConfigBall(configBall, rundir)
 
             # Run local
             if self.nthreads > 0:
@@ -126,12 +138,7 @@ class SteerNanoProduction():
                 runscript = templ.substitute(rundir = rundir,
                                              outdir = outdir,
                                              sleeping = idx*10,
-                                             file = file,
-                                             channel = self.channel,
-                                             systShift = self.systShift,
-                                             svfit = int(self.svfit),
-                                             recoil = int(self.recoil),
-                                             nevents = int(self.nevents))
+                                             channel = self.channel)
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
@@ -155,14 +162,8 @@ class SteerNanoProduction():
 
         print "\033[93mrun\033[0m  Job {0}: ".format(njob) + file.split("/")[-1]
 
-        runcmd  = './convertNanoParallel.py {0} {1} {2} {3} {4} {5}'.format( file,
-                                                                         self.channel,
-                                                                         self.systShift,
-                                                                         int(self.svfit),
-                                                                         int(self.recoil),
-                                                                         int(self.nevents) )
         if self.debug:
-                p = sp.Popen(shlex.split( runcmd ),
+                p = sp.Popen(shlex.split( './convertNanoParallel.py' ),
                              stdout = sys.__stdout__,
                              stderr = sys.__stderr__,
                              shell=False)
@@ -170,7 +171,7 @@ class SteerNanoProduction():
                 p.communicate()
         else:
             with open("log.txt", 'w') as log:
-                p = sp.Popen(shlex.split( runcmd ),
+                p = sp.Popen(shlex.split( './convertNanoParallel.py' ),
                              stdout = log,
                              stderr = log,
                              shell=False)
@@ -188,7 +189,7 @@ class SteerNanoProduction():
         addFiles = glob("zpt*root")
         addFiles.append('PSet.py')
         addFiles.append('convertNanoParallel.py')
-        addFiles.append('Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
+        addFiles.append(self.certJson)
 
 
         for f in headerfiles + Cfiles + addFiles:
@@ -196,10 +197,44 @@ class SteerNanoProduction():
 
             os.chmod("/".join([rundir,f]), 0777)
 
+    def makeConfigBalls(self,sample):
+        configBalls = []
+        samples_avail = glob("samples/*/*/*")
+        for sa in samples_avail:
+            if sample in sa:
+                files = self.getFiles(sa)
+                parts = sa.split("/")
+
+        for file in files:
+            configBall = {}
+            configBall["file"]        = file
+            configBall["format"]      = parts[1]
+            configBall["sample"]      = parts[2]
+            configBall["channel"]     = self.channel
+            configBall["systShift"]   = self.systShift
+            configBall["svfit"]       = int(self.svfit)
+            configBall["recoil"]      = int(self.recoil)
+            configBall["nevents"]     = int(self.nevents)
+            configBall["check_event"] = int(self.event)
+
+            if parts[1] == "data":
+                configBall["certJson"] = self.certJson
+            else:
+                configBall["certJson"] = ""
+
+            configBalls.append(configBall)
+
+        return configBalls
+
+    def throwConfigBall(self, ball, where):
+
+        with open("/".join([where, "configBall.json"]),"w") as FSO:
+            json.dump(ball, FSO, indent=4)
+
 
     def getFiles(self,sample):
 
-        with open( "{0}/samples/{1}.txt".format(self.basedir, sample) ) as FSO:
+        with open( "{0}/{1}".format(self.basedir, sample) ) as FSO:
             buf = FSO.read()
         return buf.splitlines()
 
@@ -210,7 +245,7 @@ def mergeSample(version, outdir, single_sample=""):
 
     path = "/".join([ outdir, version])
 
-    if single_sample: samples = [ "/".join([path, single_sample] ) ]
+    if single_sample: samples = [ "/".join([path, single_sample.split("/")[-1].replace(".txt","")] ) ]
     else: samples = glob(path + "/*")
 
 
