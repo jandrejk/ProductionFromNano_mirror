@@ -189,6 +189,7 @@ class SteerNanoProduction():
         addFiles = glob("zpt*root")
         addFiles.append('PSet.py')
         addFiles.append('convertNanoParallel.py')
+        addFiles.append('htt_scalefactors_v17_1.root')
         addFiles.append(self.certJson)
 
 
