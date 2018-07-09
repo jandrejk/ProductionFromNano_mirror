@@ -89,30 +89,40 @@ eventCategory *myQCDSFDenom;
 
 };
 
-enum sysEffects {NOMINAL,
-         TES1p0p0Up, TES1p0p0Down,
-         TES1p1p0Up, TES1p1p0Down,
-         TES3p0p0Up, TES3p0p0Down,
+enum sysEffects 
+{   NOMINAL,
+    TES1p0p0Up, TES1p0p0Down,
+    TES1p1p0Up, TES1p1p0Down,
+    TES3p0p0Up, TES3p0p0Down,
 
-         MES1p0p0Up, MES1p0p0Down,
-         MES1p1p0Up, MES1p1p0Down,
-         MES3p0p0Up, MES3p0p0Down,
+    MES1p0p0Up, MES1p0p0Down,
+    MES1p1p0Up, MES1p1p0Down,
+    MES3p0p0Up, MES3p0p0Down,
 
-         EES1p0p0Up, EES1p0p0Down,
-         EES1p1p0Up, EES1p1p0Down,
-         EES3p0p0Up, EES3p0p0Down,
-         DUMMY_SYS,
+    EES1p0p0Up, EES1p0p0Down,
+    EES1p1p0Up, EES1p1p0Down,
+    EES3p0p0Up, EES3p0p0Down,
+    DUMMY_SYS,
 ///Place systematic effects not affecting the SV calculation after DUMMY_SYS
 ///all quantities for following syst effects are calculated on fly, no need to rerun
 ///the ntuple making step.
-         JESUp, JESDown,
-         J2TUp, J2TDown,
-         ZPtUp, ZPtDown,
-         TTUp, TTDown,
-         QCDSFUp, QCDSFDown,
-         WSFUp, WSFDown,
-         ggUp, ggDown,
-         ZmumuUp, ZmumuDown};
+    JESUp, JESDown,
+    J2TUp, J2TDown,
+    ZPtUp, ZPtDown,
+    TTUp, TTDown,
+    QCDSFUp, QCDSFDown,
+    WSFUp, WSFDown,
+    ggUp, ggDown,
+    ZmumuUp, ZmumuDown
+};
+
+enum finalState
+{
+  EleTau = 0,
+  MuTau = 1,
+  TauTau = 2,
+  NONE = 4
+};
 
 float getEnergyScale( int pdg, int mc_match, int dm, sysEffects type = sysEffects::NOMINAL )
 {
