@@ -362,6 +362,7 @@ class syncDATA
   vector<double> addlepton_mvis;
   vector<double> addlepton_tauCombIso;
   vector<int> addlepton_tauID;
+  vector<int> addlepton_tauDM;
   vector<int> addlepton_tauAntiEle;
   vector<int> addlepton_tauAntiMu;
   //////////////////////////////////////////////////////////////////

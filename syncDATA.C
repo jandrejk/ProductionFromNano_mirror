@@ -520,6 +520,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
             addlepton_mvis.push_back( ( leg2P4 + leptons[i].getP4() ).M() );
 
             addlepton_tauID.push_back( 0. );
+            addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
             addlepton_tauAntiEle.push_back( 0. );
             addlepton_tauAntiMu.push_back( 0. );
@@ -539,6 +540,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
             addlepton_mvis.push_back( ( leg2P4 + leptons[i].getP4() ).M() );
 
             addlepton_tauID.push_back( 0. );
+            addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
             addlepton_tauAntiEle.push_back( 0. );
             addlepton_tauAntiMu.push_back( 0. );
@@ -586,6 +588,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
             addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
             addlepton_tauID.push_back(      (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID")) );
+            addlepton_tauDM.push_back(      (int)leptons[i].getProperty(PropertyEnum::decayMode) );
             addlepton_tauAntiEle.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiEle) );
             addlepton_tauAntiMu.push_back(  (int)leptons[i].getProperty(PropertyEnum::idAntiMu) );
 
@@ -1032,6 +1035,7 @@ void syncDATA::setDefault(){
     addlepton_dZ.clear();
     addlepton_mt.clear();
     addlepton_mvis.clear();
+    addlepton_tauDM.clear();
     addlepton_tauCombIso.clear();
     addlepton_tauID.clear();
     addlepton_tauAntiEle.clear();
@@ -1432,6 +1436,7 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("addlepton_mvis", &addlepton_mvis);
         t->Branch("addlepton_tauCombIso", &addlepton_tauCombIso);
         t->Branch("addlepton_tauID", &addlepton_tauID);
+        t->Branch("addlepton_tauDM", &addlepton_tauDM);
         t->Branch("addlepton_tauAntiEle", &addlepton_tauAntiEle);
         t->Branch("addlepton_tauAntiMu", &addlepton_tauAntiMu);
 
