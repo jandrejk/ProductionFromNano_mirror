@@ -1100,7 +1100,7 @@ void syncDATA::setDefault(){
 
 void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
 
-    TFile wsp("htt_scalefactors_v17_1.root");
+    TFile wsp("utils/scalefactors/htt_scalefactors_v17_1.root");
     w = (RooWorkspace*)wsp.Get("w");
 
     isMC=isMC_;

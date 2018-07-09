@@ -23,11 +23,11 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 {
 
     isMC = isMC_;
+
     tweak_nano=false; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
                      //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 
     ///Init HTT ntuple
-
     initHTTTree(tree, prefix);
 
     jsonVector = lumiBlocks;
@@ -61,11 +61,11 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
     }
 
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("zpt_weights_2016_BtoH.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2016_BtoH.root") );  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
     zptmass_histo = (TH2F*)zPtReweightFile->Get("zptmass_histo");
 
-    zPtReweightSUSYFile = std::unique_ptr<TFile>( new TFile("zpt_weights_summer2016.root") );  
+    zPtReweightSUSYFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_summer2016.root") );  
     if(!zPtReweightSUSYFile) std::cout<<"SUSY Z pt reweight file zpt_weights.root is missing."<<std::endl;
     zptmass_histo_SUSY = (TH2F*)zPtReweightSUSYFile->Get("zptmass_histo");
 

@@ -23,6 +23,7 @@ def main():
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
+    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
 
 
@@ -33,7 +34,7 @@ def main():
 
     if not args.merge:
         print 'Channel:',args.channel
-        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug, args.event)
+        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug, args.event, args.cert)
         # print SNP.makeConfigBalls(args.sample)
         SNP.runOneSample(args.sample)
 
@@ -42,7 +43,7 @@ def main():
 
 class SteerNanoProduction():
 
-    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False, event = 0):
+    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False, event = 0, cert = ""):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
@@ -87,7 +88,7 @@ class SteerNanoProduction():
         else:
             self.systShift = "NOMINAL"
 
-        self.certJson = 'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt'
+        self.certJson = cert
 
     def runOneSample(self, sample, version="v1"):
         threads = []
@@ -186,13 +187,9 @@ class SteerNanoProduction():
 
         headerfiles = glob("*.h")
         Cfiles = glob("*.cxx") + glob("*.C") + glob("*.cc")
-        addFiles = glob("zpt*root")
-        addFiles.append('PSet.py')
-        addFiles.append('convertNanoParallel.py')
-        addFiles.append('htt_scalefactors_v17_1.root')
-        addFiles.append(self.certJson)
+        addFiles =['convertNanoParallel.py']
 
-
+        shutil.copytree("utils", "/".join([rundir,"utils"]))
         for f in headerfiles + Cfiles + addFiles:
             shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
 

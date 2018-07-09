@@ -16,7 +16,7 @@ def getLumisToRun(JSON):
     if JSON == "": return vector( 'edm::LuminosityBlockRange' )()
 
     vlumis = vector( 'edm::LuminosityBlockRange' )()
-    myList = LumiList.LumiList (filename = JSONfile).getCMSSWString().split(',')
+    myList = LumiList.LumiList (filename = "/".join(["utils/cert_data",JSONfile]) ).getCMSSWString().split(',')
     lumisToProcess = cms.untracked.VLuminosityBlockRange( myList )
 
 
