@@ -65,7 +65,18 @@ print "Using file: ",aFile
 aROOTFile = TFile.Open(aFile)
 aTree = aROOTFile.Get("Events")
 
-print "TTree entries: ",aTree.GetEntries()
+if check_event > 0:
+    aTree = aTree.CopyTree("event == {0}".format(check_event) )
+
+entries = aTree.GetEntries()
+
+if not entries:
+    print "file is empty. Aborting"
+    exit(0)
+else:
+    print "TTree entries: ", entries
+
+
 print "Compiling...."
 
 #Some system have problem runnig compilation (missing glibc-static library?).
