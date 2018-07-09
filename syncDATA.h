@@ -3,6 +3,10 @@
 #include "TLorentzVector.h"
 //#include "TMatrixD.h"
 #include "TMatrixDEigen.h"
+#include "RooWorkspace.h"
+#include "RooRealVar.h"
+#include "RooFunctor.h"
+#include "TFile.h"
 
 
 #ifndef __syncDATA__
@@ -13,6 +17,9 @@ class syncDATA
  public:
 
   //ClassDef(syncDATA,0);
+
+  HTTParticle tmp_leg1, tmp_leg2;
+  HTTAnalysis::finalState channel;
 
   int isSync;
   int isMC;
@@ -341,6 +348,14 @@ class syncDATA
 
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 
+  RooWorkspace *w;
+  void fillSFfromCorrectionWorkspace();
+
+
+  vector<TLorentzVector> addlepton_p4;
+  vector<double> addlepton_iso;
+  vector<int> addlepton_pdgId;
+  vector<int> addlepton_mc_match;
   //////////////////////////////////////////////////////////////////
   int nadditionalMu;
   vector<double> addmuon_pt;
@@ -366,7 +381,7 @@ class syncDATA
   vector<double> addtau_phi;
   vector<double> addtau_m;
   vector<double> addtau_q;
-  vector<double> addtau_byIsolationMVArun2v1DBnewDMwLTraw;
+  vector<double> addtau_byIsolationMVArun2v1DBoldDMwLTraw;
   vector<double> addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits;
   vector<int> addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits;
   vector<int> addtau_byTightCombinedIsolationDeltaBetaCorr3Hits;

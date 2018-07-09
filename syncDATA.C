@@ -7,6 +7,11 @@ const float DEF = -10.;
 
 void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
+
+  tmp_leg1 = pair->getLeg1();
+  tmp_leg2 = pair->getLeg2();
+
+
   lumiWeight=DEF;
   run_syncro=ev->getRunId();
   lumi_syncro=ev->getLSId();
@@ -17,6 +22,11 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
 
   pdg1=std::abs(pair->getLeg1().getProperty(PropertyEnum::pdgId));
   pdg2=std::abs(pair->getLeg2().getProperty(PropertyEnum::pdgId));
+
+  if(pdg1 == 11 && pdg2 == 15) channel = HTTAnalysis::EleTau;
+  if(pdg1 == 13 && pdg2 == 15) channel = HTTAnalysis::MuTau;
+  if(pdg1 == 15 && pdg2 == 15) channel = HTTAnalysis::TauTau;
+
   unsigned genFlav1=pair->getLeg1().getProperty(PropertyEnum::genPartFlav);
   unsigned genFlav2=pair->getLeg2().getProperty(PropertyEnum::genPartFlav);
 
@@ -106,7 +116,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
   //this is quite slow, calling the function for each trigger item...
   if ( pdg1==13 && pdg2==15 ) //mu-tau
   {
-    trg_singlemuon=  pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
+    trg_singlemuon=  pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu24) || pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
     trg_mutaucross=  pair->getLeg1().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
                      && pair->getLeg2().hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
 
@@ -480,8 +490,13 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
 
       if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
 
-      int lepPDGId = std::abs( leptons[i].getPDGid() );
-      if( lepPDGId == 13 )
+      int lepPDGId = leptons[i].getPDGid();
+
+      addlepton_p4.push_back( leptons[i].getP4() );
+      addlepton_pdgId.push_back( leptons[i].getPDGid()*(-1) );
+      addlepton_mc_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
+
+      if( std::abs(lepPDGId) == 13 )
       {
           nadditionalMu++;
           addmuon_pt.push_back( leptons[i].getP4().Pt() );
@@ -492,7 +507,9 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
           addmuon_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) );
           addmuon_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
 
-      }else if( lepPDGId == 11 )
+          addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) );
+
+      }else if( std::abs(lepPDGId) == 11 )
       {
           nadditionalEle++;
           addele_pt.push_back( leptons[i].getP4().Pt() );
@@ -503,7 +520,9 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
           addele_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("electronIsolation") ) );
           addele_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
 
-      }else if( lepPDGId == 15 && !(pdg1 == 15 && pdg2 == 15) )
+          addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("electronIsolation") ) );
+
+      }else if( std::abs(lepPDGId) == 15 && !(pdg1 == 15 && pdg2 == 15) )
       {
           nadditionalTau++;
           addtau_pt.push_back( leptons[i].getP4().Pt() );
@@ -511,8 +530,10 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
           addtau_phi.push_back( leptons[i].getP4().Phi() );
           addtau_m.push_back( leptons[i].getP4().M() );
           addtau_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
-          addtau_byIsolationMVArun2v1DBnewDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
+          addtau_byIsolationMVArun2v1DBoldDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
           addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
+
+          addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ) );
 
           bitmask = leptons[i].getProperty(PropertyEnum::idAntiEle);
           bool antiEle = ( bitmask & 0x8) > 0;
@@ -566,6 +587,25 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
   if ( njetspt20>0 ) objs.push_back(j1);
   if ( njetspt20>1 ) objs.push_back(j2);
   sphericity=calcSphericity(objs);
+
+}
+
+void syncDATA::fillSFfromCorrectionWorkspace()
+{
+    if( channel == HTTAnalysis::MuTau )
+    {
+        w->var("m_pt")->setVal(  tmp_leg1.getP4().Pt()  );
+        w->var("m_eta")->setVal( tmp_leg1.getP4().Eta() );
+
+        w->var("t_pt")->setVal(  tmp_leg2.getP4().Pt() );
+        w->var("t_eta")->setVal( tmp_leg2.getP4().Eta());
+        w->var("t_dm")->setVal(  tmp_leg2.getProperty(PropertyEnum::decayMode) );
+
+        // idisoweight_1 = w->function("m_idiso0p15_desy_ratio")->getVal();
+        trigweight_1 = w->function("m_trgMu22OR_eta2p1_desy_ratio")->getVal();
+
+    }
+
 
 }
 
@@ -954,6 +994,12 @@ void syncDATA::setDefault(){
   mvamet_centrality=DEF;
   lep_etacentrality=DEF;
   sphericity=DEF;
+  //////////////////////////////////////////////////////////////////
+
+  addlepton_p4.clear();
+  addlepton_iso.clear();
+  addlepton_pdgId.clear();
+  addlepton_mc_match.clear();
 
   //////////////////////////////////////////////////////////////////
   nadditionalMu = 0;
@@ -980,7 +1026,7 @@ void syncDATA::setDefault(){
   addtau_phi.clear();
   addtau_m.clear();
   addtau_q.clear();
-  addtau_byIsolationMVArun2v1DBnewDMwLTraw.clear();
+  addtau_byIsolationMVArun2v1DBoldDMwLTraw.clear();
   addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.clear();
   addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits.clear();
   addtau_byTightCombinedIsolationDeltaBetaCorr3Hits.clear();
@@ -1013,6 +1059,9 @@ void syncDATA::setDefault(){
 }
 
 void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
+
+  TFile wsp("htt_scalefactors_v17_1.root");
+  w = (RooWorkspace*)wsp.Get("w");
 
   isMC=isMC_;
   isSync=isSync_;
@@ -1337,6 +1386,11 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("lep_etacentrality", &lep_etacentrality);
     t->Branch("sphericity", &sphericity);
 
+    t->Branch("addlepton_p4", &addlepton_p4);
+    t->Branch("addlepton_iso", &addlepton_iso);
+    t->Branch("addlepton_pdgId", &addlepton_pdgId);
+    t->Branch("addlepton_mc_match", &addlepton_mc_match);
+
     t->Branch("nadditionalMu", &nadditionalMu);
     t->Branch("addmuon_pt", &addmuon_pt);
     t->Branch("addmuon_eta", &addmuon_eta);
@@ -1361,7 +1415,7 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("addtau_phi", &addtau_phi);
     t->Branch("addtau_m", &addtau_m);
     t->Branch("addtau_q", &addtau_q);
-    t->Branch("addtau_byIsolationMVArun2v1DBnewDMwLTraw", &addtau_byIsolationMVArun2v1DBnewDMwLTraw);
+    t->Branch("addtau_byIsolationMVArun2v1DBoldDMwLTraw", &addtau_byIsolationMVArun2v1DBoldDMwLTraw);
     t->Branch("addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits", &addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits);
     t->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
     t->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
