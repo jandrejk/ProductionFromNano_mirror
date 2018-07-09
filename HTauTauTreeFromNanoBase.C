@@ -13,7 +13,7 @@
 #include <algorithm>
 
 //move these two to the configuration
-bool isSync=1;
+bool isSync=0;
 
 
 
@@ -27,6 +27,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
                      //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 
     ///Init HTT ntuple
+
     initHTTTree(tree, prefix);
 
     jsonVector = lumiBlocks;
@@ -1187,6 +1188,7 @@ TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned i
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType) //overloaded
 { 
+    if(!isMC) return -999;
     if(b_nGenPart==nullptr) return -999;
     if(nGenPart==0) return -999;
 
