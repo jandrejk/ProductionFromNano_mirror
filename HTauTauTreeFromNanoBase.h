@@ -140,6 +140,7 @@ public :
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
   bool tweak_nano;
+  bool isMC;
   int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
@@ -148,7 +149,7 @@ public :
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
 
-  HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
+  HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, bool isMC_ = false, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
   virtual void     Loop(Long64_t nentries_max=-1, unsigned int sync_event=-1);

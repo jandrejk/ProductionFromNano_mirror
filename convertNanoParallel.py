@@ -49,6 +49,7 @@ doSvFit =          int(configBall["svfit"])
 applyRecoil =      int(configBall["recoil"])
 nevents =          int(configBall["nevents"])
 check_event =      int(configBall["check_event"])
+isMC =             0 if configBall["format"] == "data" else 1
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
@@ -102,7 +103,7 @@ vlumis = getLumisToRun(JSONfile)
 HTTParticle.corrType = getattr(HTTAnalysis, systShift )
 
 prefix = "-".join([channel, systShift])
-Ntuplizer(  aTree,doSvFit,applyRecoil,vlumis, prefix).Loop(nevents,check_event)
+Ntuplizer(  aTree,doSvFit,applyRecoil, isMC, vlumis, prefix).Loop(nevents,check_event)
 
 
 # for f in glob('*'):

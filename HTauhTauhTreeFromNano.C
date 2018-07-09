@@ -66,9 +66,6 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   tau2ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle);
   tau2ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idMVAoldDM2017v2);
 
-  //"real" eta is just below 2.1 for the 2nd tau in these 3 events...
-  float abs_t2_eta=std::abs(tau2P4.Eta());
-  if ( tweak_nano && (event==1321942 || event==577858 || event==392156) ) abs_t2_eta-=0.0001;
 
   bool tauBaselineSelection1 =  httLeptonCollection[indexLeg1].isFullHadLeadTau();
   bool tauBaselineSelection2 = httLeptonCollection[indexLeg2].isFullHadSubTau();

@@ -14,15 +14,15 @@
 
 //move these two to the configuration
 bool isSync=1;
-bool isMC=1;
+
 
 
 //const bool tweak_nano=true;
 
-HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
+HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, bool isMC_, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
 
-
+    isMC = isMC_;
     tweak_nano=false; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
                      //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
 

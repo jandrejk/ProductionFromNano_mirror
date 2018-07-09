@@ -22,11 +22,10 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
 
     if(httPairs_.empty()) return false;
 
-    debugWayPoint("[pairSelection] pdgid of pair",{},{(int)pdgIdLeg1,(int)pdgIdLeg2});
-
     int pdgIdLeg1 = std::abs(httPairs_[iPair].getLeg1().getPDGid());
     int pdgIdLeg2 = std::abs(httPairs_[iPair].getLeg2().getPDGid());
 
+    debugWayPoint("[pairSelection] pdgid of pair",{},{(int)pdgIdLeg1,(int)pdgIdLeg2});
 
     unsigned int indexMuonLeg = -1;
     if(pdgIdLeg1==13)      indexMuonLeg = httPairs_[iPair].getIndexLeg1();
@@ -59,7 +58,7 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
 
     bool muonBaselineSelection = httLeptonCollection[indexMuonLeg].isBaseline();
 
-    debugWayPoint("[pairSelection] Electron",
+    debugWayPoint("[pairSelection] Muon",
                   {(double)muonP4.Pt(), (double)muonP4.Eta()},
                   {(int)muonBaselineSelection},
                   {"pt","eta","passCuts"});
