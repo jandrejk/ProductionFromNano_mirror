@@ -75,7 +75,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 
     ///Instantiate JEC uncertainty sources
     ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-    if(isMC) initJecUnc("utils/jec_uncer/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");//need to data file to process //only to when needed... TODO: check automatically
+    if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");//need to data file to process //only to when needed... TODO: check automatically
 
     firstWarningOccurence_=true;
 }
@@ -800,7 +800,7 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
                         Jet_eta[iJet],
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
-        
+
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
