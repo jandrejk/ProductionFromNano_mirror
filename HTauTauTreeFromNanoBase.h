@@ -127,13 +127,14 @@ public :
   std::unique_ptr<syncDATA> SyncDATA;
   std::unique_ptr<TFile> httFile;
   std::unique_ptr<HTTEvent> httEvent;
+  TH1D* puweights_histo;
   TH1F* hStats;
   TH2F* zptmass_histo, *zptmass_histo_SUSY;
   
 
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
-  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile;
+  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights;
   TLorentzVector p4SVFit, p4Leg1SVFit, p4Leg2SVFit;   
 
   std::vector<edm::LuminosityBlockRange> jsonVector;
