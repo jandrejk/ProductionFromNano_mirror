@@ -100,21 +100,8 @@ bool HMuTauhTreeFromNano::diMuonVeto(){
     std::vector<int> muonIndexes;
     for(unsigned int iLepton=0;iLepton<httLeptonCollection.size();++iLepton)
     {
-
         if(std::abs(httLeptonCollection[iLepton].getPDGid())!=13) continue;
-        TLorentzVector muonP4 = httLeptonCollection[iLepton].getP4();
-
-        // bool passLepton = muonP4.Pt()> LeptonCuts::Di.Muon.pt
-        //                   && std::abs(muonP4.Eta())< LeptonCuts::Di.Muon.pt
-        //                   && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dz))<0.2
-        //                   && std::abs(httLeptonCollection[iLepton].getProperty(PropertyEnum::dxy))<0.045
-        //                   && httLeptonCollection[iLepton].getProperty( HTTEvent::usePropertyFor["muonIsolation"] )<0.3
-        //                   //FIXME && ((daughters_typeOfMuon->at(iLepton) & ((1<<0) + (1<<1) + (1<<2))) == ((1<<0) + (1<<1) + (1<<2))) //0=PF, 1=Global, 2=Tracker, muons in Nano are loose, i.e. PF&(Global|Tracker)
-        //                   && true;
-
-        bool passLepton = httLeptonCollection[iLepton].isDiLepton();
-
-        if(passLepton) muonIndexes.push_back(iLepton);
+        if(httLeptonCollection[iLepton].isDiLepton() ) muonIndexes.push_back(iLepton);
     }
 
     if(muonIndexes.size()<2) return false;
