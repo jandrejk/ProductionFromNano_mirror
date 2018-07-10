@@ -46,6 +46,8 @@ class HTTEvent{
 
   void setNPU(float x){nPU = x;}
 
+  void setPUWeight(float x){puWeight = x;}
+
   void setNPV(unsigned int x){nPV = x;}
 
   void setRho(float x){rho = x;}
@@ -109,6 +111,8 @@ class HTTEvent{
   unsigned long int getLSId() const {return lsId;}
 
   float getNPU() const {return nPU;}
+
+  float getPUWeight() const {return puWeight;}
 
   unsigned int getNPV() const {return nPV;}
 
@@ -181,6 +185,8 @@ class HTTEvent{
 
   ///Number of true PU vertices from MC
   float nPU;
+
+  float puWeight;
 
   //Number of reocnstructed PV
   unsigned int nPV;
