@@ -69,9 +69,13 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
     if(!zPtReweightSUSYFile) std::cout<<"SUSY Z pt reweight file zpt_weights.root is missing."<<std::endl;
     zptmass_histo_SUSY = (TH2F*)zPtReweightSUSYFile->Get("zptmass_histo");
 
+    puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") );  
+    if(!zPtReweightSUSYFile) std::cout<<"puweights.root is missing."<<std::endl;
+    puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
+
     ///Instantiate JEC uncertainty sources
     ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-    //  initJecUnc("Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");//need to data file to process //only to when needed... TODO: check automatically
+    if(isMC) initJecUnc("utils/jec_uncer/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");//need to data file to process //only to when needed... TODO: check automatically
 
     firstWarningOccurence_=true;
 }
@@ -353,26 +357,21 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         }
 
         if( !eventInJson() ) continue;
-
         debugWayPoint("[Loop] passes json");
 
         unsigned int bestPairIndex = Cut(ientry);
-
-        fillEvent(); //could avoid doing this for each event if MC weight is filled differently!
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
         hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
         if ( failsGlobalSelection() ) continue;
-
         debugWayPoint("[Loop] passes global selection");
 
         bestPairIndex_ = bestPairIndex;
 
         if(bestPairIndex<9999)
         {
-            //if(jentry%1000==0) std::cout<<"\t"<<jentry<<"th event with good pair"<<std::endl;//FIXME
 
             debugWayPoint("[Loop] good pair index found");
 
@@ -385,13 +384,10 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
 
             HTTPair & bestPair = httPairCollection[0];
-            for(unsigned int sysType = (unsigned int)HTTAnalysis::NOMINAL; sysType<(unsigned int)HTTAnalysis::DUMMY_SYS; sysType++)
-            {
-                HTTAnalysis::sysEffects type = static_cast<HTTAnalysis::sysEffects>(sysType);
-                computeSvFit(bestPair, type);
-                //break; ///TEST for synch. ntuple
-            }
-            //      httTree->Fill();
+
+            computeSvFit(bestPair, HTTParticle::corrType);
+
+            fillEvent();
             SyncDATA->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
             SyncDATA->entry=entry++;
             SyncDATA->fileEntry=jentry;
@@ -579,6 +575,9 @@ void HTauTauTreeFromNanoBase::fillEvent()
     if(b_Pileup_nTrueInt!=nullptr)//Assume that all those are filled for MC
     {
         httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
+        httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
+
+
         httEvent->setMCWeight(genWeight);
         httEvent->setMCatNLOWeight(LHEWeight_originalXWGTUP);//??
         httEvent->setLHE_Ht(LHE_HT);
@@ -801,6 +800,7 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
                         Jet_eta[iJet],
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
+        
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
@@ -1524,6 +1524,7 @@ void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 
     ofstream outputFile("JecUncEnum.h");
     outputFile<<"enum class JecUncEnum { ";
+
     for(unsigned int isrc = 0; isrc < nsrc; isrc++)
     {
         JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, srcnames[isrc]);
