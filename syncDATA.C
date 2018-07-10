@@ -61,7 +61,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
         trigweight_2 = 1;
         idisoweight_2 = 1.;
         effweight = 1.;
-        puWeight = 1.;
+        puWeight = ev->getPUWeight();
         weight = 1.;
         NUP=ev->getLHEnOutPartons();
     } else{
