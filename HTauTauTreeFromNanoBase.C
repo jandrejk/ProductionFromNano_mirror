@@ -547,33 +547,6 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
     }
     return false;
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-
-bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
-{
-
-    TLorentzVector aP4;
-    aP4.SetPtEtaPhiM(Jet_pt[index],
-                     Jet_eta[index],
-                     Jet_phi[index],
-                     Jet_mass[index]);
-
-    bool passSelection = aP4.Pt()>20 && std::abs(aP4.Eta())<4.7
-                         && Jet_jetId[index]>=1;//it means at least loose
-   
-    if(bestPairIndex<9999)
-    {
-        TLorentzVector leg1P4 = httPairs_[bestPairIndex].getLeg1().getP4();
-        TLorentzVector leg2P4 = httPairs_[bestPairIndex].getLeg2().getP4();
-
-        passSelection &= aP4.DeltaR(leg1P4) > 0.5
-                         && aP4.DeltaR(leg2P4) > 0.5;
-    }
-
-    return passSelection;
-}
-
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -812,6 +785,31 @@ void HTauTauTreeFromNanoBase::fillEvent()
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
+{
+
+    TLorentzVector aP4;
+    aP4.SetPtEtaPhiM(Jet_pt[index],
+                     Jet_eta[index],
+                     Jet_phi[index],
+                     Jet_mass[index]);
+
+    bool passSelection = aP4.Pt()>20 && std::abs(aP4.Eta())<4.7
+                         && Jet_jetId[index]>=1;//it means at least loose
+   
+    if(bestPairIndex<9999)
+    {
+        TLorentzVector leg1P4 = httPairs_[bestPairIndex].getLeg1().getP4();
+        TLorentzVector leg2P4 = httPairs_[bestPairIndex].getLeg2().getP4();
+
+        passSelection &= aP4.DeltaR(leg1P4) > 0.5
+                         && aP4.DeltaR(leg2P4) > 0.5;
+    }
+
+    return passSelection;
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 {
 
@@ -821,8 +819,6 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
     {
 
         if(!jetSelection(iJet, bestPairIndex)) continue;
-        if (Jet_pt[iJet]<20) continue;
-        if (std::abs(Jet_eta[iJet])>4.7) continue;
 
         HTTParticle aJet;
 
