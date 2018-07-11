@@ -100,6 +100,7 @@ public :
   Int_t getFilter(std::string name);
   std::vector<Int_t> getFilters(const std::vector<std::string> & propertiesList);
 
+  void writeJECSourceHeader(const std::vector<string> &jecSources);
   void writePropertiesHeader(const std::vector<std::string> & propertiesList);
   void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
   void writeFiltersHeader(const std::vector<std::string> &filterBits);
@@ -149,6 +150,7 @@ public :
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
+  std::vector<string> jecSources_;
 
   HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, bool isMC_ = false, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();

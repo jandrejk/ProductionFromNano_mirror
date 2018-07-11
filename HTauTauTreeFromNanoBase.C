@@ -316,7 +316,37 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     filterBits_.push_back("Flag_eeBadScFilter");
     filterBits_.push_back("Flag_ecalBadCalibFilter");
 
-    for ( unsigned ib=0; ib<filterBits_.size(); ib++ ) passMask_+= (1<<ib);
+    ////////////////////////////////////////////////////////////
+    ///JEC uncertainty sources
+
+    jecSources_.push_back("AbsoluteStat");
+    jecSources_.push_back("AbsoluteScale");
+    jecSources_.push_back("AbsoluteMPFBias");
+    jecSources_.push_back("Fragmentation");
+    jecSources_.push_back("SinglePionECAL");
+    jecSources_.push_back("SinglePionHCAL");
+    jecSources_.push_back("FlavorQCD");
+    jecSources_.push_back("TimePtEta");
+    jecSources_.push_back("RelativeJEREC1");
+    jecSources_.push_back("RelativeJEREC2");
+    jecSources_.push_back("RelativeJERHF");
+    jecSources_.push_back("RelativePtBB");
+    jecSources_.push_back("RelativePtEC1");
+    jecSources_.push_back("RelativePtEC2");
+    jecSources_.push_back("RelativePtHF");
+    jecSources_.push_back("RelativeBal");
+    jecSources_.push_back("RelativeFSR");
+    jecSources_.push_back("RelativeStatFSR");
+    jecSources_.push_back("RelativeStatEC");
+    jecSources_.push_back("RelativeStatHF");
+    jecSources_.push_back("PileUpDataMC");
+    jecSources_.push_back("PileUpPtRef");
+    jecSources_.push_back("PileUpPtBB");
+    jecSources_.push_back("PileUpPtEC1");
+    jecSources_.push_back("PileUpPtEC2");
+    jecSources_.push_back("PileUpPtHF");
+    jecSources_.push_back("Total");
+
 
     return;
 }
@@ -404,6 +434,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
    //if you change any of the lists, uncomment and execute in this directory (i.e. not running parallel in another) and then run again.
    //  Or, if you run in another directory, copy the *Enum*h over after running the first time, then run again.
    
+   // writeJECSourceHeader(jecSources_);
    // writePropertiesHeader(leptonPropertiesList);
    // writeTriggersHeader(triggerBits_);
    // writeFiltersHeader(filterBits_);
@@ -1481,7 +1512,8 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
     }
 
     TBranch *branch = fChain->GetBranch(name.c_str());
-    if(!branch){
+    if(!branch)
+    {
         if(firstWarningOccurence_) std::cout<<"Branch: "<<name<<" not found in the TTree."<<std::endl;
         return 0;
     }
@@ -1504,50 +1536,26 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 {
-    ///uncertainties
-    const int nsrc = 27;//+6;
-    const std::string srcnames[nsrc] =
-      {"AbsoluteStat", "AbsoluteScale", "AbsoluteMPFBias",
-       "Fragmentation",
-       "SinglePionECAL", "SinglePionHCAL",
-       "FlavorQCD",
-       "TimePtEta",
-       "RelativeJEREC1", "RelativeJEREC2", "RelativeJERHF",
-       "RelativePtBB","RelativePtEC1", "RelativePtEC2", "RelativePtHF",
-       "RelativeBal",
-       "RelativeFSR",
-       "RelativeStatFSR","RelativeStatEC", "RelativeStatHF",
-       "PileUpDataMC",
-       "PileUpPtRef", "PileUpPtBB", "PileUpPtEC1", "PileUpPtEC2", "PileUpPtHF",
-       //"SubTotalPileUp", "SubTotalRelative", "SubTotalPt", "SubTotalScale", "SubTotalAbsolute", "SubTotalMC", //MB: 6 quadratic sums of subsets of uncertainties
-       "Total"};//MB: sum of all uncertainties in quadrature
 
-    ofstream outputFile("JecUncEnum.h");
-    outputFile<<"enum class JecUncEnum { ";
-
-    for(unsigned int isrc = 0; isrc < nsrc; isrc++)
+    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
     {
-        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, srcnames[isrc]);
+        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, jecSources_[isrc]);
         JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
-        jecUncertList.push_back(srcnames[isrc]);
         jecUncerts.push_back(unc);
-        outputFile<<srcnames[isrc]<<" = "<<isrc<<", "<<std::endl;
+        // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
     }
-    outputFile<<"NONE"<<" = "<<nsrc<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name,bool up)
+double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name, bool up)
 {
     if(b_nGenPart==nullptr) return 0;//MB: do not check it for data
     double result = 0;
     double jetpt = Jet_pt[index];
     double jeteta =  Jet_eta[index];
-    for(unsigned int isrc = 0; isrc < jecUncertList.size(); isrc++) 
+    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++) 
     {
-        if(jecUncertList[isrc]==name)
+        if(jecSources_[isrc]==name)
         {
             JetCorrectionUncertainty *unc = jecUncerts[isrc];
             unc->setJetPt(jetpt);
@@ -1557,6 +1565,21 @@ double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name,b
         }
     }
     return result;
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
+{
+    ofstream outputFile("JecUncEnum.h");
+    outputFile<<"enum class JecUncEnum { ";
+
+    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
+    {
+        outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
+    }
+    outputFile<<"NONE"<<" = "<<nsrc<<std::endl;
+    outputFile<<"};"<<std::endl;
+    outputFile.close();
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
