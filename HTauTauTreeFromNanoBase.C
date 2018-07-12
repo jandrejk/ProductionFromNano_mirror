@@ -554,7 +554,7 @@ void HTauTauTreeFromNanoBase::fillEvent()
 
     httEvent->setMETFilterDecision(getMetFilterBits());
 
-    if(b_Pileup_nTrueInt!=nullptr)//Assume that all those are filled for MC
+    if( isMC )//Assume that all those are filled for MC
     {
         httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
         httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
@@ -567,193 +567,193 @@ void HTauTauTreeFromNanoBase::fillEvent()
         //FIXMEhttEvent->setGenPV(TVector3(pvGen_x,pvGen_y,pvGen_z));
 
         TLorentzVector genBosonP4, genBosonVisP4;
-        double ptReWeight = 1., ptReWeight_r1 = 1., ptReWeightSusy = 1.;
+        float zPtReWeight = 1., zPtReWeightSusy = 1.;
         if( findBosonP4(genBosonP4,genBosonVisP4) )
         {
             //std::cout<<"GenBos found! M="<<genBosonP4.M()<<", visM="<<genBosonVisP4.M()<<std::endl;
             httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
-            ptReWeight = getPtReweight(genBosonP4); //???
-            bool doSUSY = true;
-            ptReWeightSusy = getPtReweight(genBosonP4,doSUSY); //Z pt rew?
+            zPtReWeight = getPtReweight(genBosonP4); //???
+            zPtReWeightSusy = getPtReweight(genBosonP4,true); //Z pt rew?
         }
-        else{
-            TLorentzVector topP4, antitopP4;
-            findTopP4(topP4, antitopP4);
-            ///TT reweighting according to
-            ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
-            if(topP4.M()>1E-3 && antitopP4.M()>1E-3)
-            {
-                double topPt = topP4.Perp();
-                double antitopPt = antitopP4.Perp();
-                double weightTop = exp(0.0615-0.0005*topPt);
-                double weightAntitop= exp(0.0615-0.0005*antitopPt);
-                double weightTop_r1 = exp(0.156-0.00137*topPt);
-                double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
-                ptReWeight = sqrt(weightTop*weightAntitop);
-                ptReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
-            }
-        }
+        httEvent->setZPtReWeight(zPtReWeight);
+        httEvent->setZPtReWeightSUSY(zPtReWeightSusy);
 
-        httEvent->setPtReWeight(ptReWeight);
-        httEvent->setPtReWeightR1(ptReWeight_r1);
-        httEvent->setPtReWeightSUSY(ptReWeightSusy);
-
-        for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart)
+        ///TT reweighting according to
+        ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
+        TLorentzVector topP4, antitopP4;
+        double topPtReWeight = 1., topPtReWeight_r1 = 1.;
+        if( findTopP4(topP4, antitopP4) )
         {
-            int absPDGId = std::abs(GenPart_pdgId[iGenPart]);
-            if(absPDGId == 25 || absPDGId == 23 || absPDGId == 35 || absPDGId == 36)
-            {
-                std::vector<unsigned int> daughterIndexes;
-                if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-                int ntau = 0, nele = 0, nmu = 0;
-                for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
-                {
-                    int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-
-                    if(pdg_id == 11) nele++;
-                    else if(pdg_id == 13) nmu++;
-                    else if(pdg_id == 15){
-                        ntau++;
-                        unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-                        std::vector<unsigned int> tauDaughterIndexes;
-                        if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-                          std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-                                   <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-                                   <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-                        //get DM and then translate it on the basics DM
-                        int dm = genTauDecayMode(tauDaughterIndexes);
-                        switch ( dm )
-                        {
-                            case HTTAnalysis::tauDecayMuon :
-                              nmu++;
-                              break;
-                            case HTTAnalysis::tauDecaysElectron :
-                              nele++;
-                              break;
-                            default :
-                              break;
-                        }
-                    }
-                }
-                // determine H/Z decay mode
-                int hzDecay = 8;//other
-                if (ntau == 0)
-                {
-                    if(nele == 0 && nmu == 2) hzDecay = 7;
-                    else if(nele == 2 && nmu == 0) hzDecay = 6;
-                    else hzDecay = 8;
-                }
-                else if(ntau == 2) {
-                    if(nmu == 0 && nele == 0) hzDecay = 2;    
-                    else if(nmu == 0 && nele == 1) hzDecay = 1;    
-                    else if(nmu == 0 && nele == 2) hzDecay = 4;    
-                    else if(nmu == 1 && nele == 0) hzDecay = 0;    
-                    else if(nmu == 1 && nele == 1) hzDecay = 5;    
-                    else if(nmu == 2 && nele == 0) hzDecay = 3;    
-                }
-                httEvent->setDecayModeBoson(hzDecay);
-            }
-            else if(absPDGId == 24) {
-                std::vector<unsigned int> daughterIndexes;
-                if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-                int ntau = 0, nele = 0, nmu = 0, nquark = 0;
-                for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
-                {
-                    int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-                    if(pdg_id < 5 ) nquark++;
-                    else if(pdg_id == 11) nele++;
-                    else if(pdg_id == 13) nmu++;
-                    else if(pdg_id == 15) {
-                        ntau++;
-                        unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-                        std::vector<unsigned int> tauDaughterIndexes;
-                        if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-                          std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-                                   <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-                                   <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-                        //get DM and then translate it on the basics DM
-                        int dm = genTauDecayMode(tauDaughterIndexes);
-                        switch ( dm )
-                        {
-                            case HTTAnalysis::tauDecayMuon :
-                              nmu++;
-                              break;
-                            case HTTAnalysis::tauDecaysElectron :
-                              nele++;
-                              break;
-                        }
-                    }
-                }
-                // determine W decay mode
-                int wDecay = 6;//other
-                if(nquark == 2 && (nmu+nele+ntau)==0) wDecay = 0;
-                else if(nquark ==0 && ntau == 0) {
-                    if(nele == 0 && nmu == 1) wDecay = 1;
-                    else if(nele == 1 && nmu == 0) wDecay = 2;
-                    else wDecay = 6;
-                }
-                else if(nquark==0 && ntau == 1) {
-                    if(nmu == 0 && nele == 0) wDecay = 5;    
-                    if(nmu == 0 && nele == 1) wDecay = 4;    
-                    if(nmu == 1 && nele == 0) wDecay = 3;
-                    else wDecay = 6;
-                }
-                httEvent->setDecayModeBoson(10+wDecay);
-            }
-            else if(GenPart_pdgId[iGenPart]==15){
-                TLorentzVector p4;
-                p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-                                GenPart_eta[iGenPart],
-                                GenPart_phi[iGenPart],
-                                1.777);//should use pdg mass as masses below 10GeV are zeroed
-                //do not consider low momentum candidates??
-                if( !(p4.P()>10) ) continue;
-                //find direct daughters
-                std::vector<unsigned int> daughterIndexes;
-                if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-                //get DM and then translate it on the basics DM
-                int dm = genTauDecayMode(daughterIndexes);
-                switch ( dm )
-                {
-                    case HTTAnalysis::tauDecayMuon ://0
-                      httEvent->setDecayModeMinus(0);
-                      break;
-                    case HTTAnalysis::tauDecaysElectron ://1
-                      httEvent->setDecayModeMinus(1);
-                      break;
-                    default: //2
-                      httEvent->setDecayModeMinus(2);
-                      break;
-                }
-            }
-            if(GenPart_pdgId[iGenPart]==-15)
-            {
-                TLorentzVector p4;
-                p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-                                GenPart_eta[iGenPart],
-                                GenPart_phi[iGenPart],
-                                1.777);//should use pdg mass as masses below 10GeV are zeroed
-                //do not consider low momentum candidates??
-                if( !(p4.P()>10) ) continue;
-                //find direct daughters
-                std::vector<unsigned int> daughterIndexes;
-                if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-                //get DM and then translate it on the basics DM
-                int dm = genTauDecayMode(daughterIndexes);
-                switch ( dm )
-                {
-                    case HTTAnalysis::tauDecayMuon ://0
-                      httEvent->setDecayModePlus(0);
-                      break;
-                    case HTTAnalysis::tauDecaysElectron ://1
-                      httEvent->setDecayModePlus(1);
-                      break;
-                    default: //2
-                      httEvent->setDecayModePlus(2);
-                      break;
-                }
-            }      
+            double topPt = topP4.Perp();
+            double antitopPt = antitopP4.Perp();
+            double weightTop = exp(0.0615-0.0005*topPt);
+            double weightAntitop= exp(0.0615-0.0005*antitopPt);
+            double weightTop_r1 = exp(0.156-0.00137*topPt);
+            double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
+            topPtReWeight = sqrt(weightTop*weightAntitop);
+            topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
         }
+
+        httEvent->setTopPtReWeight(topPtReWeight);
+        httEvent->setTopPtReWeightR1(topPtReWeight_r1);
+
+
+        // for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart)
+        // {
+        //     int absPDGId = std::abs(GenPart_pdgId[iGenPart]);
+        //     if(absPDGId == 25 || absPDGId == 23 || absPDGId == 35 || absPDGId == 36)
+        //     {
+        //         std::vector<unsigned int> daughterIndexes;
+        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //         int ntau = 0, nele = 0, nmu = 0;
+        //         for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
+        //         {
+        //             int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
+
+        //             if(pdg_id == 11) nele++;
+        //             else if(pdg_id == 13) nmu++;
+        //             else if(pdg_id == 15){
+        //                 ntau++;
+        //                 unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
+        //                 std::vector<unsigned int> tauDaughterIndexes;
+        //                 if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
+        //                   std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
+        //                            <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
+        //                            <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
+        //                 //get DM and then translate it on the basics DM
+        //                 int dm = genTauDecayMode(tauDaughterIndexes);
+        //                 switch ( dm )
+        //                 {
+        //                     case HTTAnalysis::tauDecayMuon :
+        //                       nmu++;
+        //                       break;
+        //                     case HTTAnalysis::tauDecaysElectron :
+        //                       nele++;
+        //                       break;
+        //                     default :
+        //                       break;
+        //                 }
+        //             }
+        //         }
+        //         // determine H/Z decay mode
+        //         int hzDecay = 8;//other
+        //         if (ntau == 0)
+        //         {
+        //             if(nele == 0 && nmu == 2) hzDecay = 7;
+        //             else if(nele == 2 && nmu == 0) hzDecay = 6;
+        //             else hzDecay = 8;
+        //         }
+        //         else if(ntau == 2) {
+        //             if(nmu == 0 && nele == 0) hzDecay = 2;    
+        //             else if(nmu == 0 && nele == 1) hzDecay = 1;    
+        //             else if(nmu == 0 && nele == 2) hzDecay = 4;    
+        //             else if(nmu == 1 && nele == 0) hzDecay = 0;    
+        //             else if(nmu == 1 && nele == 1) hzDecay = 5;    
+        //             else if(nmu == 2 && nele == 0) hzDecay = 3;    
+        //         }
+        //         httEvent->setDecayModeBoson(hzDecay);
+        //     }
+        //     else if(absPDGId == 24) {
+        //         std::vector<unsigned int> daughterIndexes;
+        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //         int ntau = 0, nele = 0, nmu = 0, nquark = 0;
+        //         for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
+        //         {
+        //             int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
+        //             if(pdg_id < 5 ) nquark++;
+        //             else if(pdg_id == 11) nele++;
+        //             else if(pdg_id == 13) nmu++;
+        //             else if(pdg_id == 15) {
+        //                 ntau++;
+        //                 unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
+        //                 std::vector<unsigned int> tauDaughterIndexes;
+        //                 if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
+        //                   std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
+        //                            <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
+        //                            <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
+        //                 //get DM and then translate it on the basics DM
+        //                 int dm = genTauDecayMode(tauDaughterIndexes);
+        //                 switch ( dm )
+        //                 {
+        //                     case HTTAnalysis::tauDecayMuon :
+        //                       nmu++;
+        //                       break;
+        //                     case HTTAnalysis::tauDecaysElectron :
+        //                       nele++;
+        //                       break;
+        //                 }
+        //             }
+        //         }
+        //         // determine W decay mode
+        //         int wDecay = 6;//other
+        //         if(nquark == 2 && (nmu+nele+ntau)==0) wDecay = 0;
+        //         else if(nquark ==0 && ntau == 0) {
+        //             if(nele == 0 && nmu == 1) wDecay = 1;
+        //             else if(nele == 1 && nmu == 0) wDecay = 2;
+        //             else wDecay = 6;
+        //         }
+        //         else if(nquark==0 && ntau == 1) {
+        //             if(nmu == 0 && nele == 0) wDecay = 5;    
+        //             if(nmu == 0 && nele == 1) wDecay = 4;    
+        //             if(nmu == 1 && nele == 0) wDecay = 3;
+        //             else wDecay = 6;
+        //         }
+        //         httEvent->setDecayModeBoson(10+wDecay);
+        //     }
+        //     else if(GenPart_pdgId[iGenPart]==15){
+        //         TLorentzVector p4;
+        //         p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
+        //                         GenPart_eta[iGenPart],
+        //                         GenPart_phi[iGenPart],
+        //                         1.777);//should use pdg mass as masses below 10GeV are zeroed
+        //         //do not consider low momentum candidates??
+        //         if( !(p4.P()>10) ) continue;
+        //         //find direct daughters
+        //         std::vector<unsigned int> daughterIndexes;
+        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //         //get DM and then translate it on the basics DM
+        //         int dm = genTauDecayMode(daughterIndexes);
+        //         switch ( dm )
+        //         {
+        //             case HTTAnalysis::tauDecayMuon ://0
+        //               httEvent->setDecayModeMinus(0);
+        //               break;
+        //             case HTTAnalysis::tauDecaysElectron ://1
+        //               httEvent->setDecayModeMinus(1);
+        //               break;
+        //             default: //2
+        //               httEvent->setDecayModeMinus(2);
+        //               break;
+        //         }
+        //     }
+        //     if(GenPart_pdgId[iGenPart]==-15)
+        //     {
+        //         TLorentzVector p4;
+        //         p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
+        //                         GenPart_eta[iGenPart],
+        //                         GenPart_phi[iGenPart],
+        //                         1.777);//should use pdg mass as masses below 10GeV are zeroed
+        //         //do not consider low momentum candidates??
+        //         if( !(p4.P()>10) ) continue;
+        //         //find direct daughters
+        //         std::vector<unsigned int> daughterIndexes;
+        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
+        //         //get DM and then translate it on the basics DM
+        //         int dm = genTauDecayMode(daughterIndexes);
+        //         switch ( dm )
+        //         {
+        //             case HTTAnalysis::tauDecayMuon ://0
+        //               httEvent->setDecayModePlus(0);
+        //               break;
+        //             case HTTAnalysis::tauDecaysElectron ://1
+        //               httEvent->setDecayModePlus(1);
+        //               break;
+        //             default: //2
+        //               httEvent->setDecayModePlus(2);
+        //               break;
+        //         }
+        //     }      
+        // }
     }
 
     std::string fileName(fChain->GetCurrentFile()->GetName());

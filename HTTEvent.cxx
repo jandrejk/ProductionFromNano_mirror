@@ -40,8 +40,12 @@ void HTTEvent::clear(){
   puWeight = 1.;
 
   mcWeight = 1.0;
-  ptReWeight = 1.0;
-  ptReWeightSUSY = 1.0;
+
+  topPtReWeight =1.0;
+  topPtReWeightR1 =1.0;
+  zPtReWeight =1.0;
+  zPtReWeightSUSY =1.0;
+
   lheHt = 1.0;
   lheNOutPartons = 0;
   aMCatNLOweight = 1.0;

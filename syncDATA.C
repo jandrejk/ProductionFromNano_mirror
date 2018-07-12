@@ -78,9 +78,9 @@ void syncDATA::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle
     }
 
     stitchedWeight=1.;
-    topWeight=ev->getPtReWeight();
-    topWeight_run1=ev->getPtReWeightR1();
-    ZWeight=ev->getPtReWeightSUSY();
+    topWeight=ev->getTopPtReWeight();
+    topWeight_run1=ev->getTopPtReWeightR1();
+    ZWeight=ev->getZPtReWeightSUSY();
     zpt_weight_nom=DEF;
     zpt_weight_esup=DEF;
     zpt_weight_esdown=DEF;
@@ -694,8 +694,8 @@ int syncDATA::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
     if(p4.Pt() > 20 && fabs(p4.Eta() ) < 4.7 ){
       float tmpDR = calcDR( selObj.Eta(), selObj.Phi(), p4.Eta(), p4.Phi() );
       if( tmpDR < minDR ){
-	minDR = tmpDR;
-	whichjet=i;
+    minDR = tmpDR;
+    whichjet=i;
       }
     }
   }

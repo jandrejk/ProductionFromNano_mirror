@@ -56,11 +56,13 @@ class HTTEvent{
 
   void setMCWeight(float x){mcWeight = x;}
 
-  void setPtReWeight(float x){ptReWeight = x;}
+  void setTopPtReWeight(float x){topPtReWeight = x;}
 
-  void setPtReWeightR1(float x){ptReWeightR1 = x;}
+  void setTopPtReWeightR1(float x){topPtReWeightR1 = x;}
 
-  void setPtReWeightSUSY(float x){ptReWeightSUSY = x;}
+  void setZPtReWeight(float x){zPtReWeight = x;}
+
+  void setZPtReWeightSUSY(float x){zPtReWeightSUSY = x;}
 
   void setLHE_Ht(float x){lheHt = x;}
 
@@ -120,11 +122,13 @@ class HTTEvent{
 
   float getMCatNLOWeight() const {return aMCatNLOweight;}
 
-  float getPtReWeight() const {return ptReWeight;}
+  float getTopPtReWeight() const {return topPtReWeight;}
 
-  float getPtReWeightR1() const {return ptReWeightR1;}
+  float getTopPtReWeightR1() const {return topPtReWeightR1;}
 
-  float getPtReWeightSUSY() const {return ptReWeightSUSY;}
+  float getZPtReWeightS() const {return zPtReWeight;}
+
+  float getZPtReWeightSUSY() const {return zPtReWeightSUSY;}
 
   float getMCWeight() const {return mcWeight;}
 
@@ -172,7 +176,8 @@ class HTTEvent{
   float mcWeight;
 
   ///Weight used to modify the pt shape.
-  float ptReWeight, ptReWeightR1, ptReWeightSUSY;
+  float topPtReWeight, topPtReWeightR1;
+  float zPtReWeight,   zPtReWeightSUSY;
 
   ///Ht value from LHE record.
   float lheHt;
