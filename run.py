@@ -133,7 +133,7 @@ class SteerNanoProduction():
                 while threading.active_count()>self.nthreads:  #pause until thread slots become available
                     pass
                 t.start()
-                sleep(5)
+                if not self.event: sleep(5)
             # Run on batch system
             else:
                 runscript = templ.substitute(rundir = rundir,

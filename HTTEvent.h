@@ -409,4 +409,76 @@ class HTTPair
 
 };
 
+class HTTJet
+{
+    public:
+        HTTJet(){clear();}
+        ~HTTJet(){}
+
+        void clear();
+
+        void setP4(const TLorentzVector &aP4) { p4 = aP4;}
+        void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
+        void setJecUncertSourceValue(unsigned int uncert, double value, bool up);
+        void setUncertShift( JecUncertEnum uncert, bool up ){ currentUncert = uncert; currentShift = up; }
+
+        const TLorentzVector & getP4();
+        double getMaxPt();
+        Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
+
+        double getJecUncertValue(unsigned int index, bool up){ return up ? jecUncertSourceValuesUp[index] : jecUncertSourceValuesDown[index]; };
+
+        bool isBtagJet(){ return getP4().Pt() > 20 && std::abs(getP4().Eta()) < 2.4 && getProperty(PropertyEnum::btagCSVV2)>0.8484; }
+
+    private:
+
+        const double DEF = -10.;
+
+        JecUncertEnum currentUncert;
+        bool currentShift;
+
+        TLorentzVector p4;
+        TLorentzVector currentP4;
+
+        std::vector<Double_t> properties;
+
+        std::vector<double> jecUncertSourceValuesUp;
+        std::vector<double> jecUncertSourceValuesDown;
+};
+
+class HTTJetCollection
+{
+    public:
+        HTTJetCollection(){clear();}
+        ~HTTJetCollection(){}
+
+        void clear();
+
+        void addJet(HTTJet newJet);
+        void setCurrentUncertShift( JecUncertEnum uncert, bool up );
+
+        HTTJet getJet(unsigned int index){ HTTJet dummy; return index < jetCollection.size() ? jetCollection[index] : dummy; }
+        TLorentzVector getJetP4(unsigned int index){ return jetCollection[index].getP4(); }
+        int getNJets(double pt = 20);
+        int getNBtag();
+        int getNJetInGap(double pt = 20);
+
+        const TLorentzVector & getDiJetP4(){return dijet;}
+
+    private:
+
+        const double DEF = -10.;
+
+        JecUncertEnum currentUncert;
+        bool currentShift;
+
+        std::vector<HTTJet> jetCollection;
+        std::vector<HTTJet> jetCurrentCollection;
+
+        TLorentzVector dijet;
+        void setDijetP4();
+        void fillCurrentCollection();
+
+};
+
 #endif

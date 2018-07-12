@@ -75,7 +75,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 
     ///Instantiate JEC uncertainty sources
     ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-    if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");//need to data file to process //only to when needed... TODO: check automatically
+    if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
 
     firstWarningOccurence_=true;
 }
@@ -319,34 +319,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     ////////////////////////////////////////////////////////////
     ///JEC uncertainty sources
 
-    jecSources_.push_back("AbsoluteStat");
-    jecSources_.push_back("AbsoluteScale");
-    jecSources_.push_back("AbsoluteMPFBias");
-    jecSources_.push_back("Fragmentation");
-    jecSources_.push_back("SinglePionECAL");
-    jecSources_.push_back("SinglePionHCAL");
-    jecSources_.push_back("FlavorQCD");
-    jecSources_.push_back("TimePtEta");
-    jecSources_.push_back("RelativeJEREC1");
-    jecSources_.push_back("RelativeJEREC2");
-    jecSources_.push_back("RelativeJERHF");
-    jecSources_.push_back("RelativePtBB");
-    jecSources_.push_back("RelativePtEC1");
-    jecSources_.push_back("RelativePtEC2");
-    jecSources_.push_back("RelativePtHF");
-    jecSources_.push_back("RelativeBal");
-    jecSources_.push_back("RelativeFSR");
-    jecSources_.push_back("RelativeStatFSR");
-    jecSources_.push_back("RelativeStatEC");
-    jecSources_.push_back("RelativeStatHF");
-    jecSources_.push_back("PileUpDataMC");
-    jecSources_.push_back("PileUpPtRef");
-    jecSources_.push_back("PileUpPtBB");
-    jecSources_.push_back("PileUpPtEC1");
-    jecSources_.push_back("PileUpPtEC2");
-    jecSources_.push_back("PileUpPtHF");
-    jecSources_.push_back("Total");
-
+    for(auto jec : JecUncertNames)
+        jecSources_.push_back(jec);
 
     return;
 }
@@ -785,6 +759,40 @@ void HTauTauTreeFromNanoBase::fillEvent()
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
+{
+
+    for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++)
+    {
+        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, jecSources_[isrc]);
+        JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
+        jecUncerts.push_back(unc);
+        // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
+    }
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name, bool up)
+{
+    if(b_nGenPart==nullptr) return 0;//MB: do not check it for data
+    double result = 0;
+    double jetpt = Jet_pt[index];
+    double jeteta =  Jet_eta[index];
+    for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++) 
+    {
+        if(jecSources_[isrc]==name)
+        {
+            JetCorrectionUncertainty *unc = jecUncerts[isrc];
+            unc->setJetPt(jetpt);
+            unc->setJetEta(jeteta);
+            result = unc->getUncertainty(up);
+            break;
+        }
+    }
+    return result;
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
 {
 
@@ -794,7 +802,7 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
                      Jet_phi[index],
                      Jet_mass[index]);
 
-    bool passSelection = aP4.Pt()>20 && std::abs(aP4.Eta())<4.7
+    bool passSelection = std::abs(aP4.Eta())<4.7
                          && Jet_jetId[index]>=1;//it means at least loose
    
     if(bestPairIndex<9999)
@@ -813,14 +821,17 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
 void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 {
 
+    debugWayPoint("[fillJets] ------ Begin -------");
     httJetCollection.clear();
 
     for(unsigned int iJet=0;iJet<nJet;++iJet)
     {
 
         if(!jetSelection(iJet, bestPairIndex)) continue;
+        debugWayPoint("[fillJets] passing jet selection",{(double)Jet_pt[iJet], (double)Jet_eta[iJet]},{},{"pt","eta"});
 
-        HTTParticle aJet;
+
+        HTTJet aJet;
 
         TLorentzVector p4;
         p4.SetPtEtaPhiM(Jet_pt[iJet],
@@ -828,24 +839,26 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
 
+
+        ///JEC uncertaintes
+        // Up
+        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
+            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,true), true  );
+        // Down
+        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
+            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,false), false  );
+
+        aJet.setP4(p4);
+        if(aJet.getMaxPt() < 20 ) continue;
+        debugWayPoint("[fillJets] max pt shift larger than 20",{(double)aJet.getP4().Pt(), (double)aJet.getMaxPt()},{},{"pt","MaxPt"});
+
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
-        ///JEC uncertaintes
-        // Up
-        for(unsigned int iUnc=0; iUnc<jecUncertList.size(); ++iUnc){
-          aProperties.push_back(getJecUnc(iJet, jecUncertList[iUnc] ,true));
-        }
-        // Down
-        for(unsigned int iUnc=0; iUnc<jecUncertList.size(); ++iUnc){
-          aProperties.push_back(getJecUnc(iJet, jecUncertList[iUnc] ,false));
-        }
 
         aJet.setProperties(aProperties);
-
-        aJet.setP4(p4);
-        aJet.setProperties(aProperties);
-        httJetCollection.push_back(aJet);
+        httJetCollection.addJet(aJet);
+        
     }
 }
 /////////////////////////////////////////////////
@@ -1254,6 +1267,11 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
 
     float dRTmp = 1.;
     float matchings[5] = {15.,15.,15.,15.,15.};
+    debugWayPoint("[getGenMatch] ------ Begin -------");
+    debugWayPoint("[getGenMatch] particle with",
+                  {(double)selObj.Pt(),(double)selObj.Eta(),(double)selObj.Phi()},
+                  {},
+                  {"pt","eta","phi"});
 
     for(unsigned int iGen=0;iGen<nGenPart;++iGen)
     {
@@ -1271,9 +1289,11 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             {
                 if( dRTmp < matchings[0] && GenPart_isPrompt){
                     matchings[0] = dRTmp;
+                    debugWayPoint("[getGenMatch] is prompt electron with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
                 if( dRTmp < matchings[2] && GenPart_isDirectPromptTauDecayProduct){
                     matchings[2] = dRTmp;
+                    debugWayPoint("[getGenMatch] is direct prompt electron with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
             }
 
@@ -1282,9 +1302,11 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             {
                 if( dRTmp < matchings[1] && GenPart_isPrompt){
                     matchings[1] = dRTmp;
+                    debugWayPoint("[getGenMatch] is prompt muon with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
                 if( dRTmp < matchings[3] && GenPart_isDirectPromptTauDecayProduct){
                     matchings[3] = dRTmp;
+                    debugWayPoint("[getGenMatch] is direct prompt muon with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
             }
 
@@ -1332,6 +1354,7 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
                         dRTmp = SyncDATA->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
                         if( dRTmp < matchings[4] ){
                             matchings[4] = dRTmp;
+                            debugWayPoint("[getGenMatch] genuine tau after radiation",{(double)dRTmp},{},{"dR"});
                         }
                     }
                 }
@@ -1349,10 +1372,14 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             whichObj = i+1;
         }
     }
-
-    if(whichObj < 6 && smallestObj < 0.2) return whichObj;
-
-    else return 6;
+    
+    if(whichObj < 6 && smallestObj < 0.2)
+    {
+        debugWayPoint("[getGenMatch] tightest match",{(double)smallestObj},{(int)whichObj},{"dR","=> gen_match"});
+        return whichObj;
+    }
+    debugWayPoint("[getGenMatch] no match => gen_match = 6");
+    return 6;
 
 }
 
@@ -1530,40 +1557,6 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
-{
-
-    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
-    {
-        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, jecSources_[isrc]);
-        JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
-        jecUncerts.push_back(unc);
-        // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
-    }
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name, bool up)
-{
-    if(b_nGenPart==nullptr) return 0;//MB: do not check it for data
-    double result = 0;
-    double jetpt = Jet_pt[index];
-    double jeteta =  Jet_eta[index];
-    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++) 
-    {
-        if(jecSources_[isrc]==name)
-        {
-            JetCorrectionUncertainty *unc = jecUncerts[isrc];
-            unc->setJetPt(jetpt);
-            unc->setJetEta(jeteta);
-            result = unc->getUncertainty(up);
-            break;
-        }
-    }
-    return result;
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
 {
     ofstream outputFile("JecUncEnum.h");
@@ -1573,7 +1566,7 @@ void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &j
     {
         outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
     }
-    outputFile<<"NONE"<<" = "<<nsrc<<std::endl;
+    outputFile<<"NONE"<<" = "<<jecSources_.size()<<std::endl;
     outputFile<<"};"<<std::endl;
     outputFile.close();
 }
@@ -2025,7 +2018,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections()
       return;
     TVector2 theUncorrMEt;
     float corrMEtPx, corrMEtPy;
-    int nJets = httJetCollection.size();
+    int nJets = httJetCollection.getNJets(20);
     if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
       
     TLorentzVector genBosonP4 = httEvent->getGenBosonP4();

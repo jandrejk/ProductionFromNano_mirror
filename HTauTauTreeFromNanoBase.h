@@ -117,7 +117,7 @@ public :
   bool findTopP4(TLorentzVector &topP4, TLorentzVector &antiTopP4);
 
   std::vector<HTTPair> httPairCollection, httPairs_;
-  std::vector<HTTParticle> httJetCollection;
+  HTTJetCollection         httJetCollection;
   std::vector<HTTParticle> httLeptonCollection;
   std::vector<HTTParticle> httGenLeptonCollection;
   std::vector<TriggerData> triggerBits_;

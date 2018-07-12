@@ -338,13 +338,13 @@ class syncDATA
   ~syncDATA(){}  
 
   void setDefault();
-  void fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTTParticle> leptons, HTTPair *pair);
+  void fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair);
   void initTree(TTree *t, bool isMC_, bool isSync_);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
 
-  int getGenMatch_jetId(TLorentzVector selObj, std::vector<HTTParticle> jets);
+  int getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets);
 
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 

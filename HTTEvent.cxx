@@ -78,8 +78,8 @@ void HTTEvent::clear(){
   metFilterDecision = 0;
   selectionWord.ResetAllBits();
 }
-////////////////////////////////////////////////
-////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void HTTParticle::clear(){
 
   p4*=0;
@@ -151,8 +151,8 @@ const TLorentzVector & HTTParticle::getShiftedP4(float scale, bool preserveMass)
     p4Cache.SetE(energy);
     return p4Cache;
 }
-////////////////////////////////////////////////
-////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void HTTPair::clear()
 {
 
@@ -271,5 +271,162 @@ float HTTPair::getPTTOT(HTTAnalysis::sysEffects defaultType) const
 
   return (vmet + leg1.getP4(type) + leg2.getP4(type) ).Pt();
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HTTJet::clear()
+{
+    currentUncert = JecUncertEnum::NONE;
+    currentShift = true;
+
+    p4.SetPtEtaPhiM(DEF,DEF,DEF,DEF);
+    jecUncertSourceValuesUp.clear();
+    jecUncertSourceValuesUp.reserve( (unsigned int)JecUncertEnum::NONE );
+
+    jecUncertSourceValuesDown.clear();
+    jecUncertSourceValuesDown.reserve( (unsigned int)JecUncertEnum::NONE );
+
+}
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
+const TLorentzVector & HTTJet::getP4()
+{
+    double scale = 0.;
+    double shift = 1.;
+
+    currentP4 = p4;
+    if(currentUncert == JecUncertEnum::NONE) return currentP4;
+
+    if(currentShift)
+    {
+        scale = jecUncertSourceValuesUp[(unsigned int)currentUncert];
+        shift = 1.;
+
+    }else
+    {
+        scale = jecUncertSourceValuesDown[(unsigned int)currentUncert];
+        shift = -1.;
+    }
+
+    currentP4.SetPtEtaPhiM( p4.Pt()*(1 + scale*shift),
+                            p4.Eta(),
+                            p4.Phi(),
+                            p4.M()*(1 + scale*shift)
+                          );
+    return currentP4;
+
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+double HTTJet::getMaxPt()
+{
+    double maxup = *std::max_element( jecUncertSourceValuesUp.begin(),jecUncertSourceValuesUp.end()  );
+    double maxdown = *std::max_element( jecUncertSourceValuesDown.begin(),jecUncertSourceValuesDown.end()  ) ;
+
+    return p4.Pt()*( 1 + std::max(maxup, maxdown*(-1) ) );
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJet::setJecUncertSourceValue(unsigned int uncert, double value, bool up)
+{
+    if(up) jecUncertSourceValuesUp[uncert] = value;
+    else   jecUncertSourceValuesDown[uncert] = value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void HTTJetCollection::clear()
+{
+    currentUncert = JecUncertEnum::NONE;
+    currentShift = true;
+
+    dijet.SetPtEtaPhiM(DEF,DEF,DEF,DEF);
+    jetCollection.clear();
+    jetCurrentCollection.clear();
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJetCollection::setCurrentUncertShift(JecUncertEnum uncert, bool up)
+{
+    //Make sure that everything gets shifted here
+    currentUncert = uncert;
+    currentShift = up;
+    fillCurrentCollection();
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJetCollection::addJet(HTTJet newJet)
+{
+    jetCollection.push_back(newJet);
+    if(newJet.getP4().Pt() > 20 )
+        jetCurrentCollection.push_back(newJet);
+
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJetCollection::fillCurrentCollection()
+{
+    jetCurrentCollection.clear();
+    for(auto jet : jetCollection)
+    {
+        jet.setUncertShift(currentUncert, currentShift);
+        if(jet.getP4().Pt() > 20)
+            jetCurrentCollection.push_back(jet);
+    }
+    if(jetCurrentCollection.size() > 1)
+        setDijetP4();
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJetCollection::setDijetP4()
+{
+    dijet = jetCurrentCollection.at(0).getP4()+jetCurrentCollection.at(1).getP4();
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+int HTTJetCollection::getNJets(double pt)
+{
+    int njets = 0;
+    for(auto &jet : jetCurrentCollection)
+        if(jet.getP4().Pt() > pt )njets++;
+    
+    return njets;
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+int HTTJetCollection::getNJetInGap(double pt)
+{
+    int njetingap = 0;
+    if(jetCurrentCollection.size() < 2) return 0;
+
+    double j1_eta =  jetCurrentCollection.at(0).getP4().Eta();
+    double j2_eta =  jetCurrentCollection.at(1).getP4().Eta();
+
+    for (unsigned ij=2; ij<jetCurrentCollection.size(); ij++)
+    {
+        TLorentzVector addJet = jetCurrentCollection.at(ij).getP4();
+
+        if ( addJet.Pt() < pt ) continue;
+
+        float aj_eta=addJet.Eta();
+
+        if( (aj_eta<j1_eta && aj_eta>j2_eta)
+             || (aj_eta>j1_eta && aj_eta<j2_eta)
+        )  njetingap++;
+
+    }
+    return njetingap;
+
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+int HTTJetCollection::getNBtag()
+{
+    int nbtags = 0;
+    for(auto &jet : jetCurrentCollection)
+        if( jet.isBtagJet() )nbtags++;
+
+    return nbtags;
+}
+

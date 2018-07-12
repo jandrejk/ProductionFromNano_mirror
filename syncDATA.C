@@ -5,7 +5,7 @@ const float DEF = -10.;
   const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
   const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 
-void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTTParticle> leptons, HTTPair *pair){
+void syncDATA::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
 
     tmp_leg1 = pair->getLeg1();
@@ -303,80 +303,65 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
 
     if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);
     //////////////////////////////////////////////////////////////////
-    nbtag=0;
-    njets=0; 
+
     int ind_b1=-1;
     int ind_b2=-1;
-    for (unsigned ij=0; ij<jets.size(); ij++){ 
-        if (jets.at(ij).getP4().Pt()>30) njets++; 
-        if ( std::abs(jets.at(ij).getP4().Eta())<2.4 && jets.at(ij).getProperty(PropertyEnum::btagCSVV2)>0.8484 ){
-            nbtag++; 
-            if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
-            if ( ind_b1<0 )              ind_b1=ij;
-        }
-        if (evt_syncro==1279980){ std::cout << ij << " " << ind_b1 << " " << jets.at(ij).getProperty(PropertyEnum::btagCSVV2) << " " << jets.at(ij).getP4().Pt() << " " << jets.at(ij).getP4().Eta()  << " " <<std::endl; }
+    for (unsigned ij=0; ij<(unsigned int)jets.getNJets(20); ij++){
+        //Not affected by jec uncerts right now
+        if( jets.getJet(ij).isBtagJet() )
+        if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
+        if ( ind_b1<0 )              ind_b1=ij;
     }
     njetsUp=njets;
     njetsDown=njets;
-    njetspt20=jets.size();
-    TLorentzVector j1;
-    TLorentzVector j2;
 
-    if ( jets.size()>=1 )
+    nbtag= jets.getNBtag();
+    njets= jets.getNJets(30);
+    njetspt20=jets.getNJets(20);
+    njetingap=jets.getNJetInGap(30);
+    njetingap20=jets.getNJetInGap(20);
+
+
+    if ( njetspt20 >=1 )
     {
-        jpt_1=jets.at(0).getP4().Pt();
+        jpt_1=jets.getJetP4(0).Pt();
+        jeta_1=jets.getJetP4(0).Eta();
+        jphi_1=jets.getJetP4(0).Phi();
+        jm_1=jets.getJetP4(0).M();
+        jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
+        jmva_1=jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
+        jcsv_1=jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
+        //    gen_match_jetId_1=jets.getJet(0).getProperty(PropertyEnum::partonFlavour);
+        genJet_match_1=0;
         jptUp_1=jpt_1;
         jptDown_1=jpt_1;
-        jeta_1=jets.at(0).getP4().Eta();
-        jphi_1=jets.at(0).getP4().Phi();
-        jm_1=jets.at(0).getP4().M();
-        jrawf_1=jets.at(0).getProperty(PropertyEnum::rawFactor);
-        jmva_1=jets.at(0).getProperty(PropertyEnum::btagCMVA);
-        jcsv_1=jets.at(0).getProperty(PropertyEnum::btagCSVV2);
-        //    gen_match_jetId_1=jets.at(0).getProperty(PropertyEnum::partonFlavour);
-        genJet_match_1=0;
-        j1=jets.at(0).getP4();
+
     }
-    if ( jets.size()>=2 )
+    if ( njetspt20 >=2 )
     {
-        jpt_2=jets.at(1).getP4().Pt();
-        jptUp_2=jpt_2;
-        jptDown_2=jpt_2;
-        jeta_2=jets.at(1).getP4().Eta();
-        jphi_2=jets.at(1).getP4().Phi();
-        jm_2=jets.at(1).getP4().M();
-        jrawf_2=jets.at(1).getProperty(PropertyEnum::rawFactor);
-        jmva_2=jets.at(1).getProperty(PropertyEnum::btagCMVA);
-        jcsv_2=jets.at(1).getProperty(PropertyEnum::btagCSVV2);
+        jpt_2=jets.getJetP4(1).Pt();
+        jeta_2=jets.getJetP4(1).Eta();
+        jphi_2=jets.getJetP4(1).Phi();
+        jm_2=jets.getJetP4(1).M();
+        jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
+        jmva_2=jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
+        jcsv_2=jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
         //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
         genJet_match_2=0;
+        jptUp_2=jpt_2;
+        jptDown_2=jpt_2;
+
         jeta1eta2=jeta_1*jeta_2;
         lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
 
-        j2=jets.at(1).getP4();
-        TLorentzVector jj=j1+j2;
 
-        mjj=jj.M();
-        dijetpt=jj.Pt();
-        dijetphi=jj.Phi();
+        mjj=jets.getDiJetP4().M();
+        dijetpt=jets.getDiJetP4().Pt();
+        dijetphi=jets.getDiJetP4().Phi();
         
-        jdeta=std::abs( j1.Eta()-j2.Eta() );
-        jdphi=j1.DeltaPhi(j2);
+        jdeta=std::abs( jets.getJetP4(0).Eta()-jets.getJetP4(1).Eta() );
+        jdphi=jets.getJetP4(0).DeltaPhi(jets.getJetP4(1));
 
-        njetingap=0;
-        njetingap20=0;
-
-        for (unsigned ij=2; ij<jets.size(); ij++)
-        {
-            float aj_eta=jets.at(ij).getP4().Eta();
-            //      if ( ( aj_eta<j1.Eta() && aj_eta>j2.Eta() ) || ( aj_eta>j1.Eta() && aj_eta<j2.Eta() ) ) ){
-
-            if ( ( aj_eta<j1.Eta() && aj_eta>j2.Eta() ) || ( aj_eta>j1.Eta() && aj_eta<j2.Eta() ) )
-            {
-            	  njetingap20++;
-            	  if ( jets.at(ij).getP4().Pt()>30 ) njetingap++;
-            }
-        }
     }
     mjjUp=mjj;
     mjjDown=mjj;
@@ -384,21 +369,21 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
     jdetaDown=jdeta;
 
     if (ind_b1>=0){
-        bpt_1=jets.at(ind_b1).getP4().Pt();
-        beta_1=jets.at(ind_b1).getP4().Eta();
-        bphi_1=jets.at(ind_b1).getP4().Phi();
-        brawf_1=jets.at(ind_b1).getProperty(PropertyEnum::rawFactor);
-        bmva_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCMVA);
-        bcsv_1=jets.at(ind_b1).getProperty(PropertyEnum::btagCSVV2);
+        bpt_1=jets.getJetP4(0).Pt();
+        beta_1=jets.getJetP4(0).Eta();
+        bphi_1=jets.getJetP4(0).Phi();
+        brawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
+        bmva_1=jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
+        bcsv_1=jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
     }
 
     if (ind_b2>=0){
-        bpt_2=jets.at(ind_b2).getP4().Pt();
-        beta_2=jets.at(ind_b2).getP4().Eta();
-        bphi_2=jets.at(ind_b2).getP4().Phi();
-        brawf_2=jets.at(ind_b2).getProperty(PropertyEnum::rawFactor);
-        bmva_2=jets.at(ind_b2).getProperty(PropertyEnum::btagCMVA);
-        bcsv_2=jets.at(ind_b2).getProperty(PropertyEnum::btagCSVV2);
+        bpt_2=jets.getJetP4(1).Pt();
+        beta_2=jets.getJetP4(1).Eta();
+        bphi_2=jets.getJetP4(1).Phi();
+        brawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
+        bmva_2=jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
+        bcsv_2=jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
     }
 
     //////////////////////////////////////////////////////////////////
@@ -467,7 +452,7 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
     }
     pzetavis =  (leg1P4.Px() + leg2P4.Px())*zetaX + (leg1P4.Py() + leg2P4.Py())*zetaY;
     pzetamiss = met_ex*zetaX + met_ey*zetaY;
-    dzeta = this->pzetamiss + (pzetavis - 1.85 * pzetavis);
+    dzeta = pzetamiss + (pzetavis - 1.85 * pzetavis);
     //////////////////////////////////////////////////////////////////
     pt_tt=pair->getPTTOT();
     pt_vis=pair->getPTVis();
@@ -616,8 +601,8 @@ void syncDATA::fill(HTTEvent *ev, std::vector<HTTParticle> jets, std::vector<HTT
     vector<TLorentzVector> objs;
     objs.push_back(leg1P4);
     objs.push_back(leg2P4);
-    if ( njetspt20>0 ) objs.push_back(j1);
-    if ( njetspt20>1 ) objs.push_back(j2);
+    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).getP4());
+    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).getP4());
     sphericity=calcSphericity(objs);
 
 
@@ -700,12 +685,12 @@ double syncDATA::calcSphericityFromMatrix(TMatrixD M) {
   return spher;
 }
 
-int syncDATA::getGenMatch_jetId(TLorentzVector selObj, std::vector<HTTParticle> jets){
+int syncDATA::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
   float minDR=1;
   int whichjet=0;
 
-  for (unsigned i=0; i<jets.size(); i++){
-    TLorentzVector p4=jets.at(i).getP4();
+  for (unsigned i=0; i<(unsigned int)jets.getNJets(20); i++){
+    TLorentzVector p4=jets.getJet(i).getP4();
     if(p4.Pt() > 20 && fabs(p4.Eta() ) < 4.7 ){
       float tmpDR = calcDR( selObj.Eta(), selObj.Phi(), p4.Eta(), p4.Phi() );
       if( tmpDR < minDR ){
@@ -715,7 +700,7 @@ int syncDATA::getGenMatch_jetId(TLorentzVector selObj, std::vector<HTTParticle> 
     }
   }
 
-  if( minDR < 0.5 ) return jets.at(whichjet).getProperty(PropertyEnum::partonFlavour);
+  if( minDR < 0.5 ) return jets.getJet(whichjet).getProperty(PropertyEnum::partonFlavour);
   return -99;
 }
 
@@ -1106,6 +1091,7 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
     isMC=isMC_;
     isSync=isSync_;
 
+
     t->Branch("fileEntry", &fileEntry);
     t->Branch("entry", &entry);
     t->Branch("run", &run_syncro);
@@ -1368,6 +1354,8 @@ void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
 
     t->Branch("m_sv", &m_sv);
     t->Branch("pt_sv", &pt_sv);
+
+    // vec_njets.reserve( (unsigned int)JecUncertEnum::NONE );
 
     t->Branch("mjj", &mjj);
     t->Branch("mjjUp", &mjjUp);
