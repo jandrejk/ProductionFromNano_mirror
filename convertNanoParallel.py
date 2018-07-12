@@ -45,21 +45,14 @@ aFile =            configBall["file"]
 channel =          str(configBall["channel"])
 systShift =        str(configBall["systShift"])
 JSONfile =         str(configBall["certJson"])
-doSvFit =          int(configBall["svfit"])
-applyRecoil =      int(configBall["recoil"])
 nevents =          int(configBall["nevents"])
 check_event =      int(configBall["check_event"])
-isMC =             0 if configBall["format"] == "data" else 1
+
 
 if not "root://" in aFile: aFile = "file://" + aFile
 print sys.argv
 
 print 'Channel: ',channel
-
-if doSvFit :
-    print "Run with SVFit computation"
-if applyRecoil :
-    print "Apply MET recoil corrections"
 
 print "Using file: ",aFile
 aROOTFile = TFile.Open(aFile)
@@ -114,7 +107,7 @@ vlumis = getLumisToRun(JSONfile)
 HTTParticle.corrType = getattr(HTTAnalysis, systShift )
 
 prefix = "-".join([channel, systShift])
-Ntuplizer(  aTree,doSvFit,applyRecoil, isMC, vlumis, prefix).Loop(nevents,check_event)
+Ntuplizer(  aTree, vlumis, prefix).Loop(nevents,check_event)
 
 
 # for f in glob('*'):

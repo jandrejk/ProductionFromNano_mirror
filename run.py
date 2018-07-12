@@ -185,8 +185,8 @@ class SteerNanoProduction():
 
     def prepareRunDir(self, rundir):
 
-        headerfiles = glob("*.h")
-        Cfiles = glob("*.cxx") + glob("*.C") + glob("*.cc")
+        headerfiles = glob("*.h*")
+        Cfiles = glob("*.c*") + glob("*.C")
         addFiles =['convertNanoParallel.py']
 
         shutil.copytree("utils", "/".join([rundir,"utils"]))
@@ -203,17 +203,21 @@ class SteerNanoProduction():
                 files = self.getFiles(sa)
                 parts = sa.split("/")
 
+        with open("puTagMapping.json","r") as FSO:
+            puTag = json.load(FSO)
+
         for file in files:
             configBall = {}
             configBall["file"]        = file
-            configBall["format"]      = parts[1]
+            configBall["isMC"]        = True if parts[1] == "mc" else False
             configBall["sample"]      = parts[2]
             configBall["channel"]     = self.channel
             configBall["systShift"]   = self.systShift
-            configBall["svfit"]       = int(self.svfit)
-            configBall["recoil"]      = int(self.recoil)
+            configBall["svfit"]       = self.svfit
+            configBall["recoil"]      = self.recoil
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
+            configBall["puTag"]       = puTag[ sample.replace(".txt","") ]
 
             if parts[1] == "data":
                 configBall["certJson"] = self.certJson

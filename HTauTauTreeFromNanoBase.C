@@ -19,10 +19,13 @@ bool isSync=0;
 
 //const bool tweak_nano=true;
 
-HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool correctRecoil, bool isMC_, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
+HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
 
-    isMC = isMC_;
+    ifstream S("configBall.json");
+    Settings = json::parse(S);
+
+    isMC = Settings["isMC"].get<bool>();
 
     tweak_nano=false; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
                      //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
@@ -33,7 +36,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
     jsonVector = lumiBlocks;
 
     ///Initialization of SvFit
-    if(doSvFit)
+    if( Settings["svfit"].get<bool>() )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Run w/ SVFit"<<std::endl;
         unsigned int verbosity = 0;//Set the debug level to 3 for testing
@@ -48,7 +51,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
     }
 
     ///Initialization of RecoilCorrector
-    if(correctRecoil)
+    if( Settings["recoil"].get<bool>() )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root";
@@ -71,7 +74,8 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, bool doSvFit, bool
 
     puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") );  
     if(!zPtReweightSUSYFile) std::cout<<"puweights.root is missing."<<std::endl;
-    puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
+    // puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
+    puweights_histo = (TH1D*)puweights->Get( Settings["puTag"].get<string>().c_str() );   
 
     ///Instantiate JEC uncertainty sources
     ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC

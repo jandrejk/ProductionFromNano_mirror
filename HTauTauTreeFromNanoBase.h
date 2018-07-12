@@ -26,6 +26,7 @@
 #include "HTTEvent.h"
 #include <vector>
 #include <iostream>
+#include "json.hpp"
 
 #include "TauAnalysis/ClassicSVfit/interface/ClassicSVfit.h"
 #include "TauAnalysis/ClassicSVfit/interface/MeasuredTauLepton.h"
@@ -38,6 +39,7 @@
 
 #include "DataFormats/Provenance/interface/LuminosityBlockRange.h"
 
+using json = nlohmann::json;
 
 class HTauTauTreeFromNanoBase : public NanoEventsSkeleton {
 
@@ -152,7 +154,9 @@ public :
   std::vector<JetCorrectionUncertainty*> jecUncerts;
   std::vector<string> jecSources_;
 
-  HTauTauTreeFromNanoBase(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, bool isMC_ = false, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
+  json Settings;
+
+  HTauTauTreeFromNanoBase(TTree *tree=0, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
   virtual Int_t    Cut(Long64_t entry);
   virtual void     Loop(Long64_t nentries_max=-1, unsigned int sync_event=-1);

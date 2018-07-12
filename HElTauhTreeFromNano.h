@@ -25,7 +25,7 @@ class HElTauhTreeFromNano : public HTauTauTreeFromNanoBase {
   bool pairSelection(unsigned int index);
   /////////////////////////////////////////////////
   
-  HElTauhTreeFromNano(TTree *tree=0, bool doSvFit=false, bool correctRecoil=false, bool isMC_ = false, std::vector<edm::LuminosityBlockRange> lumiBlock = std::vector<edm::LuminosityBlockRange>(), std::string prefix="HTTET");
+  HElTauhTreeFromNano(TTree *tree=0, std::vector<edm::LuminosityBlockRange> lumiBlock = std::vector<edm::LuminosityBlockRange>(), std::string prefix="HTTET");
   virtual ~HElTauhTreeFromNano();
   
 };
@@ -33,7 +33,7 @@ class HElTauhTreeFromNano : public HTauTauTreeFromNanoBase {
 #endif
 
 #ifdef HElTauhTreeFromNano_cxx
-HElTauhTreeFromNano::HElTauhTreeFromNano(TTree *tree, bool doSvFit, bool correctRecoil, bool isMC_, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : HTauTauTreeFromNanoBase(tree, doSvFit, correctRecoil, isMC_, lumiBlocks, prefix)
+HElTauhTreeFromNano::HElTauhTreeFromNano(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : HTauTauTreeFromNanoBase(tree, lumiBlocks, prefix)
 {}
 
 HElTauhTreeFromNano::~HElTauhTreeFromNano()
