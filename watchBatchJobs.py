@@ -34,6 +34,7 @@ def makeSummary( output ):
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-v', dest='verbose', help='Verbose output', action="store_true")
+args = parser.parse_args()
 # user = "fspreitzer"
 user = os.environ["USER"]
 
@@ -43,4 +44,7 @@ proc = sp.Popen(shlex.split('squeue -h -l -u {0}'.format(user) ) , stdout=sp.PIP
 print user
 for status, jobs in makeSummary(out).items():
 	print "{0}: {1} jobs".format( status, len(jobs)  )
+	if args.verbose:
+		for job in jobs:
+			print "\t", job
 
