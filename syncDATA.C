@@ -476,7 +476,6 @@ void syncDATA::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle
     unsigned int indexLeg2 = (unsigned int)pair->getIndexLeg2();
     for(unsigned int i = 0; i<leptons.size(); i++)
     {
-
         if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
 
         int lepPDGId = leptons[i].getPDGid();

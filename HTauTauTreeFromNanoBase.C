@@ -1004,12 +1004,15 @@ int HTauTauTreeFromNanoBase::tauSelection(HTTParticle aLepton)
 
     if(tauPt > LeptonCuts::Baseline.Tau.SemiLep.pt
        && tauEta < LeptonCuts::Baseline.Tau.SemiLep.eta
-    ) bitmask += LeptonCuts::Baseline.Tau.SemiLep.bitmask;
+    ) bitmask |= (LeptonCuts::Baseline.Tau.SemiLep.bitmask + LeptonCuts::Baseline.Tau.Additional);
 
     if(tauEta < LeptonCuts::Baseline.Tau.FullHad.eta)
     {
-        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.lead_pt) bitmask += LeptonCuts::Baseline.Tau.FullHad.lead_bitmask;
-        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.sublead_pt) bitmask += LeptonCuts::Baseline.Tau.FullHad.sub_bitmask;
+        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.lead_pt)
+            bitmask |= (LeptonCuts::Baseline.Tau.FullHad.lead_bitmask + LeptonCuts::Baseline.Tau.Additional);
+
+        if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.sublead_pt)
+            bitmask |= (LeptonCuts::Baseline.Tau.FullHad.sub_bitmask + LeptonCuts::Baseline.Tau.Additional);
     }
 
     debugWayPoint("[tauSelection]",

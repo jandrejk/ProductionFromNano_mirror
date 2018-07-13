@@ -19,6 +19,7 @@ namespace LeptonCuts
 
 		struct Tau
 		{
+			int Additional = 8;
 			struct SemiLep
 			{
 				float pt  = 20.0;
@@ -35,7 +36,6 @@ namespace LeptonCuts
 				int sub_bitmask  = 64;
 				
 			}FullHad;
-
 		}Tau;
 
 		int bitmask = 1;
