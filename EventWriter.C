@@ -1,11 +1,11 @@
-#include "syncDATA.h"
+#include "EventWriter.h"
 
 const float DEF = -10.;
 
   const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
   const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 
-void syncDATA::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
+void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
     channel = pair->getFinalState();
 
@@ -605,7 +605,7 @@ void syncDATA::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle
     }
 }
 
-void syncDATA::fillLeptonFakeRateWeights()
+void EventWriter::fillLeptonFakeRateWeights()
 {
     eleTauFakeRateWeight = 1.0;
     muTauFakeRateWeight = 1.0;
@@ -677,7 +677,7 @@ void syncDATA::fillLeptonFakeRateWeights()
     antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
 }
 
-void syncDATA::fillScalefactors()
+void EventWriter::fillScalefactors()
 {
     // from https://github.com/CMS-HTT/CorrectionsWorkspace/tree/2017_17NovReRecoData_Fall17MC
     singleTriggerSFLeg1 = 1.;
@@ -723,7 +723,7 @@ void syncDATA::fillScalefactors()
 
 }
 
-double syncDATA::calcSphericity(std::vector<TLorentzVector> p){
+double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
 
   TMatrixD S(3,3);
 
@@ -749,7 +749,7 @@ double syncDATA::calcSphericity(std::vector<TLorentzVector> p){
   return calcSphericityFromMatrix(S);
 }
 
-double syncDATA::calcSphericityFromMatrix(TMatrixD M) {
+double EventWriter::calcSphericityFromMatrix(TMatrixD M) {
 
   //  TMatrixD M(3,3);
   //  M.SetMatrixArray(A);
@@ -783,7 +783,7 @@ double syncDATA::calcSphericityFromMatrix(TMatrixD M) {
   return spher;
 }
 
-int syncDATA::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
+int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
   float minDR=1;
   int whichjet=0;
 
@@ -802,13 +802,13 @@ int syncDATA::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
   return -99;
 }
 
-double syncDATA::calcDR(double eta1, double phi1, double eta2, double phi2){
+double EventWriter::calcDR(double eta1, double phi1, double eta2, double phi2){
   double deta = eta1-eta2;
   double dphi = TVector2::Phi_mpi_pi(phi1-phi2);
   return TMath::Sqrt( deta*deta+dphi*dphi );
 }
 
-void syncDATA::setDefault(){
+void EventWriter::setDefault(){
 
     lumiWeight=DEF;
     run_syncro=DEF;
@@ -1187,7 +1187,7 @@ void syncDATA::setDefault(){
 
 }
 
-void syncDATA::initTree(TTree *t, bool isMC_, bool isSync_){
+void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
 
     tauTrigSF = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
 

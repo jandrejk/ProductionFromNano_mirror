@@ -11,14 +11,14 @@
 #include "utils/TauTriggerSFs2017/interface/TauTriggerSFs2017.h"
 
 
-#ifndef __syncDATA__
-#define __syncDATA__
+#ifndef __EventWriter__
+#define __EventWriter__
 
-class syncDATA
+class EventWriter
 {
  public:
 
-  //ClassDef(syncDATA,0);
+  //ClassDef(EventWriter,0);
 
   HTTParticle leg1, leg2;
   HTTAnalysis::finalState channel;
@@ -345,8 +345,8 @@ class syncDATA
   int pdg1;
   int pdg2;
 
-  syncDATA(){}  
-  ~syncDATA(){}  
+  EventWriter(){}  
+  ~EventWriter(){}  
 
   void setDefault();
   void fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair);

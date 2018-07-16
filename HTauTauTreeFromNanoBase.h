@@ -10,7 +10,7 @@
   as produced by nanoEventsChain->MakeClass("NanoEventsSkeleton") */
 #undef NanoEventsSkeleton_cxx //undefine to protect againist problems with multile implementation
 #include "NanoEventsSkeleton.h"
-#include "syncDATA.h"
+#include "EventWriter.h"
 // #include "ParameterConfig.cc"
 
 //#include <TROOT.h>
@@ -127,7 +127,7 @@ public :
   TTree *t_TauCheck;
   TTree *httTree;
 
-  std::unique_ptr<syncDATA> SyncDATA;
+  std::unique_ptr<EventWriter> evtWriter;
   std::unique_ptr<TFile> httFile;
   std::unique_ptr<HTTEvent> httEvent;
   TH1D* puweights_histo;

@@ -112,8 +112,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     //  hStats->SetDirectory(httFile);
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
-    SyncDATA = std::unique_ptr<syncDATA>( new syncDATA() );
-    SyncDATA->initTree(t_TauCheck, isMC, isSync);
+    evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
+    evtWriter->initTree(t_TauCheck, isMC, isSync);
 
     leptonPropertiesList.push_back("pdgId");
     leptonPropertiesList.push_back("charge");
@@ -354,7 +354,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
         if (check_event_number>0 && event!=check_event_number) continue;
         httEvent->clear();
-        SyncDATA->setDefault();
+        evtWriter->setDefault();
 
 
         debugWayPoint("## FOUND EVENT ##", {},{(int)event});
@@ -397,9 +397,9 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             computeSvFit(bestPair, HTTParticle::corrType);
 
             fillEvent(bestPairIndex);
-            SyncDATA->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
-            SyncDATA->entry=entry++;
-            SyncDATA->fileEntry=jentry;
+            evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
+            evtWriter->entry=entry++;
+            evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
 
             hStats->Fill(2);//Number of events saved to ntuple
@@ -1295,7 +1295,7 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
 
         if( GenPart_pt[iGen] > 8)
         {
-            dRTmp = SyncDATA->calcDR( GenPart_eta[iGen],GenPart_phi[iGen],selObj.Eta(),selObj.Phi() );
+            dRTmp = evtWriter->calcDR( GenPart_eta[iGen],GenPart_phi[iGen],selObj.Eta(),selObj.Phi() );
 
             int statusFlags=GenPart_statusFlags[iGen];
             bool GenPart_isPrompt=(statusFlags & (1<<0) ) == (1<<0);
@@ -1368,7 +1368,7 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
 
                     if((tau-remParticles).Pt() > 15)
                     {
-                        dRTmp = SyncDATA->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
+                        dRTmp = evtWriter->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
                         if( dRTmp < matchings[4] ){
                             matchings[4] = dRTmp;
                             debugWayPoint("[getGenMatch] genuine tau after radiation",{(double)dRTmp},{},{"dR"});
