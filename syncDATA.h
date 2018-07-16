@@ -8,6 +8,8 @@
 #include "RooFunctor.h"
 #include "TFile.h"
 
+#include "utils/TauTriggerSFs2017/interface/TauTriggerSFs2017.h"
+
 
 #ifndef __syncDATA__
 #define __syncDATA__
@@ -18,7 +20,7 @@ class syncDATA
 
   //ClassDef(syncDATA,0);
 
-  HTTParticle tmp_leg1, tmp_leg2;
+  HTTParticle leg1, leg2;
   HTTAnalysis::finalState channel;
 
   int isSync;
@@ -44,9 +46,17 @@ class syncDATA
   int gen_match_jetId_2;
   int NUP;
   //float evtWeight;
+
+  float singleTriggerSFLeg1;
+  float singleTriggerSFLeg2;
+  float xTriggerSFLeg1;
+  float xTriggerSFLeg2;
+
   float weight;
   float puWeight;
   float genWeight;
+  float xsec;
+  float genNEvents;
   float trigweight_1;
   float anti_trigweight_1;
   float trigweight_2;
@@ -54,6 +64,7 @@ class syncDATA
   float anti_idisoweight_1;
   float idisoweight_2;
   float trk_sf;
+  float reco_sf;
   float effweight;
   float stitchedWeight;
   float topWeight;
@@ -349,7 +360,9 @@ class syncDATA
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 
   RooWorkspace *w;
-  void fillSFfromCorrectionWorkspace();
+  TauTriggerSFs2017 *tauTrigSF;
+  void fillScalefactors();
+  void fillLeptonFakeRateWeights();
 
 
   vector<TLorentzVector> addlepton_p4;
