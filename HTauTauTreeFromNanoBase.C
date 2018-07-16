@@ -82,6 +82,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
 
     firstWarningOccurence_=true;
+
 }
 
 HTauTauTreeFromNanoBase::~HTauTauTreeFromNanoBase()
@@ -371,7 +372,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
-        hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
+        // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
         if ( failsGlobalSelection() ) continue;
         debugWayPoint("[Loop] passes global selection");
@@ -395,7 +396,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
             computeSvFit(bestPair, HTTParticle::corrType);
 
-            fillEvent();
+            fillEvent(bestPairIndex);
             SyncDATA->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
             SyncDATA->entry=entry++;
             SyncDATA->fileEntry=jentry;
@@ -528,7 +529,7 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::fillEvent()
+void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 {
 
     httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,1); //only set explicitly for mutau
@@ -556,24 +557,28 @@ void HTauTauTreeFromNanoBase::fillEvent()
 
     if( isMC )//Assume that all those are filled for MC
     {
-        httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
-        httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
 
+        httEvent->setMCWeight( sgn(genWeight) );
+        httEvent->setXsec( Settings["xsec"].get<float>() );
+        httEvent->setGenNEvents( Settings["genNEvents"].get<float>() );
 
-        httEvent->setMCWeight(genWeight);
         httEvent->setMCatNLOWeight(LHEWeight_originalXWGTUP);//??
         httEvent->setLHE_Ht(LHE_HT);
         httEvent->setLHEnOutPartons(LHE_Njets);
         //FIXMEhttEvent->setGenPV(TVector3(pvGen_x,pvGen_y,pvGen_z));
 
+        httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
+        httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
+
         TLorentzVector genBosonP4, genBosonVisP4;
-        float zPtReWeight = 1., zPtReWeightSusy = 1.;
+        float zPtReWeight = 1.;
+        float zPtReWeightSusy = 1.;
         if( findBosonP4(genBosonP4,genBosonVisP4) )
         {
-            //std::cout<<"GenBos found! M="<<genBosonP4.M()<<", visM="<<genBosonVisP4.M()<<std::endl;
             httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
-            zPtReWeight = getPtReweight(genBosonP4); //???
-            zPtReWeightSusy = getPtReweight(genBosonP4,true); //Z pt rew?
+
+            zPtReWeight = getZPtReweight(genBosonP4);
+            zPtReWeightSusy = getZPtReweight(genBosonP4,true);
         }
         httEvent->setZPtReWeight(zPtReWeight);
         httEvent->setZPtReWeightSUSY(zPtReWeightSusy);
@@ -581,19 +586,24 @@ void HTauTauTreeFromNanoBase::fillEvent()
         ///TT reweighting according to
         ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
         TLorentzVector topP4, antitopP4;
-        double topPtReWeight = 1., topPtReWeight_r1 = 1.;
+        double topPtReWeight = 1.;
+        double topPtReWeight_r1 = 1.;
         if( findTopP4(topP4, antitopP4) )
         {
-            double topPt = topP4.Perp();
-            double antitopPt = antitopP4.Perp();
+            httEvent->setTopP4(topP4, antitopP4);
+
+            double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
+            double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
+
             double weightTop = exp(0.0615-0.0005*topPt);
             double weightAntitop= exp(0.0615-0.0005*antitopPt);
+
             double weightTop_r1 = exp(0.156-0.00137*topPt);
             double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
+
             topPtReWeight = sqrt(weightTop*weightAntitop);
             topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
         }
-
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
 
@@ -1876,7 +1886,7 @@ bool HTauTauTreeFromNanoBase::findTopP4(TLorentzVector &topP4, TLorentzVector &a
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-double HTauTauTreeFromNanoBase::getPtReweight(const TLorentzVector &genBosonP4, bool doSUSY)
+double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4, bool doSUSY)
 {
 
     double weight = 1.0;

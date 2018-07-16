@@ -63,7 +63,7 @@ public :
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
   void initJecUnc(std::string correctionFile);
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
-  void fillEvent();
+  void fillEvent(unsigned int bestPairIndex = 9999);
   virtual bool buildPairs();
   virtual void fillPairs(unsigned int bestPairIndex);
   virtual void fillJets(unsigned int bestPairIndex);
@@ -88,7 +88,7 @@ public :
   //  int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
   int getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit=false, std::string colType="");
   int getMetFilterBits();
-  double getPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
+  double getZPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
   bool isGoodToMatch(unsigned int ind);
   TLorentzVector getGenComponentP4(std::vector<unsigned int> &indexes, unsigned int iAbsCharge);
   bool eventInJson();
@@ -155,6 +155,10 @@ public :
   std::vector<string> jecSources_;
 
   json Settings;
+
+  template <typename T> int sgn(T val) {
+      return (T(0) < val) - (val < T(0));
+  }
 
   HTauTauTreeFromNanoBase(TTree *tree=0, std::vector<edm::LuminosityBlockRange> lumiBlocks = std::vector<edm::LuminosityBlockRange>() , string prefix="HTT");
   virtual ~HTauTauTreeFromNanoBase();
