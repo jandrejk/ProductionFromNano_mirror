@@ -203,13 +203,13 @@ class SteerNanoProduction():
                 files = self.getFiles(sa)
                 parts = sa.split("/")
 
-        with open("puTagMapping.json","r") as FSO:
+        with open("tagMapping.json","r") as FSO:
             puTag = json.load(FSO)
 
         for file in files:
             configBall = {}
             configBall["file"]        = file
-            configBall["isMC"]        = True if parts[1] == "mc" else False
+
             configBall["sample"]      = parts[2]
             configBall["channel"]     = self.channel
             configBall["systShift"]   = self.systShift
@@ -217,12 +217,18 @@ class SteerNanoProduction():
             configBall["recoil"]      = self.recoil
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
-            configBall["puTag"]       = puTag[ sample.replace(".txt","") ]
-
-            if parts[1] == "data":
-                configBall["certJson"] = self.certJson
-            else:
+            if  parts[1] == "mc":
+                configBall["isMC"]        = True
                 configBall["certJson"] = ""
+                configBall["puTag"]    = puTag[ sample.replace(".txt","") ][0]
+                configBall["xsec"]     = puTag[ sample.replace(".txt","") ][1]
+                configBall["genNEvents"]  = puTag[ sample.replace(".txt","") ][2]
+
+            else:
+                configBall["isMC"]        = False
+                configBall["certJson"] = self.certJson
+                configBall["puTag"]   = "pileup"
+
 
             configBalls.append(configBall)
 
