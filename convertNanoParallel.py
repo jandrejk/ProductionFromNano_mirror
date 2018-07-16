@@ -76,7 +76,8 @@ print "Compiling...."
 #First we try to compile, and only then we start time consuming cmssw
 
 
-assert gSystem.CompileMacro('HTTEvent.cxx','k') 
+assert gSystem.CompileMacro('HTTEvent.cxx','k')
+assert gSystem.CompileMacro('utils/TauTriggerSFs2017/src/TauTriggerSFs2017.cc','k')
 assert gSystem.CompileMacro('syncDATA.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
 assert gSystem.CompileMacro('NanoEventsSkeleton.C','k')
