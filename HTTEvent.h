@@ -56,6 +56,10 @@ class HTTEvent{
 
   void setMCWeight(float x){mcWeight = x;}
 
+  void setXsec(float x){xsec = x;}
+
+  void setGenNEvents(float x){genNEvents = x;}
+
   void setTopPtReWeight(float x){topPtReWeight = x;}
 
   void setTopPtReWeightR1(float x){topPtReWeightR1 = x;}
@@ -77,6 +81,8 @@ class HTTEvent{
   void setDecayModeBoson(int x){decayModeBoson = x;}
 
   void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; }
+
+  void setTopP4(const TLorentzVector &p4, const TLorentzVector &antiP4) {topP4 = p4; antiTopP4 = antiP4; }
 
   void setGenPV(const TVector3 & aPV) {genPV = aPV;}
 
@@ -132,6 +138,10 @@ class HTTEvent{
 
   float getMCWeight() const {return mcWeight;}
 
+  float getXsec() const {return xsec;}
+
+  float getGenNEvents() const {return genNEvents;}
+
   float getLHE_Ht() const {return lheHt;}
 
   int getLHEnOutPartons() const {return lheNOutPartons;}
@@ -145,6 +155,8 @@ class HTTEvent{
   int getDecayModeBoson() const {return decayModeBoson;}
 
   TLorentzVector getGenBosonP4(bool visP4=false) const { return visP4 ? bosVisP4 : bosP4 ; }
+
+  TLorentzVector getTopP4(bool anti=false) const { return anti ? antiTopP4 : topP4 ; }
 
   TVector2 getMET() const {return met;}
 
@@ -174,6 +186,8 @@ class HTTEvent{
 
   //Generator event weight
   float mcWeight;
+  float xsec;
+  float genNEvents;
 
   ///Weight used to modify the pt shape.
   float topPtReWeight, topPtReWeightR1;
@@ -207,6 +221,9 @@ class HTTEvent{
 
   ///Boson (H, Z, W) p4 and visible p4
   TLorentzVector bosP4, bosVisP4;
+
+  ///top and antitop p4
+  TLorentzVector topP4, antiTopP4;
 
   ///Tau decay modes
   int decayModeMinus, decayModePlus;
@@ -371,6 +388,8 @@ class HTTPair
 
         int getIndexLeg1() {return indexLeg1;}
         int getIndexLeg2() {return indexLeg2;}
+
+        HTTAnalysis::finalState getFinalState();
 
         const HTTParticle & getMuon() const {return abs(leg1.getPDGid())==13 ? leg1 : leg2; }
         const HTTParticle & getTau() const {return abs(leg1.getPDGid())==15 ? leg1 : leg2; }

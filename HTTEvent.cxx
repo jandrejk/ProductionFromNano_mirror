@@ -179,6 +179,18 @@ void HTTPair::clear()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
+HTTAnalysis::finalState HTTPair::getFinalState()
+{
+    int pdg1=std::abs(getLeg1().getProperty(PropertyEnum::pdgId));
+    int pdg2=std::abs(getLeg2().getProperty(PropertyEnum::pdgId));
+
+    if(pdg1 == 11 && pdg2 == 15) return HTTAnalysis::EleTau;
+    if(pdg1 == 13 && pdg2 == 15) return HTTAnalysis::MuTau;
+    if(pdg1 == 15 && pdg2 == 15) return HTTAnalysis::TauTau;
+    return HTTAnalysis::NONE;
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
 const TLorentzVector & HTTPair::getP4(HTTAnalysis::sysEffects defaultType) const
 {
     HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
