@@ -25,7 +25,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     pdg1=std::abs(leg1.getProperty(PropertyEnum::pdgId));
     pdg2=std::abs(leg2.getProperty(PropertyEnum::pdgId));
 
-    lumiWeight=DEF;
     run_syncro=ev->getRunId();
     lumi_syncro=ev->getLSId();
     evt_syncro=ev->getEventId();
@@ -39,20 +38,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     npvGood=DEF;
     npu=ev->getNPU();
     rho=ev->getRho();
-
-
-
-    /*
-    //  if (pdg1==15)      gen_match_1=genFlav1;
-    if (pdg1==15)      gen_match_1=pair->getLeg1().getProperty(PropertyEnum::mc_match);
-    else if (pdg1==13) gen_match_1=gen_mu_map[genFlav1];
-    else if (pdg1==11) gen_match_1=gen_el_map[genFlav1];
-
-    //  if (pdg2==15)      gen_match_2=genFlav2;
-    if (pdg2==15)      gen_match_2=pair->getLeg2().getProperty(PropertyEnum::mc_match);
-    else if (pdg2==13) gen_match_2=gen_mu_map[genFlav2];
-    else if (pdg2==11) gen_match_2=gen_el_map[genFlav2];
-    */
 
     fillLeg1Branches();
     fillLeg2Branches();
@@ -70,10 +55,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
     genJets=DEF;
-    matchedJetPt03_1=DEF;
-    matchedJetPt05_1=DEF;
-    matchedJetPt03_2=DEF;
-    matchedJetPt05_2=DEF;
     uncorrmet=ev->getMET_uncorr().Mod();
     //////////////////////////////////////////////////////////////////  
 
@@ -132,19 +113,24 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     //this is quite slow, calling the function for each trigger item...
     if ( channel == HTTAnalysis::MuTau ) //mu-tau
     {
-        trg_singlemuon=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24) || leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
-        trg_mutaucross=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
-                         && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
+        trg_singlemuon =       leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
+        trg_singlemuon_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
+
+        trg_muontau_lowptmu=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
+                              && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
-        trg_singleelectron= leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf) || leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
+        trg_singleelectron =       leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
+        trg_singleelectron_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
 
     } else if ( channel == HTTAnalysis::TauTau )
     {
         trg_singletau= false;
-        trg_doubletau= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) )
-                       || ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
+
+        trg_doubletau=        ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) );
+        trg_doubletau_mediso= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
+        trg_doubletau_lowpt=  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) );
     }
 
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
@@ -194,6 +180,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         genNEventsWeight = ev->getGenNEventsWeight();
         puWeight = ev->getPUWeight();
         weight = DEFWEIGHT;
+        lumiWeight=DEFWEIGHT;
         NUP=ev->getLHEnOutPartons();
         fillScalefactors();
         fillLeptonFakeRateWeights();    
@@ -206,6 +193,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         puWeight = DEFWEIGHT;
         weight = DEFWEIGHT;
         NUP=-1;
+        lumiWeight=DEFWEIGHT;
     }
 
 }
@@ -762,7 +750,8 @@ void EventWriter::fillScalefactors()
         w->var("m_eta")->setVal( eta_1 );
 
         singleTriggerSFLeg1 = w->function("m_trg24or27_ratio")->getVal();
-        // xTriggerSFLeg1 = tauTrigSF->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        if( std::abs(eta_2) < 2.1 )
+            xTriggerSFLeg1 = tauTrigSF->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
 
         idWeight_1  = w->function("m_id_ratio")->getVal();
         isoWeight_1 = w->function("m_iso_ratio")->getVal();
@@ -776,8 +765,9 @@ void EventWriter::fillScalefactors()
         w->var("e_pt")->setVal(  pt_1  );
         w->var("e_eta")->setVal( eta_1 );
 
-        singleTriggerSFLeg1 = w->function("e_trg32or35__ratio")->getVal();
-        // xTriggerSFLeg1 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        singleTriggerSFLeg1 = w->function("e_trg32or35_ratio")->getVal();
+        if( std::abs(eta_2) < 2.1 )
+            xTriggerSFLeg1 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
 
         idWeight_1  = w->function("e_id_ratio")->getVal();
         isoWeight_1 = w->function("e_iso_ratio")->getVal();
@@ -962,16 +952,16 @@ void EventWriter::setDefault(){
     genJets=DEF;
     genJet_match_1=DEF;
     genJet_match_2=DEF;
-    matchedJetPt03_1=DEF;
-    matchedJetPt05_1=DEF;
-    matchedJetPt03_2=DEF;
-    matchedJetPt05_2=DEF;
     //////////////////////////////////////////////////////////////////  
-    trg_singlemuon=DEF; //fires OR of HLT_IsoMu22, HLT_IsoTkMu22, HLT_IsoMu22eta2p1, HLT_IsoTkMu22_eta2p1
-    trg_mutaucross=DEF;
-    trg_singleelectron=DEF; //fires HLT_Ele25_eta2p1_WPTight_Gsf
-    trg_singletau=DEF; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
-    trg_doubletau=DEF; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
+    trg_singlemuon=DEF;
+    trg_singlemuon_lowpt=DEF;
+    trg_muontau_lowptmu=DEF;
+    trg_singleelectron=DEF;
+    trg_singleelectron_lowpt=DEF;
+    trg_singletau=DEF;
+    trg_doubletau=DEF;
+    trg_doubletau_mediso=DEF;
+    trg_doubletau_lowpt=DEF;
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
     Flag_HBHENoiseFilter=DEF;
     Flag_HBHENoiseIsoFilter=DEF;
@@ -1335,12 +1325,17 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
     t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
 
-    t->Branch("trg_singlemuon", &trg_singlemuon);
-    t->Branch("trg_mutaucross", &trg_mutaucross);
-    t->Branch("trg_singleelectron", &trg_singleelectron);
-    t->Branch("trg_singletau", &trg_singletau);
-    t->Branch("trg_doubletau", &trg_doubletau);
+    t->Branch("trg_singlemuon" ,&trg_singlemuon);
+    t->Branch("trg_singlemuon_lowpt" ,&trg_singlemuon_lowpt);
+    t->Branch("trg_muontau_lowptmu" ,&trg_muontau_lowptmu);
+    t->Branch("trg_singleelectron" ,&trg_singleelectron);
+    t->Branch("trg_singleelectron_lowpt" ,&trg_singleelectron_lowpt);
+    t->Branch("trg_singletau" ,&trg_singletau);
+    t->Branch("trg_doubletau" ,&trg_doubletau);
+    t->Branch("trg_doubletau_mediso" ,&trg_doubletau_mediso);
+    t->Branch("trg_doubletau_lowpt" ,&trg_doubletau_lowpt);
     t->Branch("trg_muonelectron", &trg_muonelectron);
+
     t->Branch("gen_Mll", &gen_Mll);
     t->Branch("genpX", &gen_ll_px);
     t->Branch("genpY", &gen_ll_py);
@@ -1375,11 +1370,6 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("Flag_badMuons", &Flag_badMuons);
         t->Branch("Flag_duplicateMuons", &Flag_duplicateMuons);
     }
-
-    t->Branch("matchedJetPt03_1", &matchedJetPt03_1);
-    t->Branch("matchedJetPt05_1", &matchedJetPt05_1);
-    t->Branch("matchedJetPt03_2", &matchedJetPt03_2);
-    t->Branch("matchedJetPt05_2", &matchedJetPt05_2);
 
     t->Branch("gen_match_1", &gen_match_1);
     t->Branch("gen_match_2", &gen_match_2);

@@ -102,16 +102,16 @@ class EventWriter
   int genJets;
   int genJet_match_1;
   int genJet_match_2;
-  float matchedJetPt03_1;
-  float matchedJetPt05_1;
-  float matchedJetPt03_2;
-  float matchedJetPt05_2;
   //////////////////////////////////////////////////////////////////  
-  int trg_singlemuon; //fires OR of HLT_IsoMu22, HLT_IsoTkMu22, HLT_IsoMu22eta2p1, HLT_IsoTkMu22_eta2p1
-  int trg_mutaucross;
-  int trg_singleelectron; //fires HLT_Ele25_eta2p1_WPTight_Gsf
-  int trg_singletau; //fires HLT_VLooseIsoPFTau120_Trk50_eta2p1
-  int trg_doubletau; //fires HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg or HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg
+  int trg_singlemuon;
+  int trg_singlemuon_lowpt;
+  int trg_muontau_lowptmu;
+  int trg_singleelectron;
+  int trg_singleelectron_lowpt;
+  int trg_singletau;
+  int trg_doubletau;
+  int trg_doubletau_mediso;
+  int trg_doubletau_lowpt;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
   int Flag_goodVertices;

@@ -276,11 +276,13 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
+    triggerBits_.back().leg1OfflinePt=30;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<2)+(1<<3)+(1<<8);
     triggerBits_.back().leg2Pt=35;
     triggerBits_.back().leg2Eta=2.1;
     triggerBits_.back().leg2L1Pt=-1;
+    triggerBits_.back().leg2OfflinePt=30;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
@@ -289,11 +291,13 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Pt=40;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
+    triggerBits_.back().leg1OfflinePt=30;    
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<1)+(1<<3)+(1<<8);
     triggerBits_.back().leg2Pt=40;
     triggerBits_.back().leg2Eta=2.1;
     triggerBits_.back().leg2L1Pt=-1;
+    triggerBits_.back().leg2OfflinePt=30;    
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
@@ -302,11 +306,13 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Pt=40;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
+    triggerBits_.back().leg1OfflinePt=30;    
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<2)+(1<<8);
     triggerBits_.back().leg2Pt=40;
     triggerBits_.back().leg2Eta=2.1;
     triggerBits_.back().leg2L1Pt=-1;
+    triggerBits_.back().leg2OfflinePt=30;    
 
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
