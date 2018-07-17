@@ -40,12 +40,20 @@ def getDASquery(link, info="file"):
 
 def writeFile( content, filename, folder ):
     if not os.path.exists(folder):
-        os.mkdirs(folder)
+        os.makedirs(folder)
 
     with open("/".join([folder,filename]), "w" ) as FSO:
         FSO.write(content)
 
+def buildFileName(link, run, creation):
 
+    parts = link.split("/")
+
+    ext = ""
+    if "_ext" in parts[2]:
+        ext = "_ext" + parts[2].split("_ext")[1].split("-")[0]
+
+    return "_".join([parts[1],run, creation]) + ext + ".txt"
 
 
 

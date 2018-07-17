@@ -1312,6 +1312,9 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("topWeight", &topWeight);
     t->Branch("topWeight_run1", &topWeight_run1);
     t->Branch("zPtReweightWeight", &ZWeight);
+    t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
+    t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
+    t->Branch("antilep_tauscaling", &antilep_tauscaling);
 
     t->Branch("zpt_weight_nom",&zpt_weight_nom);
     t->Branch("zpt_weight_esup",&zpt_weight_esup);
@@ -1445,7 +1448,6 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("id_e_cut_medium_1", &id_e_cut_medium_1);
     t->Branch("id_e_cut_tight_1", &id_e_cut_tight_1);
 
-    t->Branch("antilep_tauscaling", &antilep_tauscaling);
     
     t->Branch("pt_2", &pt_2);
     t->Branch("phi_2", &phi_2);
@@ -1509,8 +1511,7 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("m_vis", &m_vis);
     t->Branch("m_coll", &m_coll);
 
-    t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
-    t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
+
 
     t->Branch("passesIsoCuts", &passesIsoCuts);
     t->Branch("passesLepIsoCuts", &passesLepIsoCuts);
