@@ -58,7 +58,7 @@ class HTTEvent{
 
   void setXsec(float x){xsec = x;}
 
-  void setGenNEvents(float x){genNEvents = x;}
+  void setGenNEventsWeight(float x){genNEvents = x;}
 
   void setTopPtReWeight(float x){topPtReWeight = x;}
 
@@ -140,7 +140,7 @@ class HTTEvent{
 
   float getXsec() const {return xsec;}
 
-  float getGenNEvents() const {return genNEvents;}
+  float getGenNEventsWeight() const {return genNEvents;}
 
   float getLHE_Ht() const {return lheHt;}
 
