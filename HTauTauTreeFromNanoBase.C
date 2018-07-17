@@ -560,7 +560,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
         httEvent->setMCWeight( sgn(genWeight) );
         httEvent->setXsec( Settings["xsec"].get<float>() );
-        httEvent->setGenNEvents( Settings["genNEvents"].get<float>() );
+        httEvent->setGenNEventsWeight( 1.0 / Settings["genNEvents"].get<float>() );
 
         httEvent->setMCatNLOWeight(LHEWeight_originalXWGTUP);//??
         httEvent->setLHE_Ht(LHE_HT);
