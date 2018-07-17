@@ -1,17 +1,29 @@
 #include "EventWriter.h"
 
 const float DEF = -10.;
+const float DEFWEIGHT = 1.0;
 
-  const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
-  const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
-
+const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
+const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
+
+    jets.setCurrentUncertShift( JecUncertEnum::NONE, true );
 
     channel = pair->getFinalState();
 
     leg1 = pair->getLeg1();
     leg2 = pair->getLeg2();
 
+    leg1P4=leg1.getP4();
+    leg2P4=leg2.getP4();
+
+    gen_match_1=leg1.getProperty(PropertyEnum::mc_match);
+    gen_match_2=leg2.getProperty(PropertyEnum::mc_match);
+
+    pdg1=std::abs(leg1.getProperty(PropertyEnum::pdgId));
+    pdg2=std::abs(leg2.getProperty(PropertyEnum::pdgId));
 
     lumiWeight=DEF;
     run_syncro=ev->getRunId();
@@ -19,9 +31,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     evt_syncro=ev->getEventId();
     //  entry=DEF; //filled in main loop
     //  fileEntry=DEF; //filled in main loop
-
-    pdg1=std::abs(leg1.getProperty(PropertyEnum::pdgId));
-    pdg2=std::abs(leg2.getProperty(PropertyEnum::pdgId));
 
     unsigned genFlav1=leg1.getProperty(PropertyEnum::genPartFlav);
     unsigned genFlav2=leg2.getProperty(PropertyEnum::genPartFlav);
@@ -31,8 +40,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     npu=ev->getNPU();
     rho=ev->getRho();
 
-    gen_match_1=leg1.getProperty(PropertyEnum::mc_match);
-    gen_match_2=leg2.getProperty(PropertyEnum::mc_match);
+
 
     /*
     //  if (pdg1==15)      gen_match_1=genFlav1;
@@ -46,54 +54,18 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     else if (pdg2==11) gen_match_2=gen_el_map[genFlav2];
     */
 
-    genPt_1=DEF;
-    genPt_2=DEF;
+    fillLeg1Branches();
+    fillLeg2Branches();
+    fillJetBranches(jets);
+    fillPairBranches(pair);
+    fillAdditionalLeptons( leptons, pair );
 
-    if (isMC){
-        effweight = 1.;
-        genWeight = ev->getMCWeight();
-        genNEvents = ev->getGenNEvents();
-        xsec = ev->getXsec();
-        puWeight = ev->getPUWeight();
-        weight = 1.;
-        NUP=ev->getLHEnOutPartons();
-    } else{
-        effweight = 1.;
-        xsec = 1.;
-        genNEvents = 1.0;
-        genWeight = 1.0;
-        puWeight = 1.;
-        weight = 1.;
-        NUP=-1;
-    }
-
-    stitchedWeight=1.;
-    topWeight=ev->getTopPtReWeight();
-    topWeight_run1=ev->getTopPtReWeightR1();
-    ZWeight=ev->getZPtReWeightSUSY();
-
-    zpt_weight_nom=DEF;
-    zpt_weight_esup=DEF;
-    zpt_weight_esdown=DEF;
-    zpt_weight_ttup=DEF;
-    zpt_weight_ttdown=DEF;
-    zpt_weight_statpt0up=DEF;
-    zpt_weight_statpt0down=DEF;
-    zpt_weight_statpt40up=DEF;
-    zpt_weight_statpt40down=DEF;
-    zpt_weight_statpt80up=DEF;
-    zpt_weight_statpt80down=DEF;
-
-    TLorentzVector ll=ev->getGenBosonP4(false);
-    TLorentzVector llvis=ev->getGenBosonP4(true);
-    gen_Mll=ll.M();
-    gen_ll_px=ll.Px();
-    gen_ll_py=ll.Py();
-    gen_ll_pz=ll.Pz();
-    gen_vis_Mll=llvis.M();
-    gen_ll_vis_px=llvis.Px();
-    gen_ll_vis_py=llvis.Py();
-    gen_ll_vis_pz=llvis.Pz();
+    vector<TLorentzVector> objs;
+    objs.push_back(leg1P4);
+    objs.push_back(leg2P4);
+    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).getP4());
+    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).getP4());
+    sphericity=calcSphericity(objs);  
 
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
@@ -102,6 +74,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     matchedJetPt05_1=DEF;
     matchedJetPt03_2=DEF;
     matchedJetPt05_2=DEF;
+    uncorrmet=ev->getMET_uncorr().Mod();
     //////////////////////////////////////////////////////////////////  
 
     failBadGlobalMuonTagger=DEF;
@@ -110,15 +83,15 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     Flag_noBadMuons=DEF;
 
 
-    Flag_goodVertices = ev->getFilter(FilterEnum::Flag_goodVertices);
-    Flag_globalTightHalo2016Filter = ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
-    Flag_HBHENoiseFilter = ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
-    Flag_HBHENoiseIsoFilter = ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
+    Flag_goodVertices =                       ev->getFilter(FilterEnum::Flag_goodVertices);
+    Flag_globalTightHalo2016Filter =          ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
+    Flag_HBHENoiseFilter =                    ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
+    Flag_HBHENoiseIsoFilter =                 ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
     Flag_EcalDeadCellTriggerPrimitiveFilter = ev->getFilter(FilterEnum::Flag_EcalDeadCellTriggerPrimitiveFilter);
-    Flag_BadPFMuonFilter = ev->getFilter(FilterEnum::Flag_BadPFMuonFilter);
-    Flag_BadChargedCandidateFilter = ev->getFilter(FilterEnum::Flag_BadChargedCandidateFilter);
-    Flag_eeBadScFilter = ev->getFilter(FilterEnum::Flag_eeBadScFilter);
-    Flag_ecalBadCalibFilter = ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
+    Flag_BadPFMuonFilter =                    ev->getFilter(FilterEnum::Flag_BadPFMuonFilter);
+    Flag_BadChargedCandidateFilter =          ev->getFilter(FilterEnum::Flag_BadChargedCandidateFilter);
+    Flag_eeBadScFilter =                      ev->getFilter(FilterEnum::Flag_eeBadScFilter);
+    Flag_ecalBadCalibFilter =                 ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
 
     flagMETFilter = Flag_goodVertices 
                     && Flag_globalTightHalo2016Filter 
@@ -133,8 +106,115 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
 
     //////////////////////////////////////////////////////////////////  
-    // HTTParticle leg1=pair->getLeg1();
-    TLorentzVector leg1P4=leg1.getP4();
+
+    extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
+    extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
+    passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
+    passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
+
+    dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
+    passesThirdLepVeto=!( extramuon_veto && extraelec_veto );
+
+
+    //////////////////////////////////////////////////////////////////
+    if (channel == HTTAnalysis::TauTau) passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 
+                                                      && byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;//tautau
+    else passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2; //etau/mutau
+
+    if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
+
+    if( channel == HTTAnalysis::MuTau )  passesTauLepVetos = againstElectronVLooseMVA6_2 && againstMuonTight3_2;
+    if( channel == HTTAnalysis::EleTau ) passesTauLepVetos = againstElectronTightMVA6_2 && againstMuonLoose3_2;
+    if( channel == HTTAnalysis::TauTau)  passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
+
+    //////////////////////////////////////////////////////////////////
+
+    //this is quite slow, calling the function for each trigger item...
+    if ( channel == HTTAnalysis::MuTau ) //mu-tau
+    {
+        trg_singlemuon=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24) || leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
+        trg_mutaucross=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
+                         && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
+
+    }else if ( channel == HTTAnalysis::EleTau )
+    {
+        trg_singleelectron= leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf) || leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
+
+    } else if ( channel == HTTAnalysis::TauTau )
+    {
+        trg_singletau= false;
+        trg_doubletau= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) )
+                       || ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
+    }
+
+    trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+
+
+
+    genPt_1=DEF;
+    genPt_2=DEF;
+
+    TLorentzVector ll=ev->getGenBosonP4(false);
+    TLorentzVector llvis=ev->getGenBosonP4(true);
+    gen_Mll=ll.M();
+    gen_ll_px=ll.Px();
+    gen_ll_py=ll.Py();
+    gen_ll_pz=ll.Pz();
+    gen_vis_Mll=llvis.M();
+    gen_ll_vis_px=llvis.Px();
+    gen_ll_vis_py=llvis.Py();
+    gen_ll_vis_pz=llvis.Pz();
+
+    stitchedWeight=1.;
+    topWeight=ev->getTopPtReWeight();
+    topWeight_run1=ev->getTopPtReWeightR1();
+    ZWeight=ev->getZPtReWeightSUSY();
+
+    zpt_weight_nom=DEFWEIGHT;
+    zpt_weight_esup=DEFWEIGHT;
+    zpt_weight_esdown=DEFWEIGHT;
+    zpt_weight_ttup=DEFWEIGHT;
+    zpt_weight_ttdown=DEFWEIGHT;
+    zpt_weight_statpt0up=DEFWEIGHT;
+    zpt_weight_statpt0down=DEFWEIGHT;
+    zpt_weight_statpt40up=DEFWEIGHT;
+    zpt_weight_statpt40down=DEFWEIGHT;
+    zpt_weight_statpt80up=DEFWEIGHT;
+    zpt_weight_statpt80down=DEFWEIGHT;
+
+    eleTauFakeRateWeight=DEFWEIGHT;
+    muTauFakeRateWeight=DEFWEIGHT;
+    antilep_tauscaling=DEFWEIGHT;
+
+    if(isMC)
+    {
+        effweight = DEFWEIGHT;
+        xsec = ev->getXsec();
+        genWeight = ev->getMCWeight();
+        genNEventsWeight = ev->getGenNEventsWeight();
+        puWeight = ev->getPUWeight();
+        weight = DEFWEIGHT;
+        NUP=ev->getLHEnOutPartons();
+        fillScalefactors();
+        fillLeptonFakeRateWeights();    
+    }else
+    {
+        effweight = DEFWEIGHT;
+        xsec = DEFWEIGHT;
+        genWeight = DEFWEIGHT;        
+        genNEventsWeight = DEFWEIGHT;
+        puWeight = DEFWEIGHT;
+        weight = DEFWEIGHT;
+        NUP=-1;
+    }
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillLeg1Branches()
+{
+    UChar_t bitmask;
+
     pt_1=leg1P4.Pt();
     phi_1=leg1P4.Phi();
     eta_1=leg1P4.Eta();
@@ -143,13 +223,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     q_1=leg1.getCharge();
     d0_1=leg1.getProperty(PropertyEnum::dxy);
     dZ_1=leg1.getProperty(PropertyEnum::dz);
-    mt_1=pair->getMTLeg1();
+
 
     if      (pdg1==15) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") );
     else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
     else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
-    UChar_t bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
+    bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
     againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
     againstElectronLooseMVA6_1  =(bitmask & 0x2 )>0;
     againstElectronMediumMVA6_1 =(bitmask & 0x4 )>0;
@@ -164,32 +244,32 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
-    byIsolationMVA3newDMwoLTraw_1=DEF;
-    byIsolationMVA3oldDMwoLTraw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
-    byIsolationMVA3newDMwLTraw_1=DEF;
+    // byIsolationMVA3newDMwoLTraw_1=DEF;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
+    // byIsolationMVA3newDMwLTraw_1=DEF;
     byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID")); //same as above!?
 
     bitmask=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
-    byVLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x1)>0;
-    byLooseIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x2)>0;;
-    byMediumIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x4)>0;
-    byTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x8)>0;
-    byVTightIsolationMVArun2v1DBoldDMwLT_1=(bitmask & 0x10)>0;
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (bitmask & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x20)>0;
 
-    byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
 
-    NewMVAIDVLoose_1=DEF; //?
-    NewMVAIDLoose_1=DEF;
-    NewMVAIDMedium_1=DEF;
-    NewMVAIDTight_1=DEF;
-    NewMVAIDVTight_1=DEF;
-    NewMVAIDVVTight_1=DEF;
-
-    idMVANewDM_1=DEF; //?
+    // NewMVAIDVLoose_1=DEF; //?
+    // NewMVAIDLoose_1=DEF;
+    // NewMVAIDMedium_1=DEF;
+    // NewMVAIDTight_1=DEF;
+    // NewMVAIDVTight_1=DEF;
+    // NewMVAIDVVTight_1=DEF;
+    // idMVANewDM_1=DEF; //?
 
     chargedIsoPtSum_1=leg1.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
@@ -211,11 +291,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     id_e_cut_tight_1=intmask>=4;
     id_e_mva_nt_loose_1=DEF;
 
-    if (pdg1==15) gen_match_jetId_1=getGenMatch_jetId(leg1P4,jets);
-    
-    //////////////////////////////////////////////////////////////////
-    // HTTParticle leg2=pair->getLeg2();
-    TLorentzVector leg2P4=leg2.getP4();
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillLeg2Branches()
+{
+    UChar_t bitmask;
+
     pt_2=leg2P4.Pt();
     phi_2=leg2P4.Phi();
     eta_2=leg2P4.Eta();
@@ -223,18 +305,18 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     q_2=leg2.getCharge();
     d0_2=leg2.getProperty(PropertyEnum::dxy);
     dZ_2=leg2.getProperty(PropertyEnum::dz);
-    mt_2=pair->getMTLeg2();
 
-    if (pdg2==15)      iso_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
-    else if (pdg2==13) iso_2=leg2.getProperty(PropertyEnum::pfRelIso04_all);
-    else if (pdg2==11) iso_2=leg2.getProperty(PropertyEnum::pfRelIso03_all);;
+
+    if      (pdg2==15) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") );
+    else if (pdg2==13) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
+    else if (pdg2==11) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
     bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
-    againstElectronVLooseMVA6_2=(bitmask & 0x1)>0;
-    againstElectronLooseMVA6_2= (bitmask & 0x2)>0;
-    againstElectronMediumMVA6_2=(bitmask & 0x4)>0;
-    againstElectronTightMVA6_2= (bitmask & 0x8)>0;
-    againstElectronVTightMVA6_2=(bitmask & 0x10)>0;
+    againstElectronVLooseMVA6_2 = (bitmask & 0x1)>0;
+    againstElectronLooseMVA6_2  = (bitmask & 0x2)>0;
+    againstElectronMediumMVA6_2 = (bitmask & 0x4)>0;
+    againstElectronTightMVA6_2  = (bitmask & 0x8)>0;
+    againstElectronVTightMVA6_2 = (bitmask & 0x10)>0;
 
     bitmask=leg2.getProperty(PropertyEnum::idAntiMu);
     againstMuonLoose3_2=(bitmask & 0x1)>0;
@@ -244,30 +326,31 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
-    byIsolationMVA3newDMwoLTraw_2=DEF;
-    byIsolationMVA3oldDMwoLTraw_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
-    byIsolationMVA3newDMwLTraw_2=DEF;
+    // byIsolationMVA3newDMwoLTraw_2=DEF;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
+    // byIsolationMVA3newDMwLTraw_2=DEF;
     byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
     bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM2017v2);
-    byVLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x1)>0;
-    byLooseIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x2)>0;;
-    byMediumIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x4)>0;
-    byTightIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x8)>0;
-    byVTightIsolationMVArun2v1DBoldDMwLT_2=(bitmask & 0x10)>0;
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2 = (bitmask & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x20)>0;
 
-    byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    NewMVAIDVLoose_2=DEF;
-    NewMVAIDLoose_2=DEF;
-    NewMVAIDMedium_2=DEF;
-    NewMVAIDTight_2=DEF;
-    NewMVAIDVTight_2=DEF;
-    NewMVAIDVVTight_2=DEF;
-    idMVANewDM_2=DEF;
+    // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // NewMVAIDVLoose_2=DEF;
+    // NewMVAIDLoose_2=DEF;
+    // NewMVAIDMedium_2=DEF;
+    // NewMVAIDTight_2=DEF;
+    // NewMVAIDVTight_2=DEF;
+    // NewMVAIDVVTight_2=DEF;
+    // idMVANewDM_2=DEF;
 
     chargedIsoPtSum_2=leg2.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
@@ -275,30 +358,23 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     decayModeFindingOldDMs_2=leg2.getProperty(PropertyEnum::idDecayMode);
     decayMode_2=leg2.getProperty(PropertyEnum::decayMode);
 
-    if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);
-    //////////////////////////////////////////////////////////////////
-
-    int ind_b1=-1;
-    int ind_b2=-1;
-    for (unsigned ij=0; ij<(unsigned int)jets.getNJets(20); ij++){
-        //Not affected by jec uncerts right now
-        if( jets.getJet(ij).isBtagJet() )
-        if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
-        if ( ind_b1<0 )              ind_b1=ij;
-    }
-    njetsUp=njets;
-    njetsDown=njets;
-
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillJetBranches(HTTJetCollection jets)
+{
     nbtag= jets.getNBtag();
     njets= jets.getNJets(30);
     njetspt20=jets.getNJets(20);
     njetingap=jets.getNJetInGap(30);
     njetingap20=jets.getNJetInGap(20);
 
-
     if ( njetspt20 >=1 )
     {
         jpt_1=jets.getJetP4(0).Pt();
+         // Testing for later
+        jpt_1_arr[(unsigned)JecUncertEnum::NONE] = jets.getJetP4(0).Pt();
+
         jeta_1=jets.getJetP4(0).Eta();
         jphi_1=jets.getJetP4(0).Phi();
         jm_1=jets.getJetP4(0).M();
@@ -335,12 +411,24 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         
         jdeta=std::abs( jets.getJetP4(0).Eta()-jets.getJetP4(1).Eta() );
         jdphi=jets.getJetP4(0).DeltaPhi(jets.getJetP4(1));
-
     }
+
+    njetsUp=njets;
+    njetsDown=njets;
     mjjUp=mjj;
     mjjDown=mjj;
     jdetaUp=jdeta;
     jdetaDown=jdeta;
+
+
+    int ind_b1=-1;
+    int ind_b2=-1;
+    for (unsigned ij=0; ij<(unsigned int)jets.getNJets(20); ij++){
+        //Not affected by jec uncerts right now
+        if( jets.getJet(ij).isBtagJet() )
+        if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
+        if ( ind_b1<0 )              ind_b1=ij;
+    }
 
     if (ind_b1>=0){
         bpt_1=jets.getJetP4(0).Pt();
@@ -360,19 +448,28 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         bcsv_2=jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
     }
 
-    //////////////////////////////////////////////////////////////////
+
+    if (pdg1==15) gen_match_jetId_1=getGenMatch_jetId(leg1P4,jets);
+    if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);    
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillPairBranches(HTTPair *pair)
+{
     met   =pair->getMET().Mod();
     met_ex=pair->getMET().X();
     met_ey=pair->getMET().Y();
     metphi=pair->getMET().Phi();
     if (metphi>TMath::Pi()) metphi-=2*TMath::Pi();
 
+    mt_1=pair->getMTLeg1();
+    mt_2=pair->getMTLeg2();
+
     metcov00=pair->getMETMatrix().at(0);
     metcov01=pair->getMETMatrix().at(1);
     metcov10=pair->getMETMatrix().at(2);
     metcov11=pair->getMETMatrix().at(3);
-
-    uncorrmet=ev->getMET_uncorr().Mod();
 
     corrmet=met;
     corrmet_ex=met_ex;
@@ -395,27 +492,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     m_sv=pair->getP4().M();
     pt_sv=pair->getP4().Pt();
     //////////////////////////////////////////////////////////////////
-    eleTauFakeRateWeight=DEF;
-    muTauFakeRateWeight=DEF;
-    antilep_tauscaling=DEF;
-    //////////////////////////////////////////////////////////////////
-    if (pdg2==15){
-        if (pdg1==15){passesIsoCuts=byVLooseIsolationMVArun2v1DBoldDMwLT_1 && byVLooseIsolationMVArun2v1DBoldDMwLT_2;} //tautau
-        else{passesIsoCuts=byVLooseIsolationMVArun2v1DBoldDMwLT_2;} //etau/mutau
-    }
-    if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
 
-    if( pdg1==13 && pdg2==15 ) passesTauLepVetos = againstElectronLooseMVA6_2 && againstMuonTight3_2;
-    if( pdg1==11 && pdg2==15 ) passesTauLepVetos = againstElectronTightMVA6_2 && againstMuonLoose3_2;
-    if( pdg1==15 && pdg2==15 ) passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
 
-    passesThirdLepVeto=!( ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto) && ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto) );
-    passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
-    passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
-    //////////////////////////////////////////////////////////////////
-    dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
-    extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
-    extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
     //////////////////////////////////////////////////////////////////
     double zetaX = TMath::Cos(phi_1) + TMath::Cos(phi_2);
     double zetaY = TMath::Sin(phi_1) + TMath::Sin(phi_2);
@@ -443,11 +521,36 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     {
         m_coll =  m_vis / sqrt( x1 * x2 ) ;
     }
-    else m_coll = -999;
+    else m_coll = DEF;
 
     //////////////////////////////////////////////////////////////////
+
+    //////////////////////////////////////////////////////////////////
+    pfmt_1=mt_1;
+    pfmt_2=mt_2;
+    pt_sum=pt_1+pt_2+met;
+    pfpt_sum=pt_sum;
+    dr_leptau=leg1P4.DeltaR(leg2P4);
+    mvamet_centrality=DEF;
+
+    TLorentzVector v0=leg1P4*( 1/sqrt(  pow(leg1P4.Px(),2)+pow(leg1P4.Py(),2)  ) ); //lep, normalized in transverse plane
+    TLorentzVector v1=leg2P4*( 1/sqrt(  pow(leg2P4.Px(),2)+pow(leg2P4.Py(),2)  ) ); //tau, normalized in transverse plane
+    float omega=v1.DeltaPhi(v0);
+    float theta=-v0.Phi();
+    float x=(     met_ex * TMath::Sin(omega-theta)  - met_ey*TMath::Cos(omega-theta)   ) / TMath::Sin(omega); //x coord in lep-tau system
+    float y=(     met_ex * TMath::Sin(theta)        + met_ey*TMath::Cos(theta)         ) / TMath::Sin(omega); //y coord in lep-tau system
+    met_centrality=( x+y ) / sqrt(x*x + y*y);
+ 
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair )
+{
     unsigned int indexLeg1 = (unsigned int)pair->getIndexLeg1();
     unsigned int indexLeg2 = (unsigned int)pair->getIndexLeg2();
+
+    UChar_t bitmask;
+
     for(unsigned int i = 0; i<leptons.size(); i++)
     {
         if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
@@ -536,11 +639,12 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
             addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
             bitmask=leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID"));
-            addtau_byVLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x1)>0 );
-            addtau_byLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x2)>0 );
-            addtau_byMediumIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x4)>0 );
-            addtau_byTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x8)>0 );
-            addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x10)>0 );
+            addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x1)>0 );
+            addtau_byVLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x2)>0 );
+            addtau_byLooseIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x4)>0 );
+            addtau_byMediumIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x8)>0 );
+            addtau_byTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x10)>0 );
+            addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x20)>0 );
 
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ) );
             addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
@@ -555,56 +659,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
         }
     }
-    //////////////////////////////////////////////////////////////////
-    pfmt_1=mt_1;
-    pfmt_2=mt_2;
-    pt_sum=pt_1+pt_2+met;
-    pfpt_sum=pt_sum;
-    dr_leptau=leg1P4.DeltaR(leg2P4);
-    mvamet_centrality=DEF;
-
-    TLorentzVector v0=leg1P4*( 1/sqrt(  pow(leg1P4.Px(),2)+pow(leg1P4.Py(),2)  ) ); //lep, normalized in transverse plane
-    TLorentzVector v1=leg2P4*( 1/sqrt(  pow(leg2P4.Px(),2)+pow(leg2P4.Py(),2)  ) ); //tau, normalized in transverse plane
-    float omega=v1.DeltaPhi(v0);
-    float theta=-v0.Phi();
-    float x=(     met_ex * TMath::Sin(omega-theta)  - met_ey*TMath::Cos(omega-theta)   ) / TMath::Sin(omega); //x coord in lep-tau system
-    float y=(     met_ex * TMath::Sin(theta)        + met_ey*TMath::Cos(theta)         ) / TMath::Sin(omega); //y coord in lep-tau system
-    met_centrality=( x+y ) / sqrt(x*x + y*y);
-
-    vector<TLorentzVector> objs;
-    objs.push_back(leg1P4);
-    objs.push_back(leg2P4);
-    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).getP4());
-    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).getP4());
-    sphericity=calcSphericity(objs);
-
-    //this is quite slow, calling the function for each trigger item...
-    if ( channel == HTTAnalysis::MuTau ) //mu-tau
-    {
-        trg_singlemuon=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24) || leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
-        trg_mutaucross=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
-                         && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
-
-    }else if ( channel == HTTAnalysis::EleTau )
-    {
-        trg_singleelectron= leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf) || leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
-
-    } else if ( channel == HTTAnalysis::TauTau )
-    {
-        trg_singletau= false;
-        trg_doubletau= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) )
-                       || ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
-    }
-
-    trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-
-    if(isMC)
-    {
-        fillScalefactors();
-        fillLeptonFakeRateWeights();      
-    }
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillLeptonFakeRateWeights()
 {
     eleTauFakeRateWeight = 1.0;
@@ -676,14 +733,22 @@ void EventWriter::fillLeptonFakeRateWeights()
     }
     antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillScalefactors()
 {
     // from https://github.com/CMS-HTT/CorrectionsWorkspace/tree/2017_17NovReRecoData_Fall17MC
     singleTriggerSFLeg1 = 1.;
     singleTriggerSFLeg2 = 1.;
+
+    isoWeight_1 = 1.0;
+    isoWeight_2 = 1.0;
+    idWeight_1 = 1.0;
+    idWeight_2 = 1.0;
+
     idisoweight_1 = 1.;
     idisoweight_2 = 1.;
+
     trk_sf =1.;
     reco_sf=1.;
 
@@ -699,7 +764,10 @@ void EventWriter::fillScalefactors()
         singleTriggerSFLeg1 = w->function("m_trg24or27_ratio")->getVal();
         // xTriggerSFLeg1 = tauTrigSF->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
 
-        idisoweight_1 = w->function("m_id_ratio")->getVal() * w->function("m_iso_ratio")->getVal();
+        idWeight_1  = w->function("m_id_ratio")->getVal();
+        isoWeight_1 = w->function("m_iso_ratio")->getVal();
+        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
+
         trk_sf = w->function("m_trk_ratio")->getVal();
     }
 
@@ -709,9 +777,12 @@ void EventWriter::fillScalefactors()
         w->var("e_eta")->setVal( eta_1 );
 
         singleTriggerSFLeg1 = w->function("e_trg32or35__ratio")->getVal();
-        xTriggerSFLeg1 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        // xTriggerSFLeg1 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
 
-        idisoweight_1 = w->function("e_id_ratio")->getVal() * w->function("e_iso_ratio")->getVal();
+        idWeight_1  = w->function("e_id_ratio")->getVal();
+        isoWeight_1 = w->function("e_iso_ratio")->getVal();
+        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
+
         reco_sf = w->function("e_reco_ratio")->getVal();
     }
 
@@ -722,7 +793,8 @@ void EventWriter::fillScalefactors()
     }
 
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
 
   TMatrixD S(3,3);
@@ -748,7 +820,8 @@ double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
   }
   return calcSphericityFromMatrix(S);
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcSphericityFromMatrix(TMatrixD M) {
 
   //  TMatrixD M(3,3);
@@ -782,7 +855,8 @@ double EventWriter::calcSphericityFromMatrix(TMatrixD M) {
 
   return spher;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
   float minDR=1;
   int whichjet=0;
@@ -801,16 +875,18 @@ int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets)
   if( minDR < 0.5 ) return jets.getJet(whichjet).getProperty(PropertyEnum::partonFlavour);
   return -99;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcDR(double eta1, double phi1, double eta2, double phi2){
   double deta = eta1-eta2;
   double dphi = TVector2::Phi_mpi_pi(phi1-phi2);
   return TMath::Sqrt( deta*deta+dphi*dphi );
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::setDefault(){
 
-    lumiWeight=DEF;
+    lumiWeight=DEFWEIGHT;
     run_syncro=DEF;
     lumi_syncro=DEF;
     evt_syncro=0; //unsigned
@@ -830,38 +906,49 @@ void EventWriter::setDefault(){
     NUP=DEF;
     //evtWeight=DEF;
 
-    singleTriggerSFLeg1 = DEF;
-    singleTriggerSFLeg2 = DEF;
-    xTriggerSFLeg1 = DEF;
-    xTriggerSFLeg2 = DEF;
+    singleTriggerSFLeg1 = DEFWEIGHT;
+    singleTriggerSFLeg2 = DEFWEIGHT;
+    xTriggerSFLeg1 = DEFWEIGHT;
+    xTriggerSFLeg2 = DEFWEIGHT;
 
-    weight=DEF;
-    puWeight=DEF;
-    genWeight=DEF;
-    trigweight_1=DEF;
-    anti_trigweight_1=DEF;
-    trigweight_2=DEF;
-    idisoweight_1=DEF;
-    anti_idisoweight_1=DEF;
-    idisoweight_2=DEF;
-    trk_sf=DEF;
-    reco_sf=DEF;
-    effweight=DEF;
-    stitchedWeight=DEF;
-    topWeight=DEF;
-    topWeight_run1=DEF;
-    ZWeight=DEF;
-    zpt_weight_nom=DEF;
-    zpt_weight_esup=DEF;
-    zpt_weight_esdown=DEF;
-    zpt_weight_ttup=DEF;
-    zpt_weight_ttdown=DEF;
-    zpt_weight_statpt0up=DEF;
-    zpt_weight_statpt0down=DEF;
-    zpt_weight_statpt40up=DEF;
-    zpt_weight_statpt40down=DEF;
-    zpt_weight_statpt80up=DEF;
-    zpt_weight_statpt80down=DEF;
+    isoWeight_1 = DEFWEIGHT;
+    isoWeight_2 = DEFWEIGHT;
+    idWeight_1 = DEFWEIGHT;
+    idWeight_2 = DEFWEIGHT;
+
+    weight=DEFWEIGHT;
+    puWeight=DEFWEIGHT;
+    genWeight=DEFWEIGHT;
+    trigweight_1=DEFWEIGHT;
+    anti_trigweight_1=DEFWEIGHT;
+    trigweight_2=DEFWEIGHT;
+    idisoweight_1=DEFWEIGHT;
+    anti_idisoweight_1=DEFWEIGHT;
+    idisoweight_2=DEFWEIGHT;
+    trk_sf=DEFWEIGHT;
+    reco_sf=DEFWEIGHT;
+    effweight=DEFWEIGHT;
+    stitchedWeight=DEFWEIGHT;
+    topWeight=DEFWEIGHT;
+    topWeight_run1=DEFWEIGHT;
+    ZWeight=DEFWEIGHT;
+    zpt_weight_nom=DEFWEIGHT;
+    zpt_weight_esup=DEFWEIGHT;
+    zpt_weight_esdown=DEFWEIGHT;
+    zpt_weight_ttup=DEFWEIGHT;
+    zpt_weight_ttdown=DEFWEIGHT;
+    zpt_weight_statpt0up=DEFWEIGHT;
+    zpt_weight_statpt0down=DEFWEIGHT;
+    zpt_weight_statpt40up=DEFWEIGHT;
+    zpt_weight_statpt40down=DEFWEIGHT;
+    zpt_weight_statpt80up=DEFWEIGHT;
+    zpt_weight_statpt80down=DEFWEIGHT;
+
+    
+    eleTauFakeRateWeight=DEFWEIGHT;
+    muTauFakeRateWeight=DEFWEIGHT;
+    antilep_tauscaling=DEFWEIGHT;
+//////////////////////////////////////////////////////////////////
     gen_Mll=DEF;
     gen_ll_px=DEF;
     gen_ll_py=DEF;
@@ -921,23 +1008,23 @@ void EventWriter::setDefault(){
     byIsolationMVA3oldDMwoLTraw_1=DEF;
     byIsolationMVA3newDMwLTraw_1=DEF;
     byIsolationMVA3oldDMwLTraw_1=DEF;
-    byVLooseIsolationMVArun2v1DBoldDMwLT_1=DEF;
-    byLooseIsolationMVArun2v1DBoldDMwLT_1=DEF;
-    byMediumIsolationMVArun2v1DBoldDMwLT_1=DEF;
-    byTightIsolationMVArun2v1DBoldDMwLT_1=DEF;
-    byVTightIsolationMVArun2v1DBoldDMwLT_1=DEF;
-    byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    NewMVAIDVLoose_1=DEF;
-    NewMVAIDLoose_1=DEF;
-    NewMVAIDMedium_1=DEF;
-    NewMVAIDTight_1=DEF;
-    NewMVAIDVTight_1=DEF;
-    NewMVAIDVVTight_1=DEF;
-    idMVANewDM_1=DEF;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
+    // NewMVAIDVLoose_1=DEF;
+    // NewMVAIDLoose_1=DEF;
+    // NewMVAIDMedium_1=DEF;
+    // NewMVAIDTight_1=DEF;
+    // NewMVAIDVTight_1=DEF;
+    // NewMVAIDVVTight_1=DEF;
+    // idMVANewDM_1=DEF;
     chargedIsoPtSum_1=DEF;
     neutralIsoPtSum_1=DEF;
     puCorrPtSum_1=DEF;
@@ -979,29 +1066,32 @@ void EventWriter::setDefault(){
     byIsolationMVA3oldDMwoLTraw_2=DEF;
     byIsolationMVA3newDMwLTraw_2=DEF;
     byIsolationMVA3oldDMwLTraw_2=DEF;
-    byVLooseIsolationMVArun2v1DBoldDMwLT_2=DEF;
-    byLooseIsolationMVArun2v1DBoldDMwLT_2=DEF;
-    byMediumIsolationMVArun2v1DBoldDMwLT_2=DEF;
-    byTightIsolationMVArun2v1DBoldDMwLT_2=DEF;
-    byVTightIsolationMVArun2v1DBoldDMwLT_2=DEF;
-    byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    NewMVAIDVLoose_2=DEF;
-    NewMVAIDLoose_2=DEF;
-    NewMVAIDMedium_2=DEF;
-    NewMVAIDTight_2=DEF;
-    NewMVAIDVTight_2=DEF;
-    NewMVAIDVVTight_2=DEF;
-    idMVANewDM_2=DEF;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
+    // NewMVAIDVLoose_2=DEF;
+    // NewMVAIDLoose_2=DEF;
+    // NewMVAIDMedium_2=DEF;
+    // NewMVAIDTight_2=DEF;
+    // NewMVAIDVTight_2=DEF;
+    // NewMVAIDVVTight_2=DEF;
+    // idMVANewDM_2=DEF;
     chargedIsoPtSum_2=DEF;
     neutralIsoPtSum_2=DEF;
     puCorrPtSum_2=DEF;
     decayModeFindingOldDMs_2=DEF;
     decayMode_2=DEF;
     //////////////////////////////////////////////////////////////////
+     // Testing for later
+    jpt_1_arr[(unsigned)JecUncertEnum::NONE] = DEF;
+
     nbtag=DEF;
     njets=DEF;
     njetsUp=DEF;
@@ -1076,10 +1166,6 @@ void EventWriter::setDefault(){
     metcov11=DEF;
     m_sv=DEF;
     pt_sv=DEF;
-    //////////////////////////////////////////////////////////////////
-    eleTauFakeRateWeight=DEF;
-    muTauFakeRateWeight=DEF;
-    antilep_tauscaling=DEF;
     //////////////////////////////////////////////////////////////////
     passesIsoCuts=DEF;
     passesLepIsoCuts=DEF;
@@ -1160,22 +1246,23 @@ void EventWriter::setDefault(){
     addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits.clear();
     addtau_byTightCombinedIsolationDeltaBetaCorr3Hits.clear();
     addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits.clear();
+    addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byVLooseIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byLooseIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byMediumIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byTightIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byVTightIsolationMVArun2v1DBoldDMwLT.clear();
-    addtau_byVLooseIsolationMVArun2v1DBnewDMwLT.clear();
-    addtau_byLooseIsolationMVArun2v1DBnewDMwLT.clear();
-    addtau_byMediumIsolationMVArun2v1DBnewDMwLT.clear();
-    addtau_byTightIsolationMVArun2v1DBnewDMwLT.clear();
-    addtau_byVTightIsolationMVArun2v1DBnewDMwLT.clear();
-    addtau_NewMVAIDVLoose.clear();
-    addtau_NewMVAIDLoose.clear();
-    addtau_NewMVAIDMedium.clear();
-    addtau_NewMVAIDTight.clear();
-    addtau_NewMVAIDVTight.clear();
-    addtau_NewMVAIDVVTight.clear();
+    // addtau_byVLooseIsolationMVArun2v1DBnewDMwLT.clear();
+    // addtau_byLooseIsolationMVArun2v1DBnewDMwLT.clear();
+    // addtau_byMediumIsolationMVArun2v1DBnewDMwLT.clear();
+    // addtau_byTightIsolationMVArun2v1DBnewDMwLT.clear();
+    // addtau_byVTightIsolationMVArun2v1DBnewDMwLT.clear();
+    // addtau_NewMVAIDVLoose.clear();
+    // addtau_NewMVAIDLoose.clear();
+    // addtau_NewMVAIDMedium.clear();
+    // addtau_NewMVAIDTight.clear();
+    // addtau_NewMVAIDVTight.clear();
+    // addtau_NewMVAIDVVTight.clear();
     addtau_passesTauLepVetos.clear();
     addtau_decayMode.clear();
     addtau_d0.clear();
@@ -1186,7 +1273,8 @@ void EventWriter::setDefault(){
     //////////////////////////////////////////////////////////////////
 
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
 
     tauTrigSF = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
@@ -1209,12 +1297,17 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("puweight", &puWeight);
     t->Branch("genweight", &genWeight);
     t->Branch("xsec", &xsec);
-    t->Branch("genNEvents", &genNEvents);
+    t->Branch("genNEventsWeight", &genNEventsWeight);
 
     t->Branch("singleTriggerSFLeg1",&singleTriggerSFLeg1);
     t->Branch("singleTriggerSFLeg2",&singleTriggerSFLeg2);
     t->Branch("xTriggerSFLeg1",&xTriggerSFLeg1);
     t->Branch("xTriggerSFLeg2",&xTriggerSFLeg2);
+
+    t->Branch("isoWeight_1",&isoWeight_1);
+    t->Branch("isoWeight_2",&isoWeight_2);
+    t->Branch("idWeight_1",&idWeight_1);
+    t->Branch("idWeight_2",&idWeight_2);
 
     t->Branch("trigweight_1", &trigweight_1 );
     t->Branch("trigweight_2", &trigweight_2 );
@@ -1326,26 +1419,25 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
     t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
     t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
-    t->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_1", &byVLooseIsolationMVArun2v1DBoldDMwLT_1);
-    t->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_1", &byLooseIsolationMVArun2v1DBoldDMwLT_1);
-    t->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_1", &byMediumIsolationMVArun2v1DBoldDMwLT_1);
-    t->Branch("byTightIsolationMVArun2v1DBoldDMwLT_1", &byTightIsolationMVArun2v1DBoldDMwLT_1);
-    t->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_1", &byVTightIsolationMVArun2v1DBoldDMwLT_1);
-    t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
-    t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
-    t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
-    t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_1", &byTightIsolationMVArun2v1DBnewDMwLT_1);
-    t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_1", &byVTightIsolationMVArun2v1DBnewDMwLT_1);
+    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_1", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
+    // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
+    // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
+    // t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_1", &byTightIsolationMVArun2v1DBnewDMwLT_1);
+    // t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_1", &byVTightIsolationMVArun2v1DBnewDMwLT_1);
 
-    t->Branch("byRerunMVAIdVLoose_1", &NewMVAIDVLoose_1);
-    t->Branch("byRerunMVAIdLoose_1", &NewMVAIDLoose_1);
-    t->Branch("byRerunMVAIdMedium_1", &NewMVAIDMedium_1);
-    t->Branch("byRerunMVAIdTight_1", &NewMVAIDTight_1);
-    t->Branch("byRerunMVAIdVTight_1", &NewMVAIDVTight_1);
-    t->Branch("byRerunMVAIdVVTight_1", &NewMVAIDVVTight_1);
+    // t->Branch("byRerunMVAIdVLoose_1", &NewMVAIDVLoose_1);
+    // t->Branch("byRerunMVAIdLoose_1", &NewMVAIDLoose_1);
+    // t->Branch("byRerunMVAIdMedium_1", &NewMVAIDMedium_1);
+    // t->Branch("byRerunMVAIdTight_1", &NewMVAIDTight_1);
+    // t->Branch("byRerunMVAIdVTight_1", &NewMVAIDVTight_1);
+    // t->Branch("byRerunMVAIdVVTight_1", &NewMVAIDVVTight_1);
+    // t->Branch("idMVANewDM_1", &idMVANewDM_1);
 
-
-    t->Branch("idMVANewDM_1", &idMVANewDM_1);
     t->Branch("chargedIsoPtSum_1", &chargedIsoPtSum_1);
     t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
     t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
@@ -1390,25 +1482,25 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
     t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
     t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
-    t->Branch("byVLooseIsolationMVArun2v1DBoldDMwLT_2", &byVLooseIsolationMVArun2v1DBoldDMwLT_2);
-    t->Branch("byLooseIsolationMVArun2v1DBoldDMwLT_2", &byLooseIsolationMVArun2v1DBoldDMwLT_2);
-    t->Branch("byMediumIsolationMVArun2v1DBoldDMwLT_2", &byMediumIsolationMVArun2v1DBoldDMwLT_2);
-    t->Branch("byTightIsolationMVArun2v1DBoldDMwLT_2", &byTightIsolationMVArun2v1DBoldDMwLT_2);
-    t->Branch("byVTightIsolationMVArun2v1DBoldDMwLT_2", &byVTightIsolationMVArun2v1DBoldDMwLT_2);
-    t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
-    t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
-    t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
-    t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_2", &byTightIsolationMVArun2v1DBnewDMwLT_2);
-    t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_2", &byVTightIsolationMVArun2v1DBnewDMwLT_2);
+    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_2", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
+    // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
+    // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
+    // t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_2", &byTightIsolationMVArun2v1DBnewDMwLT_2);
+    // t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_2", &byVTightIsolationMVArun2v1DBnewDMwLT_2);
 
-    t->Branch("byRerunMVAIdVLoose_2", &NewMVAIDVLoose_2);
-    t->Branch("byRerunMVAIdLoose_2", &NewMVAIDLoose_2);
-    t->Branch("byRerunMVAIdMedium_2", &NewMVAIDMedium_2);
-    t->Branch("byRerunMVAIdTight_2", &NewMVAIDTight_2);
-    t->Branch("byRerunMVAIdVTight_2", &NewMVAIDVTight_2);
-    t->Branch("byRerunMVAIdVVTight_2", &NewMVAIDVVTight_2);
+    // t->Branch("byRerunMVAIdVLoose_2", &NewMVAIDVLoose_2);
+    // t->Branch("byRerunMVAIdLoose_2", &NewMVAIDLoose_2);
+    // t->Branch("byRerunMVAIdMedium_2", &NewMVAIDMedium_2);
+    // t->Branch("byRerunMVAIdTight_2", &NewMVAIDTight_2);
+    // t->Branch("byRerunMVAIdVTight_2", &NewMVAIDVTight_2);
+    // t->Branch("byRerunMVAIdVVTight_2", &NewMVAIDVVTight_2);
+    // t->Branch("idMVANewDM_2", &idMVANewDM_2);
 
-    t->Branch("idMVANewDM_2", &idMVANewDM_2);
     t->Branch("chargedIsoPtSum_2", &chargedIsoPtSum_2);
     t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
     t->Branch("puCorrPtSum_2", &puCorrPtSum_2);
@@ -1487,6 +1579,10 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("njetsUp", &njetsUp);
     t->Branch("njetsDown", &njetsDown);
     t->Branch("njetspt20", &njetspt20);
+
+     // Testing for later
+    t->Branch( ("jpt_1_" + JecUncertNames[(unsigned)JecUncertEnum::NONE]).c_str(), &jpt_1_arr[(unsigned)JecUncertEnum::NONE]);
+
     t->Branch("jpt_1", &jpt_1);
     t->Branch("jptUp_1", &jptUp_1);
     t->Branch("jptDown_1", &jptDown_1);
@@ -1571,23 +1667,24 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
         t->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
         t->Branch("addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits", &addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits);
+        t->Branch("addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVLooseIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byLooseIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
-        t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
-        t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
-        t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
-        t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
 
-        t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
-        t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
-        t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
-        t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
-        t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
-        t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
+        // t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
+        // t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
+        // t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
+        // t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
+        // t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
+        // t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
       
         t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
         t->Branch("addtau_decayMode", &addtau_decayMode);

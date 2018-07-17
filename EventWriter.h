@@ -16,12 +16,16 @@
 
 class EventWriter
 {
+
+ static const unsigned Njecshifts = 28;
+
  public:
 
   //ClassDef(EventWriter,0);
 
   HTTParticle leg1, leg2;
   HTTAnalysis::finalState channel;
+  TLorentzVector leg1P4, leg2P4;
 
   int isSync;
   int isMC;
@@ -32,7 +36,6 @@ class EventWriter
   ULong64_t evt_syncro;
   int entry;
   Int_t fileEntry;
-  bool matchXTrig_obj;
 
   int npv;
   int npvGood;
@@ -52,11 +55,16 @@ class EventWriter
   float xTriggerSFLeg1;
   float xTriggerSFLeg2;
 
+  float isoWeight_1;
+  float isoWeight_2;
+  float idWeight_1;
+  float idWeight_2;
+
   float weight;
   float puWeight;
   float genWeight;
   float xsec;
-  float genNEvents;
+  float genNEventsWeight;
   float trigweight_1;
   float anti_trigweight_1;
   float trigweight_2;
@@ -143,27 +151,29 @@ class EventWriter
   int byLooseCombinedIsolationDeltaBetaCorr3Hits_1;
   int byMediumCombinedIsolationDeltaBetaCorr3Hits_1;
   int byTightCombinedIsolationDeltaBetaCorr3Hits_1;
+  int byIsolationMVArun2017v2DBoldDMwLTraw2017_1;
   int byIsolationMVA3newDMwoLTraw_1;
   int byIsolationMVA3oldDMwoLTraw_1;
   float byIsolationMVA3newDMwLTraw_1;
   float byIsolationMVA3oldDMwLTraw_1;
-  int byVLooseIsolationMVArun2v1DBoldDMwLT_1;
-  int byLooseIsolationMVArun2v1DBoldDMwLT_1;
-  int byMediumIsolationMVArun2v1DBoldDMwLT_1;
-  int byTightIsolationMVArun2v1DBoldDMwLT_1;
-  int byVTightIsolationMVArun2v1DBoldDMwLT_1;
-  int byVLooseIsolationMVArun2v1DBnewDMwLT_1;
-  int byLooseIsolationMVArun2v1DBnewDMwLT_1;
-  int byMediumIsolationMVArun2v1DBnewDMwLT_1;
-  int byTightIsolationMVArun2v1DBnewDMwLT_1;
-  int byVTightIsolationMVArun2v1DBnewDMwLT_1;
-  int NewMVAIDVLoose_1;
-  int NewMVAIDLoose_1;
-  int NewMVAIDMedium_1;
-  int NewMVAIDTight_1;
-  int NewMVAIDVTight_1;
-  int NewMVAIDVVTight_1;
-  float idMVANewDM_1;
+  int byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byMediumIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byTightIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
+  // int byVLooseIsolationMVArun2v1DBnewDMwLT_1;
+  // int byLooseIsolationMVArun2v1DBnewDMwLT_1;
+  // int byMediumIsolationMVArun2v1DBnewDMwLT_1;
+  // int byTightIsolationMVArun2v1DBnewDMwLT_1;
+  // int byVTightIsolationMVArun2v1DBnewDMwLT_1;
+  // int NewMVAIDVLoose_1;
+  // int NewMVAIDLoose_1;
+  // int NewMVAIDMedium_1;
+  // int NewMVAIDTight_1;
+  // int NewMVAIDVTight_1;
+  // int NewMVAIDVVTight_1;
+  // float idMVANewDM_1;
   float chargedIsoPtSum_1;
   float neutralIsoPtSum_1;
   float puCorrPtSum_1;
@@ -201,33 +211,40 @@ class EventWriter
   int byLooseCombinedIsolationDeltaBetaCorr3Hits_2;
   int byMediumCombinedIsolationDeltaBetaCorr3Hits_2;
   int byTightCombinedIsolationDeltaBetaCorr3Hits_2;
+  int byIsolationMVArun2017v2DBoldDMwLTraw2017_2;
   int byIsolationMVA3newDMwoLTraw_2;
   int byIsolationMVA3oldDMwoLTraw_2;
   float byIsolationMVA3newDMwLTraw_2;
   float byIsolationMVA3oldDMwLTraw_2;
-  int byVLooseIsolationMVArun2v1DBoldDMwLT_2;
-  int byLooseIsolationMVArun2v1DBoldDMwLT_2;
-  int byMediumIsolationMVArun2v1DBoldDMwLT_2;
-  int byTightIsolationMVArun2v1DBoldDMwLT_2;
-  int byVTightIsolationMVArun2v1DBoldDMwLT_2;
-  int byVLooseIsolationMVArun2v1DBnewDMwLT_2;
-  int byLooseIsolationMVArun2v1DBnewDMwLT_2;
-  int byMediumIsolationMVArun2v1DBnewDMwLT_2;
-  int byTightIsolationMVArun2v1DBnewDMwLT_2;
-  int byVTightIsolationMVArun2v1DBnewDMwLT_2;
-  int NewMVAIDVLoose_2;
-  int NewMVAIDLoose_2;
-  int NewMVAIDMedium_2;
-  int NewMVAIDTight_2;
-  int NewMVAIDVTight_2;
-  int NewMVAIDVVTight_2;
-  float idMVANewDM_2;
+  int byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;  
+  int byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;
+  int byLooseIsolationMVArun2017v2DBoldDMwLT2017_2;
+  int byMediumIsolationMVArun2017v2DBoldDMwLT2017_2;
+  int byTightIsolationMVArun2017v2DBoldDMwLT2017_2;
+  int byVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
+  // int byVLooseIsolationMVArun2v1DBnewDMwLT_2;
+  // int byLooseIsolationMVArun2v1DBnewDMwLT_2;
+  // int byMediumIsolationMVArun2v1DBnewDMwLT_2;
+  // int byTightIsolationMVArun2v1DBnewDMwLT_2;
+  // int byVTightIsolationMVArun2v1DBnewDMwLT_2;
+  // int NewMVAIDVLoose_2;
+  // int NewMVAIDLoose_2;
+  // int NewMVAIDMedium_2;
+  // int NewMVAIDTight_2;
+  // int NewMVAIDVTight_2;
+  // int NewMVAIDVVTight_2;
+  // float idMVANewDM_2;
   float chargedIsoPtSum_2;
   float neutralIsoPtSum_2;
   float puCorrPtSum_2;
   int decayModeFindingOldDMs_2;
   int decayMode_2;
   //////////////////////////////////////////////////////////////////
+
+  // Testing for later
+  float jpt_1_arr[Njecshifts];
+  float jpt_2_arr[Njecshifts];
+
   int nbtag;
   int njets;
   int njetsUp;
@@ -363,6 +380,11 @@ class EventWriter
   TauTriggerSFs2017 *tauTrigSF;
   void fillScalefactors();
   void fillLeptonFakeRateWeights();
+  void fillLeg1Branches();
+  void fillLeg2Branches();
+  void fillJetBranches(HTTJetCollection jets);
+  void fillPairBranches(HTTPair *pair);
+  void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
 
   vector<TLorentzVector> addlepton_p4;
@@ -408,22 +430,23 @@ class EventWriter
   vector<int> addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits;
   vector<int> addtau_byTightCombinedIsolationDeltaBetaCorr3Hits;
   vector<int> addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits;
+  vector<int> addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byVLooseIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byLooseIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byMediumIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byTightIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byVTightIsolationMVArun2v1DBoldDMwLT;
-  vector<int> addtau_byVLooseIsolationMVArun2v1DBnewDMwLT;
-  vector<int> addtau_byLooseIsolationMVArun2v1DBnewDMwLT;
-  vector<int> addtau_byMediumIsolationMVArun2v1DBnewDMwLT;
-  vector<int> addtau_byTightIsolationMVArun2v1DBnewDMwLT;
-  vector<int> addtau_byVTightIsolationMVArun2v1DBnewDMwLT;
-  vector<int> addtau_NewMVAIDVLoose;
-  vector<int> addtau_NewMVAIDLoose;
-  vector<int> addtau_NewMVAIDMedium;
-  vector<int> addtau_NewMVAIDTight;
-  vector<int> addtau_NewMVAIDVTight;
-  vector<int> addtau_NewMVAIDVVTight;
+  // vector<int> addtau_byVLooseIsolationMVArun2v1DBnewDMwLT;
+  // vector<int> addtau_byLooseIsolationMVArun2v1DBnewDMwLT;
+  // vector<int> addtau_byMediumIsolationMVArun2v1DBnewDMwLT;
+  // vector<int> addtau_byTightIsolationMVArun2v1DBnewDMwLT;
+  // vector<int> addtau_byVTightIsolationMVArun2v1DBnewDMwLT;
+  // vector<int> addtau_NewMVAIDVLoose;
+  // vector<int> addtau_NewMVAIDLoose;
+  // vector<int> addtau_NewMVAIDMedium;
+  // vector<int> addtau_NewMVAIDTight;
+  // vector<int> addtau_NewMVAIDVTight;
+  // vector<int> addtau_NewMVAIDVVTight;
   vector<int> addtau_passesTauLepVetos;
   vector<int> addtau_decayMode;
   vector<double> addtau_d0;
