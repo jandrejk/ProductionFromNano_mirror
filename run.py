@@ -96,7 +96,7 @@ class SteerNanoProduction():
         assert sample
         sample = sample.split("/")[-1].replace(".txt","")
 
-        with open("submit_on_batch.sh") as FSO:
+        with open("submit_on_hephybatch.sh") as FSO:
             templ = string.Template( FSO.read() )
 
         runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_'+self.channel+'_' ])
