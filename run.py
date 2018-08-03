@@ -20,7 +20,7 @@ def main():
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','m0u','m1u','m10u','m0d','m1d','m10d','e0u','e1u','e10u','e0d','e1d','e10d'], default = '')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
-    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
@@ -105,7 +105,7 @@ class SteerNanoProduction():
             os.makedirs(outdir)
 
         print "Submitting: ", sample
-
+        sleep = 0
         for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
             file = configBall["file"]
 
@@ -136,10 +136,12 @@ class SteerNanoProduction():
                 if not self.event: sleep(5)
             # Run on batch system
             else:
+                if sleep > 10: sleep = 0
                 runscript = templ.substitute(rundir = rundir,
                                              outdir = outdir,
-                                             sleeping = idx*10,
+                                             sleeping = sleep*10,
                                              channel = self.channel)
+                sleep += 1
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
