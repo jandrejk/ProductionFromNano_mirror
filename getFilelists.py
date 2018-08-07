@@ -23,7 +23,7 @@ def main():
                     content = getDASquery(link)
 
                     if "Vienna" in getDASquery(link,"site"):
-                        content = content.replace("/store/","root://hephyse.oeaw.ac.at//store/")
+                        content = content.replace("/store/","root://cms-xrd-global.cern.ch//store/")
                     else:
                         content = content.replace("/store/","root://xrootd-cms.infn.it//store/")
 
