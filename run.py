@@ -19,7 +19,8 @@ def main():
     parser.add_argument('-v', dest='version', help='Version of ntuples.', type=str, metavar = 'VERSION', default = 'v1')
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','m0u','m1u','m10u','m0d','m1d','m10d','e0u','e1u','e10u','e0d','e1d','e10d'], default = '')
-    parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
+    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['lxbatch','hephybatch','local'], default = 'local')
+    parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
@@ -31,10 +32,15 @@ def main():
 
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
+    if not checkProxy(): sys.exit()
+    if not os.environ.get("CMSSW_BASE", False):
+        print "You forgot to source cmssw"
+        sys.exit()
+
 
     if not args.merge:
         print 'Channel:',args.channel
-        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug, args.event, args.cert)
+        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.submit, args.jobs, args.debug, args.event, args.cert)
         # print SNP.makeConfigBalls(args.sample)
         SNP.runOneSample(args.sample)
 
@@ -43,7 +49,7 @@ def main():
 
 class SteerNanoProduction():
 
-    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False, event = 0, cert = ""):
+    def __init__(self, channel, shift, outdir='', submit='local', nthreads=8, debug=False, event = 0, cert = ""):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
@@ -51,7 +57,7 @@ class SteerNanoProduction():
         self.svfit = False
         self.recoil = False
 
-
+        self.submit = submit
         self.debug = debug
         self.event = event
 
@@ -96,8 +102,10 @@ class SteerNanoProduction():
         assert sample
         sample = sample.split("/")[-1].replace(".txt","")
 
-        with open("submit_on_hephybatch.sh") as FSO:
-            templ = string.Template( FSO.read() )
+        # with open("submit_on_hephybatch.sh") as FSO:
+        if not self.submit == "local":
+            with open("submit_on_{0}.sh".format(self.submit) ) as FSO:
+                templ = string.Template( FSO.read() )
 
         runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_'+self.channel+'_' ])
         outdir = "/".join([self.outdir, version, sample])
@@ -105,7 +113,7 @@ class SteerNanoProduction():
             os.makedirs(outdir)
 
         print "Submitting: ", sample
-        sleep = 0
+        sleeping = 0
         for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
             file = configBall["file"]
 
@@ -122,11 +130,10 @@ class SteerNanoProduction():
 
 
             os.chdir(self.basedir)
-            self.prepareRunDir(rundir)
-            self.throwConfigBall(configBall, rundir)
+            self.prepareRunDir(rundir, configBall)
 
             # Run local
-            if self.nthreads > 0:
+            if self.submit == "local":
                 t = threading.Thread(target=self.runOneFileLocal, args=(rundir,file,) )
                 threads.append(t)
 
@@ -136,19 +143,22 @@ class SteerNanoProduction():
                 if not self.event: sleep(5)
             # Run on batch system
             else:
-                if sleep > 10: sleep = 0
+                if sleeping > 10: sleeping = 0
                 runscript = templ.substitute(rundir = rundir,
                                              outdir = outdir,
-                                             sleeping = sleep*10,
+                                             sleeping = sleeping*10,
                                              channel = self.channel)
-                sleep += 1
+                sleeping += 1
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
                     FSO.write( runscript )
-                os.system( "sbatch submit.sh" )
+                os.chmod("submit.sh", 0777)
 
-        if self.nthreads > 0:
+                if self.submit == "hephybatch": os.system( "sbatch submit.sh" )
+                if self.submit == "lxbatch":   os.system( " bsub -q 1nh -J test submit.sh" )
+
+        if self.submit == "local":
             for x in threads:
                 x.join()
 
@@ -185,17 +195,20 @@ class SteerNanoProduction():
         print "\033[92mdone\033[0m Job {0}: ".format(njob)  + file.split("/")[-1]
 
 
-    def prepareRunDir(self, rundir):
+    def prepareRunDir(self, rundir, configBall):
 
-        headerfiles = glob("*.h*")
-        Cfiles = glob("*.c*") + glob("*.C")
-        addFiles =['convertNanoParallel.py']
+        self.throwConfigBall(configBall, rundir)
+        shutil.copytree("proxy", "/".join([rundir,"proxy"]))
 
-        shutil.copytree("utils", "/".join([rundir,"utils"]))
-        for f in headerfiles + Cfiles + addFiles:
-            shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
+        if not self.submit == "lxbatch":
+            headerfiles = glob("*.h*")
+            Cfiles = glob("*.c*") + glob("*.C")
+            addFiles =['convertNanoParallel.py']
 
-            os.chmod("/".join([rundir,f]), 0777)
+            shutil.copytree("utils", "/".join([rundir,"utils"]))
+            for f in headerfiles + Cfiles + addFiles:
+                shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
+                os.chmod("/".join([rundir,f]), 0777)
 
     def makeConfigBalls(self,sample):
         configBalls = []
@@ -279,6 +292,30 @@ def mergeSample(version, outdir, single_sample=""):
 
             types[t]["chain"].Merge( "/".join([sample, t+"_all.root"]) )
 
+def checkProxy():
+    proxy_path = "/tmp/x509_u{0}".format( os.getuid() )
+    if os.path.exists( proxy_path ):
+
+        p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
+        (out,err) =  p.communicate()
+
+
+        if err:
+            print err
+            return False
+        if out:
+            if int(out) > 0:
+                if not os.path.exists("proxy"):
+                    os.mkdir("proxy")
+                shutil.copyfile(proxy_path, "proxy/x509_proxy")
+                return True
+            else:
+                print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
+                return False
+
+    
+    print "No proxy found! Get a new one with 'voms-proxy-init --voms cms'" 
+    return False
     
 
 
