@@ -2,6 +2,7 @@ import shlex
 import os
 import json
 import glob
+import shutil
 import subprocess as sp
 import argparse
 
@@ -146,10 +147,12 @@ class Bookkeeping():
     print "_"*105
     print "Resubmitting failed jobs"
     print "_"*105
+    if not checkProxy(): return
 
     for failed in self.failed_paths:
       if self.system == "lxbatch":
         os.chdir( "/".join([self.cwd, failed[0]]) )
+        shutil.copytree("/".join([self.cwd,"proxy" ]), "proxy")
         os.system( " bsub -q 1nd -J {0} submit.sh".format( failed[1] ) )
 
     print "_"*105
@@ -161,13 +164,13 @@ class Bookkeeping():
     samples = self.summary.keys()
     samples.sort()
 
-    print "_"*110
+    print "_"*104
     for sample in samples:
-      print "\033[1m" + sample + "\033[0m","\n"
+      print "{0}\033[1m{1}\033[0m{0}".format( " "*((104 - len(sample))/2), sample )
+      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*28)
       for shift in self.summary[sample]:
-        line = {"et":" "*30,"mt":" "*30,"tt":" "*30}
+        line = {"et":" "*26,"mt":" "*26,"tt":" "*26}
         for channel in self.summary[sample][shift]:
-
 
 
           if self.log[self.system][sample][channel][shift]["status"] == "DONE":
@@ -180,11 +183,14 @@ class Bookkeeping():
             p = self.summary[sample][shift][channel]["pending"]
             u = self.summary[sample][shift][channel]["failed"]
 
-            ft = "{0}({1}/{2}/{3}/{4}/{5})".format( channel+": ",cS(u,"r") ,cS(p,"y"),cS(r,"b"), cS(finished,"g"),cS(total,"") )
-            line[channel] = " "*(85-len(ft)) + ft
+            ft = "{0}({1}/{2}/{3}/{4}/{5})".format( channel+": ",cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
+            line[channel] = " "*(81-len(ft)) + ft
 
-        print "{0}  {1} {2} {3}".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
-      print "_"*110
+        print "{0} | {1} | {2} | {3} |".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
+
+      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*28)
+      print "_"*104
+
 
 
 def cS(string, color):
@@ -198,7 +204,30 @@ def cS(string, color):
 
   return c+" "*(3 - len(s)) + s + "\033[0m"
     
+def checkProxy():
+    proxy_path = "/tmp/x509_u{0}".format( os.getuid() )
+    if os.path.exists( proxy_path ):
 
+        p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
+        (out,err) =  p.communicate()
+
+
+        if err:
+            print err
+            return False
+        if out:
+            if int(out) > 0:
+                if not os.path.exists("proxy"):
+                    os.mkdir("proxy")
+                shutil.copyfile(proxy_path, "proxy/x509_proxy" )
+                return True
+            else:
+                print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
+                return False
+
+    
+    print "No proxy found! Get a new one with 'voms-proxy-init --voms cms'" 
+    return False
 
 if __name__ == '__main__':
   main()
