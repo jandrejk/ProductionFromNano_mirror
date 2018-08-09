@@ -49,7 +49,7 @@ def main():
             print 'Channel:',cmd[1]
             print 'Sample:', cmd[0]
             print 'Shift:', cmd[2]
-            print "_"*100
+            print "\033[1m" +  "_"*100 + "\033[0m"
 
             SNP.runOneSample( *cmd )
 
@@ -124,7 +124,7 @@ class SteerNanoProduction():
             self.nthreads = nthreads
             self.nevents = -1
 
-        shifts={'t0u' : 'TES1p0p0Up',
+        self.shifts={'t0u' : 'TES1p0p0Up',
                 't1u' : 'TES1p1p0Up',
                 't10u': 'TES3p0p0Up',
                 't0d' : 'TES1p0p0Down',
@@ -154,7 +154,7 @@ class SteerNanoProduction():
 
         self.channel = channel
         if shift:
-            self.systShift = shifts.get(shift,'NOMINAL')
+            self.systShift = self.shifts.get(shift,'NOMINAL')
         else:
             self.systShift = "NOMINAL"        
 
