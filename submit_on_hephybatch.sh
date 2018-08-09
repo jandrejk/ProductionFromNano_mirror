@@ -1,5 +1,5 @@
 #! /bin/sh
-#SBATCH -J Forrest 
+#SBATCH -J ${samplename} 
 #SBATCH -D ${rundir}
 #SBATCH -o ${rundir}/log_%j.txt
 export X509_USER_PROXY=${rundir}/proxy/x509_proxy

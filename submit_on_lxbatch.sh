@@ -4,7 +4,8 @@ echo "---------------------"
 echo "Grid certificate 1"
 voms-proxy-info --all
 echo "---------------------"
-
+echo ${samplename}
+echo "---------------------"
 echo "Good night..."
 date
 sleep ${sleeping}
@@ -45,4 +46,5 @@ echo "Current dir: `pwd`"
 ls -l
 echo "---------------------"
 chmod 777 ${channel}*root
-mv -f ${channel}*root ${outdir}
+
+python validateAndCopy.py ${channel} ${outdir} ${rundir}

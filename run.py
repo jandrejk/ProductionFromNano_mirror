@@ -4,7 +4,7 @@ import sys, os
 import shutil
 import threading
 from glob import glob
-from time import sleep
+from time import sleep, time
 import subprocess as sp
 import multiprocessing as mp
 import shlex
@@ -113,6 +113,8 @@ class SteerNanoProduction():
             os.makedirs(outdir)
 
         print "Submitting: ", sample
+        if not self.debug: self.writeSubmitLog( sample, self.systShift )
+
         sleeping = 0
         for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
             file = configBall["file"]
@@ -121,7 +123,7 @@ class SteerNanoProduction():
 
             rundir = runpath+str(idx+1)
 
-            ##### Create rundir. Overwrite if it already exists
+            ##### Create rundir. Overwrite if it already exists... Well, actually delete it and make it new. 
             if not os.path.exists(rundir):
                 os.makedirs(rundir)
             else:
@@ -144,7 +146,8 @@ class SteerNanoProduction():
             # Run on batch system
             else:
                 if sleeping > 10: sleeping = 0
-                runscript = templ.substitute(rundir = rundir,
+                runscript = templ.substitute(samplename = sample,
+                                             rundir = rundir,
                                              outdir = outdir,
                                              sleeping = sleeping*10,
                                              channel = self.channel)
@@ -155,8 +158,12 @@ class SteerNanoProduction():
                     FSO.write( runscript )
                 os.chmod("submit.sh", 0777)
 
-                if self.submit == "hephybatch": os.system( "sbatch submit.sh" )
-                if self.submit == "lxbatch":   os.system( " bsub -q 1nh -J test submit.sh" )
+                if self.submit == "hephybatch":
+                    os.system( "sbatch submit.sh" )
+
+                if self.submit == "lxbatch":
+                    jobname = "{0}#{1}-{2}_{3}".format( sample, self.channel, configBall["systShift"], file.split("/")[-1] )
+                    os.system( " bsub -q 1nd -J {0} submit.sh".format( jobname ) )
 
         if self.submit == "local":
             for x in threads:
@@ -194,7 +201,6 @@ class SteerNanoProduction():
 
         print "\033[92mdone\033[0m Job {0}: ".format(njob)  + file.split("/")[-1]
 
-
     def prepareRunDir(self, rundir, configBall):
 
         self.throwConfigBall(configBall, rundir)
@@ -209,6 +215,20 @@ class SteerNanoProduction():
             for f in headerfiles + Cfiles + addFiles:
                 shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
                 os.chmod("/".join([rundir,f]), 0777)
+
+    def writeSubmitLog(self, sample, shift):
+
+        log = {"local":{}, "lxbatch":{}, "hephybatch":{} }
+
+        if os.path.exists("submit_log.log"):
+            with open("submit_log.log","r") as FSO:
+                log = json.load(FSO)
+
+        log[self.submit]["outdir"] = self.outdir
+        log[self.submit][sample] = {self.channel:{shift: {"submit_time": int(time()), "status":"NEW" } } }
+
+        with open("submit_log.log","w") as FSO:
+            json.dump(log, FSO, indent=4)
 
     def makeConfigBalls(self,sample):
         configBalls = []
@@ -226,6 +246,7 @@ class SteerNanoProduction():
             configBall["file"]        = file
 
             configBall["sample"]      = parts[2]
+            configBall["samplename"]  = sample
             configBall["channel"]     = self.channel
             configBall["systShift"]   = self.systShift
             configBall["svfit"]       = self.svfit
@@ -235,9 +256,9 @@ class SteerNanoProduction():
             if  parts[1] == "mc":
                 configBall["isMC"]        = True
                 configBall["certJson"] = ""
-                configBall["puTag"]    = puTag[ sample.replace(".txt","") ][0]
-                configBall["xsec"]     = puTag[ sample.replace(".txt","") ][1]
-                configBall["genNEvents"]  = puTag[ sample.replace(".txt","") ][2]
+                configBall["puTag"]    = puTag[ sample ][0]
+                configBall["xsec"]     = puTag[ sample ][1]
+                configBall["genNEvents"]  = puTag[ sample ][2]
 
             else:
                 configBall["isMC"]        = False
@@ -259,8 +280,7 @@ class SteerNanoProduction():
 
         with open( "{0}/{1}".format(self.basedir, sample) ) as FSO:
             buf = FSO.read()
-        return buf.splitlines()
-
+        return buf.splitlines()    
 
 def mergeSample(version, outdir, single_sample=""):
 
