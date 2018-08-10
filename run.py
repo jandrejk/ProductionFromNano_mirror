@@ -23,7 +23,8 @@ def main():
                                                                                            'e0u','e1u','e10u','e0d','e1d','e10d','e0','e1','e10','e'], default = '')
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['lxbatch','hephybatch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
-    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
+    # parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
@@ -208,7 +209,9 @@ class SteerNanoProduction():
             # Run on batch system
             else:
                 if sleeping > 10: sleeping = 0
-                runscript = templ.substitute(samplename = sample,
+                jobname = "{0}+{1}-{2}_{3}".format( sample, self.channel, configBall["systShift"], file.split("/")[-1] )
+
+                runscript = templ.substitute(samplename = jobname,
                                              rundir = rundir,
                                              outdir = outdir,
                                              sleeping = sleeping*10,
@@ -224,7 +227,6 @@ class SteerNanoProduction():
                     os.system( "sbatch submit.sh" )
 
                 if self.submit == "lxbatch":
-                    jobname = "{0}#{1}-{2}_{3}".format( sample, self.channel, configBall["systShift"], file.split("/")[-1] )
                     os.system( " bsub -q 1nd -J {0} submit.sh".format( jobname ) )
 
         if self.submit == "local":
@@ -305,7 +307,7 @@ class SteerNanoProduction():
         configBalls = []
         samples_avail = glob("samples/*/*/*")
         for sa in samples_avail:
-            if sample in sa:
+            if sample + ".txt" in sa:
                 files = self.getFiles(sa)
                 parts = sa.split("/")
 
@@ -384,8 +386,8 @@ def mergeSample(version, outdir, single_sample=""):
             types[t]["chain"].Merge( "/".join([sample, t+"_all.root"]) )
 
 def checkProxy():
-    proxy_path = "/tmp/x509_u{0}".format( os.getuid() )
-    if os.path.exists( proxy_path ):
+    proxy_path = glob("/tmp/x509*_u{0}".format( os.getuid() ) )
+    if len(proxy_path) == 1 and os.path.exists( proxy_path[0] ):
 
         p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
         (out,err) =  p.communicate()
@@ -398,7 +400,7 @@ def checkProxy():
             if int(out) > 0:
                 if not os.path.exists("proxy"):
                     os.mkdir("proxy")
-                shutil.copyfile(proxy_path, "proxy/x509_proxy")
+                shutil.copyfile(proxy_path[0], "proxy/x509_proxy")
                 return True
             else:
                 print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
