@@ -1,6 +1,7 @@
 import shlex
 import os
 import json
+import sys
 import glob
 import shutil
 import subprocess as sp
@@ -23,7 +24,15 @@ def main():
 class Bookkeeping():
 
   def __init__(self):
-    self.system = "lxbatch"
+    host = os.environ["HOSTNAME"]
+    if "heplx" in host: 
+      self.system = "hephybatch"
+    elif "lxplus" in host: 
+      self.system = "lxbatch"
+    else:
+      print "Dont know host you are on. Only heplx and lxplus!"   
+      sys.exit()
+      
     self.cwd = os.getcwd()
 
     self.log = {}
@@ -69,9 +78,10 @@ class Bookkeeping():
     self.getFullStatus()
 
   def getRunningJobs(self):
+    runningJobs = {}
     if self.system == "lxbatch":
 
-      runningJobs = {}
+
       proc = sp.Popen( shlex.split('bjobs -UF'), stdout=sp.PIPE )
       (out, err) = proc.communicate()
 
@@ -86,7 +96,25 @@ class Bookkeeping():
           jobid = jobinfo.pop("Job") 
           runningJobs[ jobid ] = jobinfo
 
-      return runningJobs
+    elif self.system == "hephybatch":
+      runningJobs = {}
+      statusmap = {
+        "RUNN":"RUN",
+        "PEND":"PEND"
+      }
+      proc = sp.Popen( shlex.split('squeue -u {0} -l --format="%.18i#%.150j#%.4T" -h '.format(os.environ["USER"]) ), stdout=sp.PIPE )
+      (out, err) = proc.communicate()
+      for entry in out.splitlines():
+        jobinfo = entry.replace(" ","").split("#")
+        if len(jobinfo) != 3: continue
+
+        runningJobs[jobinfo[0]] = {}
+        runningJobs[jobinfo[0]]["JobName"] = jobinfo[1]
+        runningJobs[jobinfo[0]]["Status"] =  statusmap.get(jobinfo[2], "UNK")
+
+
+
+    return runningJobs
 
   def matchRunInfo(self):
 
@@ -94,7 +122,7 @@ class Bookkeeping():
       for shift in self.summary[sample]:
         for channel in self.summary[sample][shift]:
 
-          fjob = "{0}#{1}-{2}".format( sample,channel,shift )
+          fjob = "{0}+{1}-{2}".format( sample,channel,shift )
 
           for ojob in self.runningJobs:
             if fjob in self.runningJobs[ojob]["JobName"]:
@@ -127,7 +155,7 @@ class Bookkeeping():
       with open(configBall,"r") as FSO:
         rundir = "/".join(configBall.split("/")[:-1])
         run_file = json.load(FSO)["file"].split("/")[-1]
-        jobname = "{0}#{1}-{2}_{3}".format( sample, channel, shift, run_file )
+        jobname = "{0}+{1}-{2}_{3}".format( sample, channel, shift, run_file )
 
       match = False
       for file in self.summary[sample][shift][channel]["finished_files"]:
@@ -150,10 +178,16 @@ class Bookkeeping():
     if not checkProxy(): return
 
     for failed in self.failed_paths:
+      os.chdir( "/".join([self.cwd, failed[0]]) )
+      if os.path.exists("proxy"):
+          shutil.rmtree("proxy")
+      shutil.copytree("/".join([self.cwd,"proxy" ]), "proxy")
+
       if self.system == "lxbatch":
-        os.chdir( "/".join([self.cwd, failed[0]]) )
-        shutil.copytree("/".join([self.cwd,"proxy" ]), "proxy")
         os.system( " bsub -q 1nd -J {0} submit.sh".format( failed[1] ) )
+
+      if self.system == "hephybatch":
+        os.system( "sbatch submit.sh" )        
 
     print "_"*105
 
@@ -205,8 +239,8 @@ def cS(string, color):
   return c+" "*(3 - len(s)) + s + "\033[0m"
     
 def checkProxy():
-    proxy_path = "/tmp/x509_u{0}".format( os.getuid() )
-    if os.path.exists( proxy_path ):
+    proxy_path = glob.glob("/tmp/x509*_u{0}".format( os.getuid() ) )
+    if len(proxy_path) == 1 and os.path.exists( proxy_path[0] ):
 
         p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
         (out,err) =  p.communicate()
@@ -219,7 +253,7 @@ def checkProxy():
             if int(out) > 0:
                 if not os.path.exists("proxy"):
                     os.mkdir("proxy")
-                shutil.copyfile(proxy_path, "proxy/x509_proxy" )
+                shutil.copyfile(proxy_path[0], "proxy/x509_proxy")
                 return True
             else:
                 print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
