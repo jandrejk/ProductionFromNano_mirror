@@ -27,8 +27,8 @@
 "TTToHadronic_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018":                                       ["#TTToHadronic_TuneCP5_13TeV-powheg-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",377.96,42194000],
 "TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018":                                   ["#TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2#MINIAODSIM",365.34,41221873],
 "WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":                               ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",52940.0,44767978],
-"W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",544.3,11333705],
-"W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",992.5,19322516],
-"W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",2793,6467970]
+"W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",544.3,11333705],
+"W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",992.5,19322516],
+"W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":                              ["#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",2793,6467970]
 }
 
