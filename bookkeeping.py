@@ -11,10 +11,11 @@ def main():
 
   parser = argparse.ArgumentParser()
   parser.add_argument('-r', dest='resubmit', help='Resubmit failed jobs', action="store_true")
+  parser.add_argument('-v', dest='verbose',  help='Print rundirs of failed jobs', action="store_true")
 
   args = parser.parse_args()
 
-  B = Bookkeeping()
+  B = Bookkeeping(args.verbose)
   B.printStatus()
 
   if args.resubmit:
@@ -23,7 +24,10 @@ def main():
 
 class Bookkeeping():
 
-  def __init__(self):
+  def __init__(self, verbose = False):
+
+    self.verbose = verbose
+
     host = os.environ["HOSTNAME"]
     if "heplx" in host: 
       self.system = "hephybatch"
@@ -47,7 +51,7 @@ class Bookkeeping():
     self.outdir = self.log[self.system].pop("outdir", "")
 
     for sample in self.log[self.system]:
-      with open( glob.glob( "samples/*/*/{0}*".format(sample) )[0], "r" ) as FSO:
+      with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
         ntotal = len(FSO.read().splitlines() )
       for channel in self.log[self.system][sample]:
         for shift in self.log[self.system][sample][channel]:
@@ -67,7 +71,7 @@ class Bookkeeping():
                                                     "failed_files":[],
                                                     "jobids":[] }
 
-          for file in glob.glob(  "{0}/v1/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
+          for file in glob.glob(  "{0}/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
             if self.log[self.system][sample][channel][shift]["submit_time"] < os.path.getmtime(file):
               self.summary[sample][shift][channel]["finished_files"].append(file)
 
@@ -76,6 +80,11 @@ class Bookkeeping():
 
     self.matchRunInfo()
     self.getFullStatus()
+
+  def __del__(self):
+    self.log[self.system]["outdir"] = self.outdir
+    with open("submit_log.log","w") as FSO:
+      json.dump(self.log, FSO, indent = 2)
 
   def getRunningJobs(self):
     runningJobs = {}
@@ -146,12 +155,12 @@ class Bookkeeping():
           if (f + r + p) < t:
             self.matchRundirs(sample, shift, channel)
           if f == t:
-            self.log[self.system][sample][channel][shift]["status"] = "DONE"
+            self.log[self.system][sample][channel][shift]["status"] = "MERGE"
 
   def matchRundirs(self, sample, shift, channel):
 
     rundirs = {}
-    for configBall in glob.glob("out/v1/{sample}/rundir_{channel}_{shift}*/configBall.json".format(sample=sample,channel=channel,shift=shift)):
+    for configBall in glob.glob("out/{sample}/rundir_{channel}_{shift}*/configBall.json".format(sample=sample,channel=channel,shift=shift)):
       with open(configBall,"r") as FSO:
         rundir = "/".join(configBall.split("/")[:-1])
         run_file = json.load(FSO)["file"].split("/")[-1]
@@ -198,17 +207,17 @@ class Bookkeeping():
     samples = self.summary.keys()
     samples.sort()
 
-    print "_"*104
+    print "_"*110
     for sample in samples:
-      print "{0}\033[1m{1}\033[0m{0}".format( " "*((104 - len(sample))/2), sample )
-      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*28)
+      print "\n{0}\033[1m{1}\033[0m{0}\n".format( " "*((110 - len(sample))/2), sample )
+      print "{0}_{1} ET {1}_{1} MT {1}_{1} TT {1}_".format("_"*16, "_"*13)
+      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*30)
       for shift in self.summary[sample]:
-        line = {"et":" "*26,"mt":" "*26,"tt":" "*26}
+        line = {"et":" "*28,"mt":" "*28,"tt":" "*28}
         for channel in self.summary[sample][shift]:
-
-
-          if self.log[self.system][sample][channel][shift]["status"] == "DONE":
-            line[channel] = " "*10 +"{0}: (      \033[1;32mFinished\033[0m     )".format(channel)
+          
+          if self.log[self.system][sample][channel][shift]["status"] == "MERGE":
+            line[channel] = "         \033[1;32mFinished\033[0m           "
           else:
 
             finished = self.summary[sample][shift][channel]["finished"]
@@ -217,18 +226,25 @@ class Bookkeeping():
             p = self.summary[sample][shift][channel]["pending"]
             u = self.summary[sample][shift][channel]["failed"]
 
-            ft = "{0}({1}/{2}/{3}/{4}/{5})".format( channel+": ",cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
-            line[channel] = " "*(81-len(ft)) + ft
+            if self.verbose:
+              for ff in self.summary[sample][shift][channel]["failed_files"]:
+                print ff[0]
+
+            ft = "{0}{1}/{2}/{3}/{4}/{5} {0}".format( " "*4,cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
+            # line[channel] = " "*(81-len(ft)) + ft
+            line[channel] = ft
 
         print "{0} | {1} | {2} | {3} |".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
 
-      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*28)
-      print "_"*104
+      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*30)
+      print "="*110
 
 
 
 def cS(string, color):
-  s = str(string)
+  
+  if string == 0: s = " "
+  else: s = str(string)
 
   if not color: c = "\033[1;30m"
   if color == "r": c = "\033[1;31m"
