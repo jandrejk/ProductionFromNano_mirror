@@ -167,8 +167,8 @@ class SteerNanoProduction():
             with open("submit_on_{0}.sh".format(self.submit) ) as FSO:
                 templ = string.Template( FSO.read() )
 
-        runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_{0}_{1}_'.format(self.channel,self.systShift) ])
-        outdir = "/".join([self.outdir, version, sample])
+        runpath = "/".join([self.basedir,"out", sample, 'rundir_{0}_{1}_'.format(self.channel,self.systShift) ])
+        outdir = "/".join([self.outdir, sample])
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
@@ -234,7 +234,7 @@ class SteerNanoProduction():
                 x.join()
 
             if not self.debug:
-                os.chdir( "/".join([ self.basedir, "out", version ,sample ]) )
+                os.chdir( "/".join([ self.basedir, "out", sample ]) )
                 os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, self.systShift]), self.channel ) )
 
     def runOneFileLocal(self, rundir ,file):
