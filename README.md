@@ -47,11 +47,38 @@ scram b -j 4
 
 ---
 How to run
+
+* Get proxy with `voms-proxy-init -voms cms`. NOTE: Make sure it gets created in `/tmp/`. Scripts look for it there.
+* Source CMSSW
 ```
 cd $CMSSW_BASE/WawTools/NanoAODTools
-./run.py
+cmsenv
 ```
-This neeeds to be extended for larger productions, and to work with non-local files.
+* Get filelists specified in `sample_collection.json` to be used for production. Only needed to run once or when samples are updated.
+```
+python getFilelists.py
+```
+* Jobs can be submitted locally (`local`) or on a batch system (`lxbatch` from lxplus or `hephybatch` from heplx) with option `-t WHERE`. When submitting locally option `-j N` specifies the number of parallel jobs (`default=8`).
+* Channel can be specified with option `-c {et, mt, tt, all}`. Make sure when running over data to give the correct channel.
+* Sample can be specified with option `-s SAMPLE`.
+  - Single sample: give the relative path to the `.txt` file (NOTE: you can use tab-complete). E.g 
+  ```
+  -s samples/mc/signal/VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018.txt
+  ```
+  - To submit multiple samples several keywords are hardcoded: `mc, data, dy, diboson, ewk, signal, st, tt, w`
+  ```
+  -s signal
+  ```
+* Further information on run option with option `-help`
+* When jobs are running on batch you can check the status with. 
+```
+python bookkeeping.py
+```
+* To merge samples run 
+  ```
+  python mergeSamples.py
+  ```
+  Only samples that are already finished are marged.
 
 ---
 Important ressources
