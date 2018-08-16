@@ -97,11 +97,11 @@ def recalcPileupWeight(row):
 	npu = row['npu']
 	return puweights_histo.GetBinContent( puweights_histo.GetXaxis().FindBin(npu) );
 
-def recalcZWeight(row): # TODO Test
+def recalcZWeight(row): 
 	gen_pt = rn.sqrt( rn.power(row['gen_ll_px'],2) + rn.power(row['gen_ll_py'],2) )
 	return zpt_histo.GetBinContent(zpt_histo.GetXaxis().FindBin(row['gen_Mll']),zpt_histo.GetYaxis().FindBin(gen_pt))
 
-def recalcTopWeight(row): # TODO Test
+def recalcTopWeight(row): 
 	top_pt = []
 	for i in range(row['ngenSum']):
 		if ( rn.abs( row['genSum_pdgId'][i]) == 6 and row['genSum_fromHardProcess'][i] and row['genSum_isLastCopy'][i] ) :
