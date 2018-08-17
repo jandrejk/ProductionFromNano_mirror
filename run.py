@@ -181,7 +181,7 @@ class SteerNanoProduction():
             os.makedirs(outdir)
 
         print "Submitting: ", sample
-        if not self.debug:
+        if not self.debug or self.submit == "local":
             if not self.writeSubmitLog( sample, self.systShift ):
                 print "Sample seems to be running... Make sure you know what you are doing"
                 return 
