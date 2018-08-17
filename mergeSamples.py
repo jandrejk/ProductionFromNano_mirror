@@ -5,8 +5,12 @@ import glob
 import shutil
 import subprocess as sp
 import shlex
+from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
+
+    if not checkTokens(): sys.exit()
+
     M = Merger()
     M.mergeSamples()
 
@@ -17,40 +21,66 @@ class Merger():
         self.force = force
         self.version = version
 
-        host = os.environ["HOSTNAME"]
-        if "heplx" in host: 
-          system = "hephybatch"
-        elif "lxplus" in host: 
-          system = "lxbatch"
+        if "cern" in getSystem():
+            print "Merging from lxplus - You should switch to heplx to run faster."
+  
 
-        with open("submit_log.log","r") as FSO:
-            log = json.load(FSO)
+        self.logpath = "/".join([ getHeplxPublicFolder(),"submit_log.log" ])
+        with open(self.logpath,"r") as FSO:
+            self.log = json.load(FSO)
 
-        self.log = log[system]
-        
-
-        self.outdir = self.log.pop("outdir",None) + "/"
-        self.outdir = self.outdir.replace("//","/")
+        self.outdir = "/afs/hephy.at/data/higgs01"
 
         self.samples = self.collectFiles()
         self.mergekeys = self.mapCompletedJobs()
-        
+
+    def __del__(self):
+
+        with open(self.logpath,"w") as FSO:
+            json.dump(self.log, FSO, indent=2)
 
     def mergeSamples(self):
         for m in self.mergekeys:
             mergedir = "/".join([self.outdir,m[0],self.version])
             if os.path.exists(mergedir):
                 shutil.rmtree(mergedir, ignore_errors=True)
-            os.mkdir(mergedir)
+            os.makedirs(mergedir)
 
             outfile = "/".join([mergedir, "{0}-{1}.root".format(m[1], m[2])])
-            os.system("hadd {0} {1}".format(outfile, " ".join(self.samples[m[0]][m[1]][m[2]]["files"]) ))
+            print "\033[1m{0}\033[0m".format(m[0])
+            # Fallback
+            # os.system("hadd -f {0} {1}".format(outfile, " ".join(self.samples[m[0]][m[1]][m[2]]["files"]) ) ) 
+
+            self.mergeSample(outfile, mergekey=m)
+
+    def mergeSample(self, outfile, mergekey):
+            m = mergekey
+            FM = R.TFileMerger()
+            FM.OutputFile(outfile)
+            success = True
+            print "Adding files for merging... "
+            for f in self.samples[m[0]][m[1]][m[2]]["files"]:
+                if not FM.AddFile(f,False):
+                    success = False
+                    break
+            if success:
+                if not FM.Merge():
+                    print "\033[0;31mProblem during merge...\033[0m\n"
+                else:
+                    print "\033[0;32mMerge successful!\033[0m\n"
+                    self.log[m[0]][m[1]][m[2]]["status"] = "DONE"
+
+    def stitchSamples(self):
+
+        with open("stitchConfig.json","r") as FSO:
+            stitch_config = json.load(FSO) 
 
     def mapCompletedJobs(self):
 
         mergekeys = []
-
-        for sample in self.log:
+        samples = self.log.keys()
+        samples.sort()
+        for sample in samples:
             for channel in self.log[sample]:
                 for shift in self.log[sample][channel]:
                     if self.log[sample][channel][shift]["status"] == "MERGE" or (self.force and self.log[sample][channel][shift]["status"] == "DONE"):

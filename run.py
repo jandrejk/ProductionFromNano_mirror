@@ -11,6 +11,7 @@ import shlex
 import argparse
 import string
 import json
+from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
 
@@ -21,7 +22,7 @@ def main():
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t'
                                                                                            'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m'
                                                                                            'e0u','e1u','e10u','e0d','e1d','e10d','e0','e1','e10','e'], default = '')
-    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['lxbatch','hephybatch','local'], default = 'local')
+    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     # parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
@@ -36,6 +37,7 @@ def main():
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
     if not checkProxy(): sys.exit()
+    if not checkTokens(): sys.exit()
     if not os.environ.get("CMSSW_BASE", False):
         print "You forgot to source cmssw"
         sys.exit()
@@ -113,7 +115,13 @@ class SteerNanoProduction():
         self.svfit = False
         self.recoil = False
 
-        self.submit = submit
+        cell = getSystem()
+        if submit == "batch":
+            if cell == "cern.ch": self.submit = "lxbatch"
+            if cell == "hephy.at": self.submit = "hephybatch"
+
+        else: self.submit = submit
+
         self.debug = debug
         self.event = event
 
@@ -214,6 +222,7 @@ class SteerNanoProduction():
                 runscript = templ.substitute(samplename = jobname,
                                              rundir = rundir,
                                              outdir = outdir,
+                                             cell = getSystem(inverse = True),
                                              sleeping = sleeping*10,
                                              channel = self.channel)
                 sleeping += 1
@@ -269,6 +278,7 @@ class SteerNanoProduction():
 
         self.throwConfigBall(configBall, rundir)
         shutil.copytree("proxy", "/".join([rundir,"proxy"]))
+        shutil.copytree("kerberos", "/".join([rundir,"kerberos"]))
 
         if not self.submit == "lxbatch":
             headerfiles = glob("*.h*")
@@ -282,22 +292,23 @@ class SteerNanoProduction():
 
     def writeSubmitLog(self, sample, shift):
 
-        log = {"local":{}, "lxbatch":{}, "hephybatch":{} }
+        log = {}
 
-        if os.path.exists("submit_log.log"):
-            with open("submit_log.log","r") as FSO:
+        logpath = "/".join([ getHeplxPublicFolder(),"submit_log.log" ])
+        if os.path.exists(logpath):
+            with open(logpath,"r") as FSO:
                 log = json.load(FSO)
 
-        log[self.submit]["outdir"] = self.outdir
-        if not log[self.submit].get(sample,False): log[self.submit][sample] = {}
-        if not log[self.submit][sample].get(self.channel,False): log[self.submit][sample][self.channel] = {}
-        if not log[self.submit][sample][self.channel].get(shift,False): log[self.submit][sample][self.channel][shift] =  {"submit_time": None, "status":"" }
+        if not log.get(sample,False): log[sample] = {}
+        if not log[sample].get(self.channel,False): log[sample][self.channel] = {}
+        if not log[sample][self.channel].get(shift,False): log[sample][self.channel][shift] =  {"submit_time": None, "status":"" }
 
-        if not log[self.submit][sample][self.channel][shift]["status"] == "NEW":
-            log[self.submit][sample][self.channel][shift]["submit_time"] = int(time())
-            log[self.submit][sample][self.channel][shift]["status"] = "NEW"
+        if not log[sample][self.channel][shift]["status"] == "NEW":
+            log[sample][self.channel][shift]["submit_time"] = int(time())
+            log[sample][self.channel][shift]["status"] = "NEW"
+            log[sample][self.channel][shift]["site"] = self.submit
 
-            with open("submit_log.log","w") as FSO:
+            with open(logpath,"w") as FSO:
                 json.dump(log, FSO, indent=4)
             return True
 

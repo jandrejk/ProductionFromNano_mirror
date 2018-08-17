@@ -8,6 +8,9 @@ echo "Grid certificate"
 voms-proxy-info --all
 echo "---------------------"
 
+echo "Dummy"
+echo ${cell}
+
 echo "Good night..."
 date
 sleep ${sleeping}

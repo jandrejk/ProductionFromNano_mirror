@@ -6,6 +6,7 @@ import glob
 import shutil
 import subprocess as sp
 import argparse
+from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
 
@@ -14,6 +15,8 @@ def main():
   parser.add_argument('-v', dest='verbose',  help='Print rundirs of failed jobs', action="store_true")
 
   args = parser.parse_args()
+
+  if not checkTokens(): sys.exit()
 
   B = Bookkeeping(args.verbose)
   B.printStatus()
@@ -28,10 +31,10 @@ class Bookkeeping():
 
     self.verbose = verbose
 
-    host = os.environ["HOSTNAME"]
-    if "heplx" in host: 
+    host = getSystem()
+    if "hephy" in host: 
       self.system = "hephybatch"
-    elif "lxplus" in host: 
+    elif "cern" in host: 
       self.system = "lxbatch"
     else:
       print "Dont know host you are on. Only heplx and lxplus!"   
@@ -40,21 +43,22 @@ class Bookkeeping():
     self.cwd = os.getcwd()
 
     self.log = {}
-    if os.path.exists("submit_log.log"):
-      with open("submit_log.log","r") as FSO:
+    self.logpath = "/".join([ getHeplxPublicFolder(),"submit_log.log" ])
+    if os.path.exists(self.logpath):
+      with open(self.logpath,"r") as FSO:
         self.log = json.load(FSO)
 
      
     self.runningJobs = self.getRunningJobs()
     self.summary = {}
     self.failed_paths = []
-    self.outdir = self.log[self.system].pop("outdir", "")
+    self.outdir = "/afs/hephy.at/data/higgs01"
 
-    for sample in self.log[self.system]:
+    for sample in self.log:
       with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
         ntotal = len(FSO.read().splitlines() )
-      for channel in self.log[self.system][sample]:
-        for shift in self.log[self.system][sample][channel]:
+      for channel in self.log[sample]:
+        for shift in self.log[sample][channel]:
 
 
           if not self.summary.get(sample,False): self.summary[sample] = {}
@@ -72,7 +76,7 @@ class Bookkeeping():
                                                     "jobids":[] }
 
           for file in glob.glob(  "{0}/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
-            if self.log[self.system][sample][channel][shift]["submit_time"] < os.path.getmtime(file):
+            if self.log[sample][channel][shift]["submit_time"] < os.path.getmtime(file):
               self.summary[sample][shift][channel]["finished_files"].append(file)
 
           self.summary[sample][shift][channel]["total"] = ntotal
@@ -82,7 +86,6 @@ class Bookkeeping():
     self.getFullStatus()
 
   def __del__(self):
-    self.log[self.system]["outdir"] = self.outdir
     with open("submit_log.log","w") as FSO:
       json.dump(self.log, FSO, indent = 2)
 
@@ -152,10 +155,10 @@ class Bookkeeping():
           r = self.summary[sample][shift][channel]["running"]
           p = self.summary[sample][shift][channel]["pending"]
 
-          if (f + r + p) < t:
+          if (f + r + p) < t and self.log[sample][channel][shift]["site"] == self.system:
             self.matchRundirs(sample, shift, channel)
-          if f == t:
-            self.log[self.system][sample][channel][shift]["status"] = "MERGE"
+          if f == t and self.log[sample][channel][shift]["status"] != "DONE":
+            self.log[sample][channel][shift]["status"] = "MERGE"
 
   def matchRundirs(self, sample, shift, channel):
 
@@ -207,37 +210,47 @@ class Bookkeeping():
     samples = self.summary.keys()
     samples.sort()
 
-    print "_"*110
     for sample in samples:
-      print "\n{0}\033[1m{1}\033[0m{0}\n".format( " "*((110 - len(sample))/2), sample )
-      print "{0}_{1} ET {1}_{1} MT {1}_{1} TT {1}_".format("_"*16, "_"*13)
-      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*30)
+      should_display = False
+      print_summary = ""
+      print_summary += "\n{0}\033[1m{1}\033[0m{0}\n\n".format( " "*((110 - len(sample))/2), sample )
+      print_summary += "{0}_{1} ET {1}_{1} MT {1}_{1} TT {1}_\n".format("_"*16, "_"*13)
+      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*30)
       for shift in self.summary[sample]:
         line = {"et":" "*28,"mt":" "*28,"tt":" "*28}
         for channel in self.summary[sample][shift]:
           
-          if self.log[self.system][sample][channel][shift]["status"] == "MERGE":
+          if self.log[sample][channel][shift]["status"] == "DONE":
             line[channel] = "         \033[1;32mFinished\033[0m           "
-          else:
 
+          elif self.log[sample][channel][shift]["status"] == "MERGE":
+            should_display = True
+            line[channel] = "       \033[1;33mReady to merge\033[0m       "
+
+          else:
+            should_display = True
             finished = self.summary[sample][shift][channel]["finished"]
             total = self.summary[sample][shift][channel]["total"]
             r = self.summary[sample][shift][channel]["running"]
             p = self.summary[sample][shift][channel]["pending"]
             u = self.summary[sample][shift][channel]["failed"]
 
+            if self.log[sample][channel][shift]["site"] != self.system:
+              r = p = u = "?"
+
             if self.verbose:
               for ff in self.summary[sample][shift][channel]["failed_files"]:
-                print ff[0]
+                print_summary += ff[0]+"\n"
 
             ft = "{0}{1}/{2}/{3}/{4}/{5} {0}".format( " "*4,cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
-            # line[channel] = " "*(81-len(ft)) + ft
             line[channel] = ft
 
-        print "{0} | {1} | {2} | {3} |".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
+        print_summary += "{0} | {1} | {2} | {3} |\n".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
 
-      print "{0}|{1}|{1}|{1}|".format(" "*16, " "*30)
-      print "="*110
+      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*30)
+      print_summary += "="*110 + "\n"
+
+      if should_display or self.verbose: print print_summary
 
 
 
@@ -254,30 +267,6 @@ def cS(string, color):
 
   return c+" "*(3 - len(s)) + s + "\033[0m"
     
-def checkProxy():
-    proxy_path = glob.glob("/tmp/x509*_u{0}".format( os.getuid() ) )
-    if len(proxy_path) == 1 and os.path.exists( proxy_path[0] ):
-
-        p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
-        (out,err) =  p.communicate()
-
-
-        if err:
-            print err
-            return False
-        if out:
-            if int(out) > 0:
-                if not os.path.exists("proxy"):
-                    os.mkdir("proxy")
-                shutil.copyfile(proxy_path[0], "proxy/x509_proxy")
-                return True
-            else:
-                print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
-                return False
-
-    
-    print "No proxy found! Get a new one with 'voms-proxy-init --voms cms'" 
-    return False
 
 if __name__ == '__main__':
   main()

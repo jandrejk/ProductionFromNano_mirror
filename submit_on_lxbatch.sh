@@ -1,4 +1,6 @@
 export X509_USER_PROXY=${rundir}/proxy/x509_proxy
+export KRB5CCNAME=${rundir}/kerberos/krb5_token
+aklog -d ${cell}
 
 echo "---------------------"
 echo "Grid certificate 1"
