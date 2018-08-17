@@ -86,7 +86,7 @@ class Bookkeeping():
     self.getFullStatus()
 
   def __del__(self):
-    with open("submit_log.log","w") as FSO:
+    with open(self.logpath,"w") as FSO:
       json.dump(self.log, FSO, indent = 2)
 
   def getRunningJobs(self):
