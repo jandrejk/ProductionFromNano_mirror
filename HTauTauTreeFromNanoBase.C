@@ -538,8 +538,8 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
 void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 {
 
-    httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,1); //only set explicitly for mutau
-    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,1); //only set explicitly for etau
+    // httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,1); //only set explicitly for mutau
+    // httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,1); //only set explicitly for etau
 
     httEvent->setRun(run);
     httEvent->setEvent(event);
