@@ -2,9 +2,12 @@ import subprocess as sp
 import shlex
 import json
 import os 
-
+from runUtils import checkProxy
 
 def main():
+
+    if not checkProxy(): sys.exit()
+
     with open("sample_collection.json","r") as FSO:
         config = json.load(FSO)
 
