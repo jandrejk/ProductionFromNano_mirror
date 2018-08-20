@@ -17,7 +17,6 @@ Port of [tools by A. Kalinowski, M. Bluj et al. based on KLUB/LLR trees](https:/
 * convertNano.py: script to run conversion - currently not functional, use run.py and convertNanoParallel.py (but contains important lines to run on data)
 * run.py: script to run NanoAOD-to-SyncNtuple conversion in parallel, calls convertNanoParallel.py
 * convertNanoParallel.py: script to run conversion
-* ParameterConfig.cc: defines cut values etc; not fully implemented in the code yet (only parts are used)
 * Missing: production tools, need be taken modified from old WAW repo
 
 ---
@@ -48,17 +47,27 @@ scram b -j 4
 ---
 How to run
 
-* Get proxy with `voms-proxy-init -voms cms`. NOTE: Make sure it gets created in `/tmp/`. Scripts look for it there.
+* Get proxy with `voms-proxy-init -voms cms`.
+* Get kerberos token for heplx when on lxplus and vice versa.
+  ```
+  # On lxplus
+  kinit [HEPLX_USERNAME]@HEPHY.AT
+  aklog -d hephy.at
+  
+  # On heplx
+  kinit [LXPLUS_USERNAME]@CERN.CH
+  aklog -d cern.ch
+  ```
 * Source CMSSW
-```
-cd $CMSSW_BASE/WawTools/NanoAODTools
-cmsenv
-```
+  ```
+  cd $CMSSW_BASE/WawTools/NanoAODTools
+  cmsenv
+  ```
 * Get filelists specified in `sample_collection.json` to be used for production. Only needed to run once or when samples are updated.
-```
-python getFilelists.py
-```
-* Jobs can be submitted locally (`local`) or on a batch system (`lxbatch` from lxplus or `hephybatch` from heplx) with option `-t WHERE`. When submitting locally option `-j N` specifies the number of parallel jobs (`default=8`).
+  ```
+  python getFilelists.py
+  ```
+* Jobs can be submitted locally (`local`) or on a batch system (`batch`) with option `-t WHERE`. When submitting locally option `-j N` specifies the number of parallel jobs (`default=8`).
 * Channel can be specified with option `-c {et, mt, tt, all}`. Make sure when running over data to give the correct channel.
 * Sample can be specified with option `-s SAMPLE`.
   - Single sample: give the relative path to the `.txt` file (NOTE: you can use tab-complete). E.g 
@@ -71,14 +80,14 @@ python getFilelists.py
   ```
 * Further information on run option with option `-help`
 * When jobs are running on batch you can check the status with. 
-```
-python bookkeeping.py
-```
+  ```
+  python bookkeeping.py
+  ```
 * To merge samples run 
   ```
   python mergeSamples.py
   ```
-  Only samples that are already finished are marged.
+  Only samples that are already finished are merged.
 
 ---
 Important ressources
@@ -95,3 +104,4 @@ Release notes:
 * 16.01.2018, M.Bluj, initial version for 80X (2016) inputs with CMSSW_9_4_2
 * 26.02.2018, M.Bluj, update to NanoAOD of 05Feb2018 production of 2016 data wiht CMSSW_9_4_4
 * 18.05.2018, M.Flechl, produce sync ntuple directly; produce e-tau ntuples; several fixes for the sync
+* 20.05.2018, M.Spanring, First version for full scale production
