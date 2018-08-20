@@ -85,6 +85,7 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     httEvent->setSelectionBit(SelectionBitsEnum::postSynchMuon,postSynchMuon);
     httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau);
     httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,diMuonVeto());
+    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,0);
     httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13));
     httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11));
 
