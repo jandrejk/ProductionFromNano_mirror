@@ -11,18 +11,27 @@ from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 def main():
 
   parser = argparse.ArgumentParser()
-  parser.add_argument('-r', dest='resubmit', help='Resubmit failed jobs', action="store_true")
-  parser.add_argument('-v', dest='verbose',  help='Print rundirs of failed jobs', action="store_true")
+  parser.add_argument('-r', dest='resubmit',    help='Resubmit failed jobs', action="store_true")
+  parser.add_argument('-v', dest='verbose',     help='Print rundirs of failed jobs', action="store_true")
+  parser.add_argument('-k', dest='kill',        help='Kill jobs from sample: -k SAMPLE SHIFT CHANNEL (3 args)', nargs="+", default = [])
+
+
 
   args = parser.parse_args()
 
   if not checkTokens(): sys.exit()
 
   B = Bookkeeping(args.verbose)
+
+  if args.kill:
+    B.killJobs(killorder = args.kill)
+
   B.printStatus()
 
   if args.resubmit:
     B.resubmitFailedjobs()
+
+
 
 
 class Bookkeeping():
@@ -157,7 +166,7 @@ class Bookkeeping():
 
           if (f + r + p) < t and self.log[sample][channel][shift]["site"] == self.system:
             self.matchRundirs(sample, shift, channel)
-          if f == t and self.log[sample][channel][shift]["status"] != "DONE":
+          if f == t and self.log[sample][channel][shift]["status"] != "DONE" and self.log[sample][channel][shift]["status"] != "KILLED":
             self.log[sample][channel][shift]["status"] = "MERGE"
 
   def matchRundirs(self, sample, shift, channel):
@@ -204,6 +213,29 @@ class Bookkeeping():
     print "_"*105
 
 
+  def killJobs(self, killorder):
+
+    sample =  killorder[0]
+    shift =   killorder[1]
+    channel = killorder[2]
+
+
+    try:
+      print "Trying to kill jobs for specified sample."
+      for job in self.summary[sample][shift][channel]['jobids']:
+        print job
+        # if self.system == "lxbatch":
+        #   os.system( "bkill {0}".format(job) )
+
+        # if self.system == "hephybatch":
+        #   os.system( "scancel {0}".format(job) )
+
+      self.log[sample][shift][channel]["status"] = "KILLED"
+
+    except Exception as e:
+      pass
+
+
 
   def printStatus(self):
 
@@ -227,6 +259,10 @@ class Bookkeeping():
             should_display = True
             line[channel] = "       \033[1;33mReady to merge\033[0m       "
 
+          elif self.log[sample][channel][shift]["status"] == "KILLED":
+            should_display = True
+            line[channel] = "           \033[1;31mKilled\033[0m           "
+
           else:
             should_display = True
             finished = self.summary[sample][shift][channel]["finished"]
@@ -239,6 +275,7 @@ class Bookkeeping():
               r = p = u = "?"
 
             if self.verbose:
+              print "\033[1;31mFailed:\033[0m"
               for ff in self.summary[sample][shift][channel]["failed_files"]:
                 print_summary += ff[0]+"\n"
 
