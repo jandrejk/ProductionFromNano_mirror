@@ -330,6 +330,8 @@ class EventWriter
   bool passesThirdLepVeto;
   bool passesDiMuonVeto;
   bool passesDiElectronVeto;
+  bool diMuonVeto;
+  bool diElectronVeto;
   //////////////////////////////////////////////////////////////////
   bool dilepton_veto;
   bool extramuon_veto;

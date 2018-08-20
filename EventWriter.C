@@ -90,10 +90,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
     extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
     extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
-    passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
-    passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
+    diMuonVeto= ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto);
+    diElectronVeto= ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto);
 
-    dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
+    passesDiMuonVeto=!diMuonVeto;
+    passesDiElectronVeto=!diElectronVeto;
+
+    dilepton_veto= diMuonVeto || diElectronVeto ;
     passesThirdLepVeto=!( extramuon_veto && extraelec_veto );
 
 
@@ -1161,8 +1164,8 @@ void EventWriter::setDefault(){
     passesLepIsoCuts=DEF;
     passesTauLepVetos=DEF;
     passesThirdLepVeto=DEF;
-    passesDiMuonVeto=DEF;
-    passesDiElectronVeto=DEF;
+    diMuonVeto=DEF;
+    diElectronVeto=DEF;
     //////////////////////////////////////////////////////////////////
     dilepton_veto=DEF;
     extramuon_veto=DEF;
@@ -1519,6 +1522,8 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("passesThirdLepVeto", &passesThirdLepVeto);
     t->Branch("passesDiMuonVeto", &passesDiMuonVeto);
     t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
+    t->Branch("diMuonVeto", &diMuonVeto);
+    t->Branch("diElectronVeto", &diElectronVeto);    
 
     t->Branch("dilepton_veto", &dilepton_veto);
     t->Branch("extraelec_veto", &extraelec_veto);
