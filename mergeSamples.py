@@ -5,6 +5,8 @@ import glob
 import shutil
 import subprocess as sp
 import shlex
+import sys
+import numpy as np
 from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
@@ -29,7 +31,7 @@ class Merger():
         with open(self.logpath,"r") as FSO:
             self.log = json.load(FSO)
 
-        self.outdir = "/afs/hephy.at/data/higgs01"
+        self.outdir = "/afs/hephy.at/data/higgs01/"
 
         self.samples = self.collectFiles()
         self.mergekeys = self.mapCompletedJobs()
@@ -40,13 +42,16 @@ class Merger():
             json.dump(self.log, FSO, indent=2)
 
     def mergeSamples(self):
+
         for m in self.mergekeys:
             mergedir = "/".join([self.outdir,m[0],self.version])
-            if os.path.exists(mergedir):
-                shutil.rmtree(mergedir, ignore_errors=True)
-            os.makedirs(mergedir)
+            if not os.path.exists(mergedir):
+                os.makedirs(mergedir)
 
-            outfile = "/".join([mergedir, "{0}-{1}.root".format(m[1], m[2])])
+            outfile = "/".join([mergedir, "{1}-{2}_{0}.root".format( *m ) ])
+            if os.path.exists(outfile):
+                shutil.rmtree(outfile, ignore_errors=True)
+
             print "\033[1m{0}\033[0m".format(m[0])
             # Fallback
             # os.system("hadd -f {0} {1}".format(outfile, " ".join(self.samples[m[0]][m[1]][m[2]]["files"]) ) ) 
@@ -85,7 +90,7 @@ class Merger():
                 for shift in self.log[sample][channel]:
                     if self.log[sample][channel][shift]["status"] == "MERGE" or (self.force and self.log[sample][channel][shift]["status"] == "DONE"):
                         mergekeys.append((sample,channel,shift))
-        return mergekeys
+        return np.array(mergekeys)
 
     def collectFiles(self):
 
