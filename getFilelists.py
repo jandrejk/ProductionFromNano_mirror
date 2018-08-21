@@ -25,10 +25,8 @@ def main():
                     filename = buildFileName( link, run, r["creation"] )
                     content = getDASquery(link)
 
-                    if "Vienna" in getDASquery(link,"site"):
-                        content = content.replace("/store/","root://cms-xrd-global.cern.ch//store/")
-                    else:
-                        content = content.replace("/store/","root://xrootd-cms.infn.it//store/")
+                    content = content.replace("/store/","root://cms-xrd-global.cern.ch//store/")
+
 
                     writeFile(content, filename, folder)
                     # print getDASquery(link,"file")
