@@ -13,6 +13,7 @@ def main():
 def checkTokens():
 
         neededToken = getSystem(inverse=True)
+        if neededToken == "cern.ch": return True
 
         p = sp.Popen( shlex.split("klist"), stdout=sp.PIPE, stderr=sp.PIPE )
         (out,err) =  p.communicate()
