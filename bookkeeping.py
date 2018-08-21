@@ -223,12 +223,12 @@ class Bookkeeping():
     try:
       print "Trying to kill jobs for specified sample."
       for job in self.summary[sample][shift][channel]['jobids']:
-        print job
-        # if self.system == "lxbatch":
-        #   os.system( "bkill {0}".format(job) )
 
-        # if self.system == "hephybatch":
-        #   os.system( "scancel {0}".format(job) )
+        if self.system == "lxbatch":
+          os.system( "bkill {0}".format(job) )
+
+        if self.system == "hephybatch":
+          os.system( "scancel {0}".format(job) )
 
       self.log[sample][shift][channel]["status"] = "KILLED"
 
