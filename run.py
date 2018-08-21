@@ -335,6 +335,7 @@ class SteerNanoProduction():
             configBall["systShift"]   = self.systShift
             configBall["svfit"]       = self.svfit
             configBall["recoil"]      = self.recoil
+            configBall["system"]      = self.submit
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
             if  parts[1] == "mc":

@@ -55,6 +55,10 @@ print sys.argv
 print 'Channel: ',channel
 
 print "Using file: ",aFile
+if str( configBall["system"] ) == "lxbatch":
+    os.system("xrdcp {0} {1}".format(aFile, aFile.split("/")[0] ) )
+    aFile = aFile.split("/")[0]
+    
 aROOTFile = TFile.Open(aFile)
 aTree = aROOTFile.Get("Events")
 
