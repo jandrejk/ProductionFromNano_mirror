@@ -390,6 +390,10 @@ class EventWriter
 
 
   vector<TLorentzVector> addlepton_p4;
+  vector<double> addlepton_pt;
+  vector<double> addlepton_eta;
+  vector<double> addlepton_phi;
+  vector<double> addlepton_m;
   vector<double> addlepton_iso;
   vector<int> addlepton_pdgId;
   vector<int> addlepton_mc_match;

@@ -549,6 +549,10 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
         int lepPDGId = leptons[i].getPDGid();
 
         addlepton_p4.push_back( leptons[i].getP4() );
+        addlepton_pt.push_back( leptons[i].getP4().Pt() );
+        addlepton_eta.push_back( leptons[i].getP4().Eta() );
+        addlepton_phi.push_back( leptons[i].getP4().Phi() );
+        addlepton_m.push_back( leptons[i].getP4().M() );        
         addlepton_pdgId.push_back( leptons[i].getPDGid()*(-1) );
         addlepton_mc_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
@@ -1196,6 +1200,10 @@ void EventWriter::setDefault(){
     //////////////////////////////////////////////////////////////////
 
     addlepton_p4.clear();
+    addlepton_pt.clear();
+    addlepton_eta.clear();
+    addlepton_phi.clear();
+    addlepton_m.clear();    
     addlepton_iso.clear();
     addlepton_pdgId.clear();
     addlepton_mc_match.clear();
@@ -1620,7 +1628,11 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("lep_etacentrality", &lep_etacentrality);
         t->Branch("sphericity", &sphericity);
 
-        t->Branch("addlepton_p4", &addlepton_p4);
+        // t->Branch("addlepton_p4", &addlepton_p4);
+        t->Branch("addlepton_pt", &addlepton_pt);
+        t->Branch("addlepton_eta", &addlepton_eta);
+        t->Branch("addlepton_phi", &addlepton_phi);
+        t->Branch("addlepton_m", &addlepton_m);
         t->Branch("addlepton_iso", &addlepton_iso);
         t->Branch("addlepton_pdgId", &addlepton_pdgId);
         t->Branch("addlepton_mc_match", &addlepton_mc_match);
