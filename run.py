@@ -283,7 +283,7 @@ class SteerNanoProduction():
         if not self.submit == "lxbatch":
             headerfiles = glob("*.h*")
             Cfiles = glob("*.c*") + glob("*.C")
-            addFiles =['convertNanoParallel.py']
+            addFiles =['convertNanoParallel.py','validateAndCopy.py']
 
             shutil.copytree("utils", "/".join([rundir,"utils"]))
             for f in headerfiles + Cfiles + addFiles:
