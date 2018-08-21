@@ -204,6 +204,10 @@ class Bookkeeping():
           shutil.rmtree("proxy")
       shutil.copytree("/".join([self.cwd,"proxy" ]), "proxy")
 
+      if os.path.exists("kerberos"):
+          shutil.rmtree("kerberos")
+      shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
+
       if self.system == "lxbatch":
         os.system( " bsub -q 1nd -J {0} submit.sh".format( failed[1] ) )
 
