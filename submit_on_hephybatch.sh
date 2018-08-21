@@ -21,4 +21,5 @@ eval `scramv1 runtime -sh`
 date
 echo ${outdir}
 chmod 777 ${channel}*root
-mv -f ${channel}*root ${outdir}
+
+python validateAndCopy.py ${channel} ${outdir} ${rundir}
