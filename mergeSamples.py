@@ -22,7 +22,7 @@ def main():
     if not checkTokens(): sys.exit()
 
     M = Merger(version=args.version, channel = args.channel)
-    M.collectSamples()
+    M.createSamples()
     if args.stitch: M.mergeSamples()
 
 class Merger():
@@ -51,7 +51,7 @@ class Merger():
         with open(self.logpath,"w") as FSO:
             json.dump(self.log, FSO, indent=2)
 
-    def collectSamples(self):
+    def createSamples(self):
 
         for m in self.mergekeys:
             mergedir = "/".join([self.outdir,m[0],self.version])
@@ -66,9 +66,9 @@ class Merger():
             # Fallback
             # os.system("hadd -f {0} {1}".format(outfile, " ".join(self.samples[m[0]][m[1]][m[2]]["files"]) ) ) 
 
-            self.collectSample(outfile, mergekey=m)
+            self.combineFiles(outfile, mergekey=m)
 
-    def collectSample(self, outfile, mergekey):
+    def combineFiles(self, outfile, mergekey):
             m = mergekey
             FM = R.TFileMerger()
             FM.OutputFile(outfile)
