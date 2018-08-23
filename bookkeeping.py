@@ -249,23 +249,23 @@ class Bookkeeping():
     for sample in samples:
       should_display = False
       print_summary = ""
-      print_summary += "\n{0}\033[1m{1}\033[0m{0}\n\n".format( " "*((110 - len(sample))/2), sample )
-      print_summary += "{0}_{1} ET {1}_{1} MT {1}_{1} TT {1}_\n".format("_"*16, "_"*13)
-      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*30)
+      print_summary += "\n{0}\033[1m{1}\033[0m{0}\n\n".format( " "*((83 - len(sample))/2), sample )
+      print_summary += "{0}{1} ET {1}{1} MT {1}{1} TT {1}_\n".format("_"*16, "_"*9)
+      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
       for shift in self.summary[sample]:
         line = {"et":" "*28,"mt":" "*28,"tt":" "*28}
         for channel in self.summary[sample][shift]:
           
           if self.log[sample][channel][shift]["status"] == "DONE":
-            line[channel] = "         \033[1;32mFinished\033[0m           "
+            line[channel] = "      \033[1;32mFinished\033[0m       "
 
           elif self.log[sample][channel][shift]["status"] == "MERGE":
             should_display = True
-            line[channel] = "       \033[1;33mReady to merge\033[0m       "
+            line[channel] = "   \033[1;33mReady to merge\033[0m    "
 
           elif self.log[sample][channel][shift]["status"] == "KILLED":
             should_display = True
-            line[channel] = "           \033[1;31mKilled\033[0m           "
+            line[channel] = "       \033[1;31mKilled\033[0m        "
 
           else:
             should_display = True
@@ -283,13 +283,13 @@ class Bookkeeping():
               for ff in self.summary[sample][shift][channel]["failed_files"]:
                 print_summary += ff[0]+"\n"
 
-            ft = "{0}{1}/{2}/{3}/{4}/{5} {0}".format( " "*4,cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
+            ft = " {0}/{1}/{2}/{3}/{4} ".format( cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
             line[channel] = ft
 
-        print_summary += "{0} | {1} | {2} | {3} |\n".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
+        print_summary += "{0} |{1}|{2}|{3}|\n".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
 
-      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*30)
-      print_summary += "="*110 + "\n"
+      print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
+      print_summary += "="*83 + "\n"
 
       if should_display or self.verbose: print print_summary
 
