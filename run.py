@@ -341,9 +341,9 @@ class SteerNanoProduction():
             if  parts[1] == "mc":
                 configBall["isMC"]        = True
                 configBall["certJson"] = ""
-                configBall["puTag"]    = puTag[ sample ][0]
-                configBall["xsec"]     = puTag[ sample ][1]
-                configBall["genNEvents"]  = puTag[ sample ][2]
+                configBall["puTag"]    = puTag[ sample ]["putag"]
+                configBall["xsec"]     = puTag[ sample ]["xsec"]
+                configBall["genNEvents"]  = puTag[ sample ]["nevents"]
 
             else:
                 configBall["isMC"]        = False
