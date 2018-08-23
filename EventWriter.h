@@ -140,28 +140,35 @@ class EventWriter
   float dZ_1;
   float mt_1;
   float iso_1;
+  int againstElectronMVA6_1;  
   int againstElectronLooseMVA6_1;
   int againstElectronMediumMVA6_1;
   int againstElectronTightMVA6_1;
   int againstElectronVLooseMVA6_1;
   int againstElectronVTightMVA6_1;
+  int againstMuon3_1;
   int againstMuonLoose3_1;
   int againstMuonTight3_1;
+
   float byCombinedIsolationDeltaBetaCorrRaw3Hits_1;
   int byLooseCombinedIsolationDeltaBetaCorr3Hits_1;
   int byMediumCombinedIsolationDeltaBetaCorr3Hits_1;
   int byTightCombinedIsolationDeltaBetaCorr3Hits_1;
-  int byIsolationMVArun2017v2DBoldDMwLTraw2017_1;
-  int byIsolationMVA3newDMwoLTraw_1;
-  int byIsolationMVA3oldDMwoLTraw_1;
+
+  float byIsolationMVA3newDMwoLTraw_1;
+  float byIsolationMVA3oldDMwoLTraw_1;
   float byIsolationMVA3newDMwLTraw_1;
   float byIsolationMVA3oldDMwLTraw_1;
+
+  float byIsolationMVArun2017v2DBoldDMwLTraw2017_1;
+  int byIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byLooseIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byMediumIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byTightIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
+  int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
   // int byVLooseIsolationMVArun2v1DBnewDMwLT_1;
   // int byLooseIsolationMVArun2v1DBnewDMwLT_1;
   // int byMediumIsolationMVArun2v1DBnewDMwLT_1;
@@ -200,28 +207,35 @@ class EventWriter
   float dZ_2;
   float mt_2;
   float iso_2;
+  int againstElectronMVA6_2;  
   int againstElectronLooseMVA6_2;
   int againstElectronMediumMVA6_2;
   int againstElectronTightMVA6_2;
   int againstElectronVLooseMVA6_2;
   int againstElectronVTightMVA6_2;
+  int againstMuon3_2;
   int againstMuonLoose3_2;
   int againstMuonTight3_2;
+
   float byCombinedIsolationDeltaBetaCorrRaw3Hits_2;
   int byLooseCombinedIsolationDeltaBetaCorr3Hits_2;
   int byMediumCombinedIsolationDeltaBetaCorr3Hits_2;
   int byTightCombinedIsolationDeltaBetaCorr3Hits_2;
-  int byIsolationMVArun2017v2DBoldDMwLTraw2017_2;
-  int byIsolationMVA3newDMwoLTraw_2;
-  int byIsolationMVA3oldDMwoLTraw_2;
+
+  float byIsolationMVA3newDMwoLTraw_2;
+  float byIsolationMVA3oldDMwoLTraw_2;
   float byIsolationMVA3newDMwLTraw_2;
   float byIsolationMVA3oldDMwLTraw_2;
+
+  float byIsolationMVArun2017v2DBoldDMwLTraw2017_2;
+  int byIsolationMVArun2017v2DBoldDMwLT2017_2;  
   int byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;  
   int byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byLooseIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byMediumIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
+  int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   // int byVLooseIsolationMVArun2v1DBnewDMwLT_2;
   // int byLooseIsolationMVArun2v1DBnewDMwLT_2;
   // int byMediumIsolationMVArun2v1DBnewDMwLT_2;

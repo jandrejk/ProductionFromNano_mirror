@@ -220,33 +220,37 @@ void EventWriter::fillLeg1Branches()
     else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
     else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
-    bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
-    againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
-    againstElectronLooseMVA6_1  =(bitmask & 0x2 )>0;
-    againstElectronMediumMVA6_1 =(bitmask & 0x4 )>0;
-    againstElectronTightMVA6_1  =(bitmask & 0x8 )>0;
-    againstElectronVTightMVA6_1 =(bitmask & 0x10)>0;
+    // bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
 
-    bitmask=leg1.getProperty(PropertyEnum::idAntiMu);
-    againstMuonLoose3_1=(bitmask & 0x1)>0;
-    againstMuonTight3_1=(bitmask & 0x2)>0;
+    againstElectronMVA6_1 = leg1.getProperty(PropertyEnum::idAntiEle);
+    againstElectronVLooseMVA6_1 =(againstElectronMVA6_1 & 0x1 )>0;
+    againstElectronLooseMVA6_1  =(againstElectronMVA6_1 & 0x2 )>0;
+    againstElectronMediumMVA6_1 =(againstElectronMVA6_1 & 0x4 )>0;
+    againstElectronTightMVA6_1  =(againstElectronMVA6_1 & 0x8 )>0;
+    againstElectronVTightMVA6_1 =(againstElectronMVA6_1 & 0x10)>0;
+
+    againstMuon3_1=leg1.getProperty(PropertyEnum::idAntiMu);
+    againstMuonLoose3_1=(againstMuon3_1 & 0x1)>0;
+    againstMuonTight3_1=(againstMuon3_1 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_1=leg1.getProperty(PropertyEnum::rawIso);
     byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     // byIsolationMVA3newDMwoLTraw_1=DEF;
-    byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
     // byIsolationMVA3newDMwLTraw_1=DEF;
     byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID")); //same as above!?
 
-    bitmask=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
-    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (bitmask & 0x1)>0;
-    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x2)>0;
-    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x4)>0;;
-    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x8)>0;
-    byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x10)>0;
-    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x20)>0;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationMVArun2017v2DBoldDMwLT2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x20)>0;
+    byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x40)>0;
 
     // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
     // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
@@ -302,33 +306,36 @@ void EventWriter::fillLeg2Branches()
     else if (pdg2==13) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
     else if (pdg2==11) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
-    bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
-    againstElectronVLooseMVA6_2 = (bitmask & 0x1)>0;
-    againstElectronLooseMVA6_2  = (bitmask & 0x2)>0;
-    againstElectronMediumMVA6_2 = (bitmask & 0x4)>0;
-    againstElectronTightMVA6_2  = (bitmask & 0x8)>0;
-    againstElectronVTightMVA6_2 = (bitmask & 0x10)>0;
 
-    bitmask=leg2.getProperty(PropertyEnum::idAntiMu);
-    againstMuonLoose3_2=(bitmask & 0x1)>0;
-    againstMuonTight3_2=(bitmask & 0x2)>0;
+    againstElectronMVA6_2=leg2.getProperty(PropertyEnum::idAntiEle);
+    againstElectronVLooseMVA6_2 = (againstElectronMVA6_2 & 0x1)>0;
+    againstElectronLooseMVA6_2  = (againstElectronMVA6_2 & 0x2)>0;
+    againstElectronMediumMVA6_2 = (againstElectronMVA6_2 & 0x4)>0;
+    againstElectronTightMVA6_2  = (againstElectronMVA6_2 & 0x8)>0;
+    againstElectronVTightMVA6_2 = (againstElectronMVA6_2 & 0x10)>0;
+
+    againstMuon3_2=leg2.getProperty(PropertyEnum::idAntiMu);
+    againstMuonLoose3_2=(againstMuon3_2 & 0x1)>0;
+    againstMuonTight3_2=(againstMuon3_2 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_2=leg2.getProperty(PropertyEnum::rawIso);
     byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     // byIsolationMVA3newDMwoLTraw_2=DEF;
-    byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
     // byIsolationMVA3newDMwLTraw_2=DEF;
     byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
-    bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM2017v2);
-    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2 = (bitmask & 0x1)>0;
-    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x2)>0;
-    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x4)>0;;
-    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x8)>0;
-    byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x10)>0;
-    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x20)>0;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ); // Raw value
+    byIsolationMVArun2017v2DBoldDMwLT2017_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauID") );     // Bitmask
+
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2 = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x20)>0;
+    byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x40)>0;
 
     // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
     // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
@@ -1399,11 +1406,13 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("mt_1", &mt_1);
     t->Branch("pfmt_1", &pfmt_1);
     t->Branch("iso_1", &iso_1);
+    t->Branch("againstElectronMVA6_1", &againstElectronMVA6_1);
     t->Branch("againstElectronLooseMVA6_1", &againstElectronLooseMVA6_1);
     t->Branch("againstElectronMediumMVA6_1", &againstElectronMediumMVA6_1);
     t->Branch("againstElectronTightMVA6_1", &againstElectronTightMVA6_1);
     t->Branch("againstElectronVLooseMVA6_1", &againstElectronVLooseMVA6_1);
     t->Branch("againstElectronVTightMVA6_1", &againstElectronVTightMVA6_1);
+    t->Branch("againstMuon3_1", &againstMuon3_1);    
     t->Branch("againstMuonLoose3_1", &againstMuonLoose3_1);
     t->Branch("againstMuonTight3_1", &againstMuonTight3_1);
     t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
@@ -1414,11 +1423,15 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
     t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
     t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_1", &byIsolationMVArun2017v2DBoldDMwLTraw2017_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_1", &byIsolationMVArun2017v2DBoldDMwLT2017_1);   
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_1", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
     // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
     // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
@@ -1461,11 +1474,13 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("mt_2", &mt_2);
     t->Branch("pfmt_2", &pfmt_2);
     t->Branch("iso_2", &iso_2);
+    t->Branch("againstElectronMVA6_2", &againstElectronMVA6_2);
     t->Branch("againstElectronLooseMVA6_2", &againstElectronLooseMVA6_2);
     t->Branch("againstElectronMediumMVA6_2", &againstElectronMediumMVA6_2);
     t->Branch("againstElectronTightMVA6_2", &againstElectronTightMVA6_2);
     t->Branch("againstElectronVLooseMVA6_2", &againstElectronVLooseMVA6_2);
     t->Branch("againstElectronVTightMVA6_2", &againstElectronVTightMVA6_2);
+    t->Branch("againstMuon3_2", &againstMuon3_2);    
     t->Branch("againstMuonLoose3_2", &againstMuonLoose3_2);
     t->Branch("againstMuonTight3_2", &againstMuonTight3_2);
     t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
@@ -1476,11 +1491,15 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
     t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
     t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_2", &byIsolationMVArun2017v2DBoldDMwLTraw2017_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_2", &byIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_2", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
     // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
     // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
