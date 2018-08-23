@@ -253,7 +253,7 @@ class Bookkeeping():
       print_summary += "{0}{1} ET {1}{1} MT {1}{1} TT {1}_\n".format("_"*16, "_"*9)
       print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
       for shift in self.summary[sample]:
-        line = {"et":" "*28,"mt":" "*28,"tt":" "*28}
+        line = {"et":" "*21,"mt":" "*21,"tt":" "*21}
         for channel in self.summary[sample][shift]:
           
           if self.log[sample][channel][shift]["status"] == "DONE":
