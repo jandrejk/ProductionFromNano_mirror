@@ -547,6 +547,7 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
         if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
 
         int lepPDGId = leptons[i].getPDGid();
+        if( std::abs(lepPDGId) == 15 &&  channel == HTTAnalysis::TauTau ) continue;
 
         addlepton_p4.push_back( leptons[i].getP4() );
         addlepton_pt.push_back( leptons[i].getP4().Pt() );
@@ -556,9 +557,11 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
         addlepton_pdgId.push_back( leptons[i].getPDGid()*(-1) );
         addlepton_mc_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
+        addlepton_tauAntiEle.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiEle) );
+        addlepton_tauAntiMu.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiMu)  );
+
         addlepton_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
         addlepton_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
-
         addlepton_mt.push_back( leptons[i].getMT( pair->getMET() ) );
 
         if( std::abs(lepPDGId) == 13 )
@@ -578,8 +581,6 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addlepton_tauID.push_back( 0. );
             addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
-            addlepton_tauAntiEle.push_back( 0. );
-            addlepton_tauAntiMu.push_back( 0. );
 
         }else if( std::abs(lepPDGId) == 11 )
         {
@@ -598,10 +599,9 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addlepton_tauID.push_back( 0. );
             addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
-            addlepton_tauAntiEle.push_back( 0. );
-            addlepton_tauAntiMu.push_back( 0. );
 
-        }else if( std::abs(lepPDGId) == 15 && !( channel == HTTAnalysis::TauTau) )
+
+        }else if( std::abs(lepPDGId) == 15 )
         {
             nadditionalTau++;
             addtau_pt.push_back( leptons[i].getP4().Pt() );
@@ -612,24 +612,18 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addtau_byIsolationMVArun2v1DBoldDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
             addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
-
-
             bitmask = leptons[i].getProperty(PropertyEnum::idAntiEle);
             bool antiEle = ( bitmask & 0x8) > 0;
-
             bitmask = leptons[i].getProperty(PropertyEnum::idAntiMu);
             bool antiMu  = (bitmask & 0x1 ) > 0;
-
             addtau_passesTauLepVetos.push_back( antiEle & antiMu );
 
             addtau_decayMode.push_back( leptons[i].getProperty(PropertyEnum::decayMode) );
             addtau_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
             addtau_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
 
-
             addtau_mt.push_back( leptons[i].getMT( pair->getMET() ) );
             addtau_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
-
 
             addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
@@ -642,14 +636,11 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x20)>0 );
 
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ) );
-            addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
-
-            addlepton_tauID.push_back(      (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID")) );
-            addlepton_tauDM.push_back(      (int)leptons[i].getProperty(PropertyEnum::decayMode) );
-            addlepton_tauAntiEle.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiEle) );
-            addlepton_tauAntiMu.push_back(  (int)leptons[i].getProperty(PropertyEnum::idAntiMu) );
-
             addlepton_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
+
+            addlepton_tauID.push_back(  (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID")) );
+            addlepton_tauDM.push_back(  (int)leptons[i].getProperty(PropertyEnum::decayMode) );
+            addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
 
         }
@@ -1628,7 +1619,7 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("lep_etacentrality", &lep_etacentrality);
         t->Branch("sphericity", &sphericity);
 
-        // t->Branch("addlepton_p4", &addlepton_p4);
+        t->Branch("addlepton_p4", &addlepton_p4);
         t->Branch("addlepton_pt", &addlepton_pt);
         t->Branch("addlepton_eta", &addlepton_eta);
         t->Branch("addlepton_phi", &addlepton_phi);
