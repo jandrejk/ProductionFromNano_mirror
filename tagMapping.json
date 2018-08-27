@@ -1,13 +1,13 @@
 {
 	"WW_TuneCP5_13TeV-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WW_TuneCP5_13TeV-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":75.8,
+		"xsec":75.9,
 		"nevents_from_DAS":7791498,
 		"nevents":7791498
 	},
 	"WZ_TuneCP5_13TeV-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WZ_TuneCP5_13TeV-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":27.6,
+		"xsec":27.57,
 		"nevents_from_DAS":3928630,
 		"nevents":3928630
 	},
@@ -21,25 +21,25 @@
 
 	"DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1#MINIAODSIM",
-		"xsec":875.7,
+		"xsec":877.2,
 		"nevents_from_DAS":42331295,
 		"nevents":77190729
 	},
 	"DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":{
 		"putag":"#DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1#MINIAODSIM",
-		"xsec":875.7,
+		"xsec":877.2,
 		"nevents_from_DAS":34859434,
 		"nevents":77190729
 	},
 	"DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":306.9,
+		"xsec":306.6,
 		"nevents_from_DAS":88895,
 		"nevents":9790490
 	},
 	"DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":{
 		"putag":"#DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v1#MINIAODSIM",
-		"xsec":306.9,
+		"xsec":306.6,
 		"nevents_from_DAS":9701595,
 		"nevents":9790490
 	},
@@ -57,13 +57,13 @@
 	},
 	"DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":43.97,
+		"xsec":44.03,
 		"nevents_from_DAS":4346952,
 		"nevents":4346952
 	},
 	"DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":5345,
+		"xsec":5343,
 		"nevents_from_DAS":48500499,
 		"nevents":97509681
 	},
@@ -75,7 +75,7 @@
 	},
 	"DYJetsToLL_M-5to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":81880.0,
+		"xsec":81970.0,
 		"nevents_from_DAS":8881676,
 		"nevents":8881676
 	},
@@ -169,7 +169,7 @@
 
 	"WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",
-		"xsec":52760,
+		"xsec":52800,
 		"nevents_from_DAS":33073306,
 		"nevents":77841284
 	},
@@ -181,27 +181,27 @@
 	},
 	"W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",
-		"xsec":8104,
-		"nevents_from_DAS":0,
-		"nevents":0
+		"xsec":8111.0,
+		"nevents_from_DAS":50903498,
+		"nevents":50903498
 	},
 	"W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",
-		"xsec":2796,
+		"xsec":2787,
 		"nevents_from_DAS":6467970,
 		"nevents":6467970
 	},
 	"W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",
-		"xsec":993.5,
+		"xsec":991.4,
 		"nevents_from_DAS":19322516,
 		"nevents":19322516
 	},
 	"W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#MINIAODSIM",
 		"xsec":544.4,
-		"nevents_from_DAS":113337,
-		"nevents":113337
+		"nevents_from_DAS":11333705,
+		"nevents":11333705
 	}
 
 }
