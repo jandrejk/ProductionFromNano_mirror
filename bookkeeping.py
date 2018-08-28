@@ -69,6 +69,7 @@ class Bookkeeping():
       for channel in self.log[sample]:
         for shift in self.log[sample][channel]:
 
+          
 
           if not self.summary.get(sample,False): self.summary[sample] = {}
           if not self.summary[sample].get(shift,False): self.summary[sample][shift] = {}
@@ -83,6 +84,8 @@ class Bookkeeping():
                                                     "failed":0,
                                                     "failed_files":[],
                                                     "jobids":[] }
+
+          if self.log[sample][channel][shift]["status"] != "NEW": continue
 
           for file in glob.glob(  "{0}/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
             if self.log[sample][channel][shift]["submit_time"] < os.path.getmtime(file):
@@ -246,6 +249,9 @@ class Bookkeeping():
     samples = self.summary.keys()
     samples.sort()
 
+    running_total = 0
+    pending_total = 0
+    failed_total = 0
     for sample in samples:
       should_display = False
       print_summary = ""
@@ -275,6 +281,10 @@ class Bookkeeping():
             p = self.summary[sample][shift][channel]["pending"]
             u = self.summary[sample][shift][channel]["failed"]
 
+            running_total += r
+            pending_total += p
+            failed_total += u
+
             if self.log[sample][channel][shift]["site"] != self.system:
               r = p = u = "?"
 
@@ -292,6 +302,11 @@ class Bookkeeping():
       print_summary += "="*83 + "\n"
 
       if should_display or self.verbose: print print_summary
+
+    print "RUNNING: ", running_total
+    print "PENDING: ", pending_total
+    print "FAILED:  ", failed_total
+    print
 
 
 
