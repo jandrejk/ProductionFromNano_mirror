@@ -4,6 +4,7 @@ import os
 import glob
 import shutil
 import subprocess as sp
+import multiprocessing as mp
 import shlex
 import sys
 import numpy as np
@@ -90,8 +91,7 @@ class Merger():
         with open("stitchConfig.json","r") as FSO:
             stitch_config = json.load(FSO)
 
-        with open("tagMapping.json","r") as FSO:
-            lumi_infos = json.load(FSO)
+        cmd_list = {}
 
         mergedir = "/".join([self.outdir,self.version])
         if not os.path.exists(mergedir):
@@ -99,96 +99,57 @@ class Merger():
 
         for mergename in stitch_config:
             # if mergename == "BASIS_ntuple_VBF":
-                to_merge = {}
+                tomerge = []
                 for sample in stitch_config[mergename]["samples"]:
+                    for ext in glob.glob( "/".join([ self.outdir, sample + "*", self.version, self.channel + "-*" ]) ):
+                        tomerge.append(ext)
 
-                    to_merge[sample] = {"files":[],"xsec":0,"nevents":[] }
-                    for ext in glob.glob( "/".join([ self.outdir, sample + "*" ]) ):
-                        tag = ext.replace( self.outdir, "" )
-                        to_merge[sample]["files"].append(ext)
+                mergecmd = self.getMergeCmd(mergename, tomerge) 
+                if mergecmd:
+                    cmd_list[mergename] = mergecmd 
 
-                        if stitch_config[mergename]["data"]:
-                            to_merge[sample]["xsec"] = 1
-                            to_merge[sample]["nevents"] = [1]
-                        else:
-                            to_merge[sample]["xsec"] = lumi_infos[sample][1]
-                            to_merge[sample]["nevents"].append(lumi_infos[tag][2])                        
-
-                    to_merge[sample]["nevents"] = sum(to_merge[sample]["nevents"]) 
-                    if to_merge[sample]["nevents"] == 0:
-                        print "Samples for {0} missing...".format( mergename )
-                        to_merge = {}
-                        break
-
-                if to_merge:
-                    if stitch_config[mergename]["stitching"]:
-                        self.mapJetsStitchingWeights( to_merge, stitch_config[mergename]["NNLO_xsec"] )
-                    else:
-                        self.mapLumiWeight(to_merge)
-
-                    self.mergeSample(mergename, to_merge)
-
-
-    def mergeSample(self, name, parts):
+        self.applyCmdMulti(cmd_list)
+  
+    def getMergeCmd(self, name, parts):
 
         mergedir = "/".join([self.outdir,self.version])
         shifts = ["NOMINAL"]
-        # for es in ["TES","MES","EES"]:        
-        #     for dm in ["1p0p0","1p1p0","3p0p0"]:
-        #         for sh in ["Up","Down"]:
-        #             shifts.append( es + dm + sh )
+        for es in ["TES","MES","EES"]:        
+            for dm in ["1p0p0","1p1p0","3p0p0"]:
+                for sh in ["Up","Down"]:
+                    shifts.append( es + dm + sh )
 
         for shift in shifts:
-
 
             filename = "_".join([ name.replace("BASIS",shift), self.channel ]) + ".root"
             outfile =  "/".join([mergedir, filename ])
             addfiles = []
-            print outfile        
-            complete = True
 
-            for i,part in enumerate(parts):
-                for j,file in enumerate(parts[part]["files"]):
-                    samples = glob.glob( "/".join([ file, self.version, "{0}-{1}*".format(self.channel, shift) ]) )
-                    if not samples:
-                        complete = False
-                    for sample in samples:
-                        addfiles.append(sample)
-            if complete:
-                os.system("hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) ) 
+            for i,file in enumerate(parts):
+                if "{0}-{1}".format( self.channel, shift ) in file:
+                    addfiles.append(file)
+            if addfiles:
+                return "hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) 
 
 
 
-    def mapLumiWeight(self, parts):
-        for part in parts:
-            parts[part]["lumiWeight"] = parts[part]["xsec"] / parts[part]["nevents"]
+    def applyCmdMulti(self, cmd_list, max_proc=8):
 
-    def mapJetsStitchingWeights(self, parts, NNLO_xsec):
+        done_queue = mp.Queue()
 
-        lumis = [0,0,0,0,0]
-        corr = NNLO_xsec
-        for part in parts:
-            use = -1
-            for i,jetM in enumerate(["","1","2","3","4"]):
-                if jetM + "Jets" in part:
-                    use = i
-            if use >= 0:
-                lumis[use] = parts[part]["nevents"] / parts[part]["xsec"]
-            if use == 0:
-                corr /= parts[part]["xsec"]
+        for i, mergename in enumerate(cmd_list):
+            print "Stitchhing: " + mergename
+            if i >= max_proc:
+                done_queue.get(block=True)
+            proc = mp.Process(target=self.exec_cmd, args=(cmd_list[mergename], done_queue ))
+            proc.start()
 
-        stitchWeights = []
-        for i in xrange(5):
-            if i == 0:
-                stitchWeights.append( corr / lumis[i] )
-            else:
-                stitchWeights.append( corr / ( lumis[0] + lumis[i] ) )
-
-        for part in parts:
-            if "Jets" in part: parts[part]["lumiWeight"] = stitchWeights
-            else: parts[part]["lumiWeight"] = parts[part]["xsec"] / parts[part]["nevents"]
-        
-
+    def exec_cmd(self, cmd, q):
+        shlCmd = shlex.split(cmd)
+        # print shlCmd
+        p = sp.Popen(shlCmd,stdout = sp.PIPE, stderr = sys.__stderr__, shell=False)
+        p.communicate()
+        q.put(object)
 
     def mapCompletedJobs(self):
 
