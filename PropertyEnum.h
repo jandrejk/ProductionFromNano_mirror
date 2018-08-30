@@ -39,7 +39,9 @@ area = 37,
 puId = 38, 
 partonFlavour = 39, 
 btagCSVV2 = 40, 
-btagCMVA = 41, 
-jetId = 42, 
-NONE = 43
+btagCMVA = 41,
+btagDeepB = 42,
+hadronFlavour = 43,
+jetId = 44, 
+NONE = 45
 };

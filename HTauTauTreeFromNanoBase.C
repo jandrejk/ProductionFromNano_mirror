@@ -77,9 +77,16 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     // puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
     puweights_histo = (TH1D*)puweights->Get( Settings["puTag"].get<string>().c_str() );   
 
-    ///Instantiate JEC uncertainty sources
-    ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-    if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
+
+    if(isMC)
+    {
+        ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
+        std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
+        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
+
+        std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
+        httJetCollection.initForPromoteDemote();
+    }
 
     firstWarningOccurence_=true;
 
@@ -162,6 +169,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     leptonPropertiesList.push_back("Jet_partonFlavour");
     leptonPropertiesList.push_back("Jet_btagCSVV2");
     leptonPropertiesList.push_back("Jet_btagCMVA");
+    leptonPropertiesList.push_back("Jet_btagDeepB");
+    leptonPropertiesList.push_back("Jet_hadronFlavour");
     leptonPropertiesList.push_back("Jet_jetId");//bit1=L,bit2=T
     ////////////////////////////////////////////////////////////
     ///Gen Lepton properties MUST be synchronized with lepton properties
@@ -852,27 +861,26 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
 
         HTTJet aJet;
-
-        TLorentzVector p4;
-        p4.SetPtEtaPhiM(Jet_pt[iJet],
+        aJet.SetPtEtaPhiM(Jet_pt[iJet],
                         Jet_eta[iJet],
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
 
 
         ///JEC uncertaintes
-        // Up
         for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
+            //Only need up since shifts are symmetric
             aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,true), true  );
-        // Down
-        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,false), false  );
 
-        aJet.setP4(p4);
-        if(aJet.getMaxPt() < 20 ) continue;
-        debugWayPoint("[fillJets] max pt shift larger than 20",{(double)aJet.getP4().Pt(), (double)aJet.getMaxPt()},{},{"pt","MaxPt"});
+        // Fallback when jec uncerts get asymmetric
+        // Up
+        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
+        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,true), true  );
+        // // Down
+        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
+        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,false), false  );
 
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), "Jet");
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
 
@@ -880,6 +888,8 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
         httJetCollection.addJet(aJet);
         
     }
+    httJetCollection.fillCurrentCollections();
+
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////

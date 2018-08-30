@@ -3,6 +3,9 @@
 
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TH2F.h"
+#include "TFile.h"
+#include "TRandom3.h"
 #include "TBits.h"
 #include <map>
 #include <vector>
@@ -16,6 +19,7 @@
 #include "SelectionBitsEnum.h"
 #include "AnalysisEnums.h"
 #include "LeptonCuts.h"
+#include "utils/BTagCalibration/interface/BTagCalibrationStandalone.h"
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 class HTTEvent{
@@ -263,245 +267,266 @@ class HTTEvent{
 class HTTParticle
 {
 
-    
+  
 
-    public:
+  public:
 
-        static HTTAnalysis::sysEffects corrType;
+    static HTTAnalysis::sysEffects corrType;
 
-        HTTParticle(){clear();}
+    HTTParticle(){clear();}
 
-        ~HTTParticle(){}
+    ~HTTParticle(){}
 
-        void clear();
+    void clear();
 
-        ///Data member setters.
-        void setP4(const TLorentzVector &aP4) { p4 = aP4;}
-        void setChargedP4(const TLorentzVector &aP4) { chargedP4 = aP4;}
-        void setNeutralP4(const TLorentzVector &aP4) { neutralP4 = aP4;}
+    ///Data member setters.
+    void setP4(const TLorentzVector &aP4) { p4 = aP4;}
+    void setChargedP4(const TLorentzVector &aP4) { chargedP4 = aP4;}
+    void setNeutralP4(const TLorentzVector &aP4) { neutralP4 = aP4;}
 
-        void setPCA(const TVector3 &aV3) {pca = aV3;}
-        void setPCARefitPV(const TVector3 &aV3) {pcaRefitPV = aV3;}
-        void setPCAGenPV(const TVector3 &aV3) {pcaGenPV = aV3;}
+    void setPCA(const TVector3 &aV3) {pca = aV3;}
+    void setPCARefitPV(const TVector3 &aV3) {pcaRefitPV = aV3;}
+    void setPCAGenPV(const TVector3 &aV3) {pcaGenPV = aV3;}
 
-        void setCutBitmask(int bitmask) {cutBitmask = bitmask; }
-        void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
+    void setCutBitmask(int bitmask) {cutBitmask = bitmask; }
+    void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
 
-        ///Data member getters.
-        const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
-        const TLorentzVector & getChargedP4() const {return chargedP4;}
-        const TLorentzVector getNeutralP4() const {return neutralP4;}
+    ///Data member getters.
+    const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
+    const TLorentzVector & getChargedP4() const {return chargedP4;}
+    const TLorentzVector getNeutralP4() const {return neutralP4;}
 
-        const TVector3 & getPCA() const {return pca;}
-        const TVector3 & getPCARefitPV() const {return pcaRefitPV;}
-        const TVector3 & getPCAGenPV() const {return pcaGenPV;}
+    const TVector3 & getPCA() const {return pca;}
+    const TVector3 & getPCARefitPV() const {return pcaRefitPV;}
+    const TVector3 & getPCAGenPV() const {return pcaGenPV;}
 
-        int getPDGid() const {return getProperty(PropertyEnum::pdgId);}
-        int getCharge() const {return getProperty(PropertyEnum::charge);}
-        float getMT(TVector2 met, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const { return TMath::Sqrt( 2. * getP4(defaultType).Pt() * met.Mod() * (1. - TMath::Cos( getP4(defaultType).Phi()-met.Phi()))); }
+    int getPDGid() const {return getProperty(PropertyEnum::pdgId);}
+    int getCharge() const {return getProperty(PropertyEnum::charge);}
+    float getMT(TVector2 met, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const { return TMath::Sqrt( 2. * getP4(defaultType).Pt() * met.Mod() * (1. - TMath::Cos( getP4(defaultType).Phi()-met.Phi()))); }
 
-        int getCutBitmask() {return cutBitmask;}
-        bool isBaseline()         { return (cutBitmask & 0x1) > 0; }
-        bool isDiLepton()         { return (cutBitmask & 0x2) > 0; }
-        bool isExtraLepton()      { return (cutBitmask & 0x4) > 0; }
-        bool isAdditionalLepton() { return (cutBitmask & 0x8) > 0; }
-        bool isSemiLepTau()       { return (cutBitmask & 0x10) > 0; }
-        bool isFullHadLeadTau()   { return (cutBitmask & 0x20) > 0; }
-        bool isFullHadSubTau()    { return (cutBitmask & 0x40) > 0; }
+    int getCutBitmask() {return cutBitmask;}
+    bool isBaseline()         { return (cutBitmask & 0x1) > 0; }
+    bool isDiLepton()         { return (cutBitmask & 0x2) > 0; }
+    bool isExtraLepton()      { return (cutBitmask & 0x4) > 0; }
+    bool isAdditionalLepton() { return (cutBitmask & 0x8) > 0; }
+    bool isSemiLepTau()       { return (cutBitmask & 0x10) > 0; }
+    bool isFullHadLeadTau()   { return (cutBitmask & 0x20) > 0; }
+    bool isFullHadSubTau()    { return (cutBitmask & 0x40) > 0; }
 
-        Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
+    Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 
-        bool hasTriggerMatch(TriggerEnum index) const {return (unsigned int)getProperty(PropertyEnum::isGoodTriggerType)& (1<<(unsigned int)index)
-                                                               && (unsigned int)getProperty(PropertyEnum::FilterFired)& (1<<(unsigned int)index);}
+    bool hasTriggerMatch(TriggerEnum index) const {return (unsigned int)getProperty(PropertyEnum::isGoodTriggerType)& (1<<(unsigned int)index)
+                                 && (unsigned int)getProperty(PropertyEnum::FilterFired)& (1<<(unsigned int)index);}
 
    private:
 
-      ///Return four-momentum shifted with scale.
-      ///Shift modifies three-momentum transverse part only, leaving mass constant.
-      const TLorentzVector & getShiftedP4(float scale, bool preserveMass=true) const;
+    ///Return four-momentum shifted with scale.
+    ///Shift modifies three-momentum transverse part only, leaving mass constant.
+    const TLorentzVector & getShiftedP4(float scale, bool preserveMass=true) const;
 
-      ///Nominal (as recontructed) four-momentum
-      TLorentzVector p4;
+    ///Nominal (as recontructed) four-momentum
+    TLorentzVector p4;
 
-      ///Scaled four-momentum cache;
-      mutable TLorentzVector p4Cache;
-      mutable HTTAnalysis::sysEffects lastSystEffect;
+    ///Scaled four-momentum cache;
+    mutable TLorentzVector p4Cache;
+    mutable HTTAnalysis::sysEffects lastSystEffect;
 
-      ///Charged and neutral components four-momentum
-      TLorentzVector chargedP4, neutralP4;
+    ///Charged and neutral components four-momentum
+    TLorentzVector chargedP4, neutralP4;
 
-      ///Vectors from primary vertex to point of closest approach (PCA)
-      ///calculated with respect to AOD vertex, refitted and generated vertex.
-      TVector3 pca, pcaRefitPV, pcaGenPV;
+    ///Vectors from primary vertex to point of closest approach (PCA)
+    ///calculated with respect to AOD vertex, refitted and generated vertex.
+    TVector3 pca, pcaRefitPV, pcaGenPV;
 
-      ///Vector of various particle properties.
-      ///Index generated automatically during conversion from
-      ///LLR ntuple format
-      std::vector<Double_t> properties;
+    ///Vector of various particle properties.
+    ///Index generated automatically during conversion from
+    ///LLR ntuple format
+    std::vector<Double_t> properties;
 
-      int cutBitmask = 0;
+    int cutBitmask = 0;
  
 };
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 class HTTPair
 {
-    public:
+  public:
 
-        HTTPair(){ clear();}
+    HTTPair(){ clear();}
 
-        ~HTTPair(){}
+    ~HTTPair(){}
 
-        void clear();
+    void clear();
 
-        ///Data member setters.
-        void setP4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {p4Vector[(unsigned int)defaultType] = aP4;}
-        void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)defaultType] = aP4;}
-        void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)defaultType] = aP4;}
+    ///Data member setters.
+    void setP4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {p4Vector[(unsigned int)defaultType] = aP4;}
+    void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)defaultType] = aP4;}
+    void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)defaultType] = aP4;}
 
-        void setMET(const TVector2 &aVector) {met = aVector;}
-        void setSVMET(const TVector2 &aVector, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {svMetVector[(unsigned int)defaultType] = aVector;}
+    void setMET(const TVector2 &aVector) {met = aVector;}
+    void setSVMET(const TVector2 &aVector, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {svMetVector[(unsigned int)defaultType] = aVector;}
 
-        void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
-        void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
+    void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
+    void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
 
-        void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
+    void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 
-        ///Data member getters.
-        const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
-        const TLorentzVector & getLeg1P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
-        const TLorentzVector & getLeg2P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    ///Data member getters.
+    const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    const TLorentzVector & getLeg1P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    const TLorentzVector & getLeg2P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
-        const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return getSystScaleMET(defaultType);}
-        const TVector2 & getSVMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)defaultType];}
+    const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return getSystScaleMET(defaultType);}
+    const TVector2 & getSVMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)defaultType];}
 
-        float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getSystScaleMET(defaultType), defaultType ); }
-        float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getSystScaleMET(defaultType), defaultType ); }
-        float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getSystScaleMET(defaultType), defaultType ); }
+    float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getSystScaleMET(defaultType), defaultType ); }
+    float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
-        const HTTParticle & getLeg1() const {return leg1;}
-        const HTTParticle & getLeg2() const {return leg2;}
+    const HTTParticle & getLeg1() const {return leg1;}
+    const HTTParticle & getLeg2() const {return leg2;}
 
-        float getMVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return  ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).M(); }
-        float getPTVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).Pt(); }
-        float getPTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const; 
+    float getMVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return  ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).M(); }
+    float getPTVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).Pt(); }
+    float getPT_TT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const; 
 
-        int getIndexLeg1() {return indexLeg1;}
-        int getIndexLeg2() {return indexLeg2;}
+    int getIndexLeg1() {return indexLeg1;}
+    int getIndexLeg2() {return indexLeg2;}
 
-        HTTAnalysis::finalState getFinalState();
+    HTTAnalysis::finalState getFinalState();
 
-        const HTTParticle & getMuon() const {return abs(leg1.getPDGid())==13 ? leg1 : leg2; }
-        const HTTParticle & getTau() const {return abs(leg1.getPDGid())==15 ? leg1 : leg2; }
+    const HTTParticle & getMuon() const {return abs(leg1.getPDGid())==13 ? leg1 : leg2; }
+    const HTTParticle & getTau() const {return abs(leg1.getPDGid())==15 ? leg1 : leg2; }
 
-        // float getMTMuon(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return abs(leg1.getPDGid())==13 ? getMTLeg1(defaultType) : getMTLeg2(defaultType); }
+    // float getMTMuon(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return abs(leg1.getPDGid())==13 ? getMTLeg1(defaultType) : getMTLeg2(defaultType); }
 
-        std::vector<float> getMETMatrix() const {return metMatrix;}
+    std::vector<float> getMETMatrix() const {return metMatrix;}
 
-    private:
+  private:
 
-        ///Return MET modified according to given systematic effect.
-        ///The MET is corrected for accorging leptons corrections.
-        ///The recoil correctino is not updated.
-        const TVector2 & getSystScaleMET(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
+    ///Return MET modified according to given systematic effect.
+    ///The MET is corrected for accorging leptons corrections.
+    ///The recoil correctino is not updated.
+    const TVector2 & getSystScaleMET(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
 
-        ///Return transverse mass caluculated according to the scale shifts.
-        float getSystScaleMT(const HTTParticle &aParticle, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
+    ///Return transverse mass caluculated according to the scale shifts.
+    float getSystScaleMT(const HTTParticle &aParticle, HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
 
-        ///Nominal met as calculated from PF.
-        ///Includes recoil corrections.
-        TVector2 met;
+    ///Nominal met as calculated from PF.
+    ///Includes recoil corrections.
+    TVector2 met;
 
-        ///Scaled four-momentum cache;
-        mutable TVector2 metCache;
-        mutable HTTAnalysis::sysEffects lastSystEffect;
-        mutable float mtCache;
+    ///Scaled four-momentum cache;
+    mutable TVector2 metCache;
+    mutable HTTAnalysis::sysEffects lastSystEffect;
+    mutable float mtCache;
 
-        ///Vectors holding p4 and MET for
-        ///for various scale variances.
-        std::vector<TLorentzVector> p4Vector;
-        std::vector<TLorentzVector> leg1p4Vector;
-        std::vector<TLorentzVector> leg2p4Vector;
-        std::vector<TVector2> svMetVector;
+    ///Vectors holding p4 and MET for
+    ///for various scale variances.
+    std::vector<TLorentzVector> p4Vector;
+    std::vector<TLorentzVector> leg1p4Vector;
+    std::vector<TLorentzVector> leg2p4Vector;
+    std::vector<TVector2> svMetVector;
 
-        //MVAMET covariance matrix in order 00,01,10,11
-        std::vector<float> metMatrix;
+    //MVAMET covariance matrix in order 00,01,10,11
+    std::vector<float> metMatrix;
 
-        ///Pair legs
-        HTTParticle leg1, leg2;
-        int indexLeg1, indexLeg2;
+    ///Pair legs
+    HTTParticle leg1, leg2;
+    int indexLeg1, indexLeg2;
 
 };
 
 class HTTJet
 {
-    public:
-        HTTJet(){clear();}
-        ~HTTJet(){}
+  public:
+    HTTJet(){clear();}
+    ~HTTJet(){}
 
-        void clear();
+    void clear();
 
-        void setP4(const TLorentzVector &aP4) { p4 = aP4;}
-        void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
-        void setJecUncertSourceValue(unsigned int uncert, double value, bool up);
-        void setUncertShift( JecUncertEnum uncert, bool up ){ currentUncert = uncert; currentShift = up; }
+    void setP4(const TLorentzVector &aP4) { p4 = aP4; currentP4 = aP4; }
+    void SetPtEtaPhiM(float pt, float eta, float phi, float m){ p4.SetPtEtaPhiM(pt,eta,phi,m); currentP4 = getP4(); }
 
-        const TLorentzVector & getP4();
-        double getMaxPt();
-        Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
+    void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
+    void setJecUncertSourceValue(unsigned int uncert, double value, bool up);
+    void setUncertShift( JecUncertEnum uncert, bool up ){ currentP4 = getP4( uncert, up ); }
 
-        double getJecUncertValue(unsigned int index, bool up){ return up ? jecUncertSourceValuesUp[index] : jecUncertSourceValuesDown[index]; };
+    TLorentzVector & P4(){ return currentP4; }
+    float Pt(){ return currentP4.Pt(); }
+    float Eta(){ return currentP4.Eta(); }
+    float Phi(){ return currentP4.Phi(); }
+    float M(){ return currentP4.M(); } 
 
-        bool isBtagJet(){ return getP4().Pt() > 20 && std::abs(getP4().Eta()) < 2.4 && getProperty(PropertyEnum::btagCSVV2)>0.8484; }
+    Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 
-    private:
+    // Fallback when jec uncerts get asymmetric
+    // double getJecUncertValue(unsigned int index, bool up){ return up ? jecUncertSourceValuesUp[index] : jecUncertSourceValuesDown[index]; };
+    
+    double getJecUncertValue(unsigned int index, bool up){ return jecUncertSourceValues[index]; };
 
-        const double DEF = -10.;
 
-        JecUncertEnum currentUncert;
-        bool currentShift;
+  private:
 
-        TLorentzVector p4;
-        TLorentzVector currentP4;
+    const TLorentzVector & getP4(JecUncertEnum uncert = JecUncertEnum::NONE, bool up = true);
 
-        std::vector<Double_t> properties;
+    TLorentzVector p4;
+    TLorentzVector currentP4;
 
-        std::vector<double> jecUncertSourceValuesUp;
-        std::vector<double> jecUncertSourceValuesDown;
+    std::vector<Double_t> properties;
+    std::vector<double> jecUncertSourceValues;
+
+    // Fallback when jec uncerts get asymmetric
+    // std::vector<double> jecUncertSourceValuesUp;
+    // std::vector<double> jecUncertSourceValuesDown;
 };
 
 class HTTJetCollection
 {
-    public:
-        HTTJetCollection(){clear();}
-        ~HTTJetCollection(){}
+  public:
+    HTTJetCollection(){clear();}
+    ~HTTJetCollection(){}
 
-        void clear();
+    void clear();
 
-        void addJet(HTTJet newJet);
-        void setCurrentUncertShift( JecUncertEnum uncert, bool up );
+    void initForPromoteDemote();
+    void btagPromoteDemote();
 
-        HTTJet getJet(unsigned int index){ HTTJet dummy; return index < jetCollection.size() ? jetCollection[index] : dummy; }
-        TLorentzVector getJetP4(unsigned int index){ return jetCollection[index].getP4(); }
-        int getNJets(double pt = 20);
-        int getNBtag();
-        int getNJetInGap(double pt = 20);
+    void addJet(HTTJet newJet){ jetCollection.push_back(newJet); };
+    void setCurrentUncertShift( JecUncertEnum uncert, bool up ){ fillCurrentCollections(uncert,up); }
+    void fillCurrentCollections(JecUncertEnum uncert = JecUncertEnum::NONE, bool up = true);
 
-        const TLorentzVector & getDiJetP4(){return dijet;}
+    HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
+    HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
 
-    private:
+    int getNJets(double pt = 20);
+    int getNBtag(){ return btagCurrentCollection.size(); };
+    int getNJetInGap(double pt = 20);
 
-        const double DEF = -10.;
 
-        JecUncertEnum currentUncert;
-        bool currentShift;
+    const TLorentzVector & getDiJetP4(){return dijet;}
 
-        std::vector<HTTJet> jetCollection;
-        std::vector<HTTJet> jetCurrentCollection;
+  private:
 
-        TLorentzVector dijet;
-        void setDijetP4();
-        void fillCurrentCollection();
+    static bool sortJets(HTTJet j1, HTTJet j2);
+
+    bool usePromoteDemote;
+    BTagCalibration calib;
+    BTagCalibrationReader reader;
+    TFile *eff_file;
+    TH2F *hb_eff;
+    TH2F *hc_eff;
+    TH2F *hoth_eff;    
+
+    std::vector<HTTJet> jetCollection;
+    std::vector<HTTJet> jetCurrentCollection;
+    std::vector<HTTJet> btagCurrentCollection;
+    std::vector<HTTJet> antibtagCurrentCollection;
+
+    TLorentzVector dijet;
+    void setDijetP4();
+    void fillCurrentCollection();
+    
 
 };
 

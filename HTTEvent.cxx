@@ -278,7 +278,7 @@ float HTTPair::getMTTOT(HTTAnalysis::sysEffects defaultType) const
   return TMath::Sqrt( mt1 + mt2 + mt3 );
 }
 
-float HTTPair::getPTTOT(HTTAnalysis::sysEffects defaultType) const
+float HTTPair::getPT_TT(HTTAnalysis::sysEffects defaultType) const
 {
   HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
 
@@ -292,37 +292,42 @@ float HTTPair::getPTTOT(HTTAnalysis::sysEffects defaultType) const
 
 void HTTJet::clear()
 {
-    currentUncert = JecUncertEnum::NONE;
-    currentShift = true;
 
-    p4.SetPtEtaPhiM(DEF,DEF,DEF,DEF);
-    jecUncertSourceValuesUp.clear();
-    jecUncertSourceValuesUp.reserve( (unsigned int)JecUncertEnum::NONE );
+    p4.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
+    currentP4.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
 
-    jecUncertSourceValuesDown.clear();
-    jecUncertSourceValuesDown.reserve( (unsigned int)JecUncertEnum::NONE );
+    jecUncertSourceValues.clear();
+    jecUncertSourceValues.reserve( (unsigned int)JecUncertEnum::NONE );
+
+    // Fallback when jec uncerts get asymmetric
+    // jecUncertSourceValuesUp.clear();
+    // jecUncertSourceValuesUp.reserve( (unsigned int)JecUncertEnum::NONE );
+
+    // jecUncertSourceValuesDown.clear();
+    // jecUncertSourceValuesDown.reserve( (unsigned int)JecUncertEnum::NONE );
 
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTJet::getP4()
+const TLorentzVector & HTTJet::getP4(JecUncertEnum uncert, bool up)
 {
-    double scale = 0.;
-    double shift = 1.;
-
     currentP4 = p4;
-    if(currentUncert == JecUncertEnum::NONE) return currentP4;
+    if(uncert == JecUncertEnum::NONE) return currentP4;
 
-    if(currentShift)
-    {
-        scale = jecUncertSourceValuesUp[(unsigned int)currentUncert];
-        shift = 1.;
+    double shift = up ? 1. : -1.;   
+    double scale = jecUncertSourceValues[(unsigned int)uncert]; 
 
-    }else
-    {
-        scale = jecUncertSourceValuesDown[(unsigned int)currentUncert];
-        shift = -1.;
-    }
+    // Fallback when jec uncerts get asymmetric
+    // if(currentShift)
+    // {
+    //     scale = jecUncertSourceValuesUp[(unsigned int)currentUncert];
+    //     shift = 1.;
+
+    // }else
+    // {
+    //     scale = jecUncertSourceValuesDown[(unsigned int)currentUncert];
+    //     shift = -1.;
+    // }
 
     currentP4.SetPtEtaPhiM( p4.Pt()*(1 + scale*shift),
                             p4.Eta(),
@@ -334,19 +339,13 @@ const TLorentzVector & HTTJet::getP4()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-double HTTJet::getMaxPt()
-{
-    double maxup = *std::max_element( jecUncertSourceValuesUp.begin(),jecUncertSourceValuesUp.end()  );
-    double maxdown = *std::max_element( jecUncertSourceValuesDown.begin(),jecUncertSourceValuesDown.end()  ) ;
-
-    return p4.Pt()*( 1 + std::max(maxup, maxdown*(-1) ) );
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
 void HTTJet::setJecUncertSourceValue(unsigned int uncert, double value, bool up)
 {
-    if(up) jecUncertSourceValuesUp[uncert] = value;
-    else   jecUncertSourceValuesDown[uncert] = value;
+    jecUncertSourceValues[uncert] = value;
+
+    // Fallback when jec uncerts get asymmetric
+    // if(up) jecUncertSourceValuesUp[uncert] = value;
+    // else   jecUncertSourceValuesDown[uncert] = value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -354,42 +353,125 @@ void HTTJet::setJecUncertSourceValue(unsigned int uncert, double value, bool up)
 
 void HTTJetCollection::clear()
 {
-    currentUncert = JecUncertEnum::NONE;
-    currentShift = true;
+    usePromoteDemote = false;
 
-    dijet.SetPtEtaPhiM(DEF,DEF,DEF,DEF);
+    dijet.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
     jetCollection.clear();
     jetCurrentCollection.clear();
+    btagCurrentCollection.clear();
+    antibtagCurrentCollection.clear();
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-void HTTJetCollection::setCurrentUncertShift(JecUncertEnum uncert, bool up)
+void HTTJetCollection::initForPromoteDemote()
 {
-    //Make sure that everything gets shifted here
-    currentUncert = uncert;
-    currentShift = up;
-    fillCurrentCollection();
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-void HTTJetCollection::addJet(HTTJet newJet)
-{
-    jetCollection.push_back(newJet);
-    if(newJet.getP4().Pt() > 20 )
-        jetCurrentCollection.push_back(newJet);
+  usePromoteDemote = true;
+  calib = BTagCalibration("DeepCSV", "utils/BTagCalibration/data/DeepCSV_94XSF_V3_B_F.csv");
+  reader = BTagCalibrationReader(BTagEntry::OP_MEDIUM, "central",{"up","down"});
+  reader.load(calib,  BTagEntry::FLAV_B, "comb");
+  reader.load(calib,  BTagEntry::FLAV_C, "comb");
+  reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
+
+  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_Moriond2017.root");
+  hb_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_b") );
+  hc_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_c") );
+  hoth_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_oth") );
 
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-void HTTJetCollection::fillCurrentCollection()
+void HTTJetCollection::btagPromoteDemote(){
+
+  TRandom3 rand;
+
+  double scaleFactor;
+  double scaleRatio;
+  double jetPt;
+  double jetEta;
+  double tagging_efficiency;
+  double rn;
+  
+  int index = 0;
+  for(auto & jet : btagCurrentCollection){
+    jetPt=  jet.Pt();    
+    jetEta= jet.Eta();
+    rand.SetSeed((int)((jetEta+5)*100000));
+    rn = rand.Rndm();
+
+
+    if( jet.getProperty(PropertyEnum::hadronFlavour) ==5 )       scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
+    else if( jet.getProperty(PropertyEnum::hadronFlavour) ==4 )  scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_C, jetEta, jetPt);
+    else                                                         scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_UDSG, jetEta, jetPt);
+    
+    if(scaleFactor < 1){
+      scaleRatio = fabs( 1-scaleFactor );
+      if( rn < scaleRatio ) btagCurrentCollection.erase(btagCurrentCollection.begin() + index);
+    }
+    ++index;
+  }
+  
+  for(auto & jet : antibtagCurrentCollection){
+    jetPt=  jet.Pt();
+    jetEta= jet.Eta();
+
+    rand.SetSeed((int)((jetEta+5)*100000));
+    rn = rand.Rndm();
+
+    if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
+      
+      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
+
+      if(jetPt>hb_eff->GetXaxis()->GetBinLowEdge(hb_eff->GetNbinsX()+1))     tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetNbinsX(),hb_eff->GetYaxis()->FindBin(fabs( jetEta ) )); 
+      else                                                                   tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetXaxis()->FindBin(jetPt),hb_eff->GetYaxis()->FindBin(fabs( jetEta )));
+    }
+    else if( jet.getProperty(PropertyEnum::hadronFlavour)==4 ){
+
+      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_C, jetEta, jetPt);
+
+      if(jetPt>hc_eff->GetXaxis()->GetBinLowEdge(hc_eff->GetNbinsX()+1))     tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetNbinsX(),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
+      else                                                                   tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetXaxis()->FindBin(jetPt),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
+    }
+    else{
+ 
+      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_UDSG, jetEta, jetPt);
+
+      if(jetPt>hoth_eff->GetXaxis()->GetBinLowEdge(hoth_eff->GetNbinsX()+1)) tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetNbinsX(),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));
+      else                                                                   tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetXaxis()->FindBin(jetPt),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));  
+    }
+    if(scaleFactor > 1){
+      scaleRatio = fabs( ( 1-scaleFactor )/( 1-(1/ tagging_efficiency ) ) );
+      if( rn < scaleRatio ) btagCurrentCollection.push_back( jet );
+    }  
+  }
+  std::sort(btagCurrentCollection.begin(), btagCurrentCollection.end(), sortJets);
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+void HTTJetCollection::fillCurrentCollections(JecUncertEnum uncert, bool up)
 {
     jetCurrentCollection.clear();
+    btagCurrentCollection.clear();
+    antibtagCurrentCollection.clear();
+
     for(auto jet : jetCollection)
     {
-        jet.setUncertShift(currentUncert, currentShift);
-        if(jet.getP4().Pt() > 20)
-            jetCurrentCollection.push_back(jet);
+        jet.setUncertShift(uncert, up);
+        if(jet.Pt() > 20)
+          jetCurrentCollection.push_back(jet);
+
+        if(jet.Pt() > 20 && abs(jet.Eta()) < 2.4 )
+        {
+          if( jet.getProperty(PropertyEnum::btagDeepB)>0.4941 )
+          {
+            btagCurrentCollection.push_back( jet );
+          }else
+          {
+            antibtagCurrentCollection.push_back( jet );
+          }
+        }
     }
+    if(usePromoteDemote) btagPromoteDemote();
+
     if(jetCurrentCollection.size() > 1)
         setDijetP4();
 }
@@ -397,7 +479,7 @@ void HTTJetCollection::fillCurrentCollection()
 ////////////////////////////////////////////////
 void HTTJetCollection::setDijetP4()
 {
-    dijet = jetCurrentCollection.at(0).getP4()+jetCurrentCollection.at(1).getP4();
+    dijet = jetCurrentCollection.at(0).P4()+jetCurrentCollection.at(1).P4();
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -405,7 +487,7 @@ int HTTJetCollection::getNJets(double pt)
 {
     int njets = 0;
     for(auto &jet : jetCurrentCollection)
-        if(jet.getP4().Pt() > pt )njets++;
+        if(jet.Pt() > pt )njets++;
     
     return njets;
 }
@@ -416,12 +498,12 @@ int HTTJetCollection::getNJetInGap(double pt)
     int njetingap = 0;
     if(jetCurrentCollection.size() < 2) return 0;
 
-    double j1_eta =  jetCurrentCollection.at(0).getP4().Eta();
-    double j2_eta =  jetCurrentCollection.at(1).getP4().Eta();
+    double j1_eta =  jetCurrentCollection.at(0).Eta();
+    double j2_eta =  jetCurrentCollection.at(1).Eta();
 
     for (unsigned ij=2; ij<jetCurrentCollection.size(); ij++)
     {
-        TLorentzVector addJet = jetCurrentCollection.at(ij).getP4();
+        TLorentzVector addJet = jetCurrentCollection.at(ij).P4();
 
         if ( addJet.Pt() < pt ) continue;
 
@@ -437,12 +519,9 @@ int HTTJetCollection::getNJetInGap(double pt)
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-int HTTJetCollection::getNBtag()
+bool HTTJetCollection::sortJets(HTTJet j1, HTTJet j2)
 {
-    int nbtags = 0;
-    for(auto &jet : jetCurrentCollection)
-        if( jet.isBtagJet() )nbtags++;
-
-    return nbtags;
+  if( j1.Pt() == j2.Pt() ) return true;
+  return j1.Pt() == j2.Pt();
 }
 

@@ -48,8 +48,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     vector<TLorentzVector> objs;
     objs.push_back(leg1P4);
     objs.push_back(leg2P4);
-    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).getP4());
-    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).getP4());
+    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).P4());
+    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).P4());
     sphericity=calcSphericity(objs);  
 
     gen_top_pt_1=DEF;
@@ -367,18 +367,17 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
     njetingap=jets.getNJetInGap(30);
     njetingap20=jets.getNJetInGap(20);
 
+
     if ( njetspt20 >=1 )
     {
-        jpt_1=jets.getJetP4(0).Pt();
-         // Testing for later
-        jpt_1_arr[(unsigned)JecUncertEnum::NONE] = jets.getJetP4(0).Pt();
 
-        jeta_1=jets.getJetP4(0).Eta();
-        jphi_1=jets.getJetP4(0).Phi();
-        jm_1=jets.getJetP4(0).M();
+        jpt_1=  jets.getJet(0).Pt();
+        jeta_1= jets.getJet(0).Eta();
+        jphi_1= jets.getJet(0).Phi();
+        jm_1=   jets.getJet(0).M();
         jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
-        jmva_1=jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
-        jcsv_1=jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
+        jmva_1= jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
+        jcsv_1= jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
         //    gen_match_jetId_1=jets.getJet(0).getProperty(PropertyEnum::partonFlavour);
         genJet_match_1=0;
         jptUp_1=jpt_1;
@@ -387,13 +386,14 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
     }
     if ( njetspt20 >=2 )
     {
-        jpt_2=jets.getJetP4(1).Pt();
-        jeta_2=jets.getJetP4(1).Eta();
-        jphi_2=jets.getJetP4(1).Phi();
-        jm_2=jets.getJetP4(1).M();
+
+        jpt_2=  jets.getJet(1).Pt();
+        jeta_2= jets.getJet(1).Eta();
+        jphi_2= jets.getJet(1).Phi();
+        jm_2=   jets.getJet(1).M();
         jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
-        jmva_2=jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
-        jcsv_2=jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
+        jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
+        jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
         //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
         genJet_match_2=0;
         jptUp_2=jpt_2;
@@ -407,8 +407,8 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
         dijetpt=jets.getDiJetP4().Pt();
         dijetphi=jets.getDiJetP4().Phi();
         
-        jdeta=std::abs( jets.getJetP4(0).Eta()-jets.getJetP4(1).Eta() );
-        jdphi=jets.getJetP4(0).DeltaPhi(jets.getJetP4(1));
+        jdeta=std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
+        jdphi=jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
     }
 
     njetsUp=njets;
@@ -419,31 +419,24 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
     jdetaDown=jdeta;
 
 
-    int ind_b1=-1;
-    int ind_b2=-1;
-    for (unsigned ij=0; ij<(unsigned int)jets.getNJets(20); ij++){
-        //Not affected by jec uncerts right now
-        if( jets.getJet(ij).isBtagJet() )
-        if ( ind_b1>=0 && ind_b2<0 ) ind_b2=ij;
-        if ( ind_b1<0 )              ind_b1=ij;
+    if (nbtag >= 1)
+    {
+        bpt_1=   jets.getBtagJet(0).Pt();
+        beta_1=  jets.getBtagJet(0).Eta();
+        bphi_1=  jets.getBtagJet(0).Phi();
+        brawf_1= jets.getBtagJet(0).getProperty(PropertyEnum::rawFactor);
+        bmva_1=  jets.getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
+        bcsv_1=  jets.getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
     }
 
-    if (ind_b1>=0){
-        bpt_1=jets.getJetP4(0).Pt();
-        beta_1=jets.getJetP4(0).Eta();
-        bphi_1=jets.getJetP4(0).Phi();
-        brawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
-        bmva_1=jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
-        bcsv_1=jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
-    }
-
-    if (ind_b2>=0){
-        bpt_2=jets.getJetP4(1).Pt();
-        beta_2=jets.getJetP4(1).Eta();
-        bphi_2=jets.getJetP4(1).Phi();
-        brawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
-        bmva_2=jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
-        bcsv_2=jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
+    if (nbtag >= 2)
+    {
+        bpt_2=   jets.getBtagJet(1).Pt();
+        beta_2=  jets.getBtagJet(1).Eta();
+        bphi_2=  jets.getBtagJet(1).Phi();
+        brawf_2= jets.getBtagJet(1).getProperty(PropertyEnum::rawFactor);
+        bmva_2=  jets.getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
+        bcsv_2=  jets.getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
     }
 
 
@@ -504,7 +497,7 @@ void EventWriter::fillPairBranches(HTTPair *pair)
     pzetamiss = met_ex*zetaX + met_ey*zetaY;
     dzeta = pzetamiss + (pzetavis - 1.85 * pzetavis);
     //////////////////////////////////////////////////////////////////
-    pt_tt=pair->getPTTOT();
+    pt_tt=pair->getPT_TT();
     pt_vis=pair->getPTVis();
     mt_tot=pair->getMTTOT();
     m_vis=pair->getMVis();
@@ -857,7 +850,7 @@ int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets)
   int whichjet=0;
 
   for (unsigned i=0; i<(unsigned int)jets.getNJets(20); i++){
-    TLorentzVector p4=jets.getJet(i).getP4();
+    TLorentzVector p4=jets.getJet(i).P4();
     if(p4.Pt() > 20 && fabs(p4.Eta() ) < 4.7 ){
       float tmpDR = calcDR( selObj.Eta(), selObj.Phi(), p4.Eta(), p4.Phi() );
       if( tmpDR < minDR ){
@@ -1085,7 +1078,6 @@ void EventWriter::setDefault(){
     decayMode_2=DEF;
     //////////////////////////////////////////////////////////////////
      // Testing for later
-    jpt_1_arr[(unsigned)JecUncertEnum::NONE] = DEF;
 
     nbtag=DEF;
     njets=DEF;
@@ -1594,8 +1586,6 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("njetsDown", &njetsDown);
     t->Branch("njetspt20", &njetspt20);
 
-     // Testing for later
-    t->Branch( ("jpt_1_" + JecUncertNames[(unsigned)JecUncertEnum::NONE]).c_str(), &jpt_1_arr[(unsigned)JecUncertEnum::NONE]);
 
     t->Branch("jpt_1", &jpt_1);
     t->Branch("jptUp_1", &jptUp_1);
