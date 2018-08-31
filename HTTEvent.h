@@ -4,6 +4,10 @@
 #include "TLorentzVector.h"
 #include "TVector3.h"
 #include "TH2F.h"
+#include "TMatrixDEigen.h"
+#include "RooWorkspace.h"
+#include "RooRealVar.h"
+#include "RooFunctor.h"
 #include "TFile.h"
 #include "TRandom3.h"
 #include "TBits.h"
@@ -37,8 +41,7 @@ class HTTEvent{
   static const int mvaIsoIdOffset = againstEIdOffset+5;
   static const TString tauIDStrings[ntauIds];//implementation in cxx
 
-  HTTEvent(){clear();}
-
+  HTTEvent();
   ~HTTEvent(){}
 
   ///Data member setters.
@@ -64,9 +67,13 @@ class HTTEvent{
 
   void setGenNEventsWeight(float x){genNEvents = x;}
 
+  void setTopP4(const TLorentzVector &p4, const TLorentzVector &antiP4) {topP4 = p4; antiTopP4 = antiP4; isSetTopP4 = true; }
+
   void setTopPtReWeight(float x){topPtReWeight = x;}
 
   void setTopPtReWeightR1(float x){topPtReWeightR1 = x;}
+
+  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; }
 
   void setZPtReWeight(float x){zPtReWeight = x;}
 
@@ -83,10 +90,6 @@ class HTTEvent{
   void setDecayModePlus(int x){decayModePlus = x;}
 
   void setDecayModeBoson(int x){decayModeBoson = x;}
-
-  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; }
-
-  void setTopP4(const TLorentzVector &p4, const TLorentzVector &antiP4) {topP4 = p4; antiTopP4 = antiP4; }
 
   void setGenPV(const TVector3 & aPV) {genPV = aPV;}
 
@@ -132,11 +135,9 @@ class HTTEvent{
 
   float getMCatNLOWeight() const {return aMCatNLOweight;}
 
-  float getTopPtReWeight() const {return topPtReWeight;}
+  double getTopPtReWeight(bool run_1) const;
 
-  float getTopPtReWeightR1() const {return topPtReWeightR1;}
-
-  float getZPtReWeightS() const {return zPtReWeight;}
+  float getZPtReWeight() const {return zPtReWeight;}
 
   float getZPtReWeightSUSY() const {return zPtReWeightSUSY;}
 
@@ -185,6 +186,9 @@ class HTTEvent{
  private:
 
   ///Event run, run and LS number
+
+  RooWorkspace *w;
+
   unsigned int runId;
   unsigned long int eventId, lsId;
 
@@ -227,6 +231,7 @@ class HTTEvent{
   TLorentzVector bosP4, bosVisP4;
 
   ///top and antitop p4
+  bool isSetTopP4;
   TLorentzVector topP4, antiTopP4;
 
   ///Tau decay modes

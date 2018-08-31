@@ -155,8 +155,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     gen_ll_vis_pz=llvis.Pz();
 
     stitchedWeight=1.;
-    topWeight=ev->getTopPtReWeight();
-    topWeight_run1=ev->getTopPtReWeightR1();
+    topWeight=ev->getTopPtReWeight(false);
+    topWeight_run1=ev->getTopPtReWeight(true);
     ZWeight=ev->getZPtReWeightSUSY();
 
     zpt_weight_nom=DEFWEIGHT;

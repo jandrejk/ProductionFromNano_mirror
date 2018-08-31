@@ -28,6 +28,14 @@ const TString HTTEvent::tauIDStrings[ntauIds] = {
 };
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
+HTTEvent::HTTEvent()
+{
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
+    w = (RooWorkspace*)wsp.Get("w");
+    clear();
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
 void HTTEvent::clear(){
 
   runId = 0;
@@ -41,8 +49,10 @@ void HTTEvent::clear(){
 
   mcWeight = 1.0;
 
+  isSetTopP4 = false;
   topPtReWeight =1.0;
   topPtReWeightR1 =1.0;
+
   zPtReWeight =1.0;
   zPtReWeightSUSY =1.0;
 
@@ -81,6 +91,28 @@ void HTTEvent::clear(){
 
   metFilterDecision = 0;
   selectionWord.ResetAllBits();
+}
+double HTTEvent::getTopPtReWeight(bool run_1) const
+{
+  if(!isSetTopP4) return 1.;
+
+  double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
+  double antitopPt = antiTopP4.Perp()  > 400 ? 400 : antiTopP4.Perp();
+
+  double weightTop;
+  double weightAntitop;
+  if(run_1)
+  {
+    weightTop = exp(0.156-0.00137*topPt);
+    weightAntitop= exp(0.156-0.00137*antitopPt);
+  }else
+  {
+    weightTop = exp(0.0615-0.0005*topPt);
+    weightAntitop= exp(0.0615-0.0005*antitopPt);
+  }
+
+  return sqrt(weightTop*weightAntitop);
+
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

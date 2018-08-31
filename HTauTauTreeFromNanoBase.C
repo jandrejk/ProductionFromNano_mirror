@@ -64,7 +64,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2016_BtoH.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017_1D.root") );  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
     zptmass_histo = (TH2F*)zPtReweightFile->Get("zptmass_histo");
 
@@ -601,26 +601,27 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         ///TT reweighting according to
         ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
         TLorentzVector topP4, antitopP4;
-        double topPtReWeight = 1.;
-        double topPtReWeight_r1 = 1.;
+        // double topPtReWeight = 1.;
+        // double topPtReWeight_r1 = 1.;
+
+        // Is now calculated in HTTEvent 
         if( findTopP4(topP4, antitopP4) )
-        {
             httEvent->setTopP4(topP4, antitopP4);
 
-            double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
-            double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
+        //     double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
+        //     double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
 
-            double weightTop = exp(0.0615-0.0005*topPt);
-            double weightAntitop= exp(0.0615-0.0005*antitopPt);
+        //     double weightTop = exp(0.0615-0.0005*topPt);
+        //     double weightAntitop= exp(0.0615-0.0005*antitopPt);
 
-            double weightTop_r1 = exp(0.156-0.00137*topPt);
-            double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
+        //     double weightTop_r1 = exp(0.156-0.00137*topPt);
+        //     double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
 
-            topPtReWeight = sqrt(weightTop*weightAntitop);
-            topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
-        }
-        httEvent->setTopPtReWeight(topPtReWeight);
-        httEvent->setTopPtReWeightR1(topPtReWeight_r1);
+        //     topPtReWeight = sqrt(weightTop*weightAntitop);
+        //     topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+        // }
+        // httEvent->setTopPtReWeight(topPtReWeight);
+        // httEvent->setTopPtReWeightR1(topPtReWeight_r1);
 
 
         // for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart)
