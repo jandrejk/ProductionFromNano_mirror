@@ -31,4 +31,5 @@ for filename in files:
 with open("copy_status.log","w") as FSO:
 	FSO.write(summary)
 
-shutil.copy("copy_status.log", "/".join([rundir,"copy_status.log"]) )
+if os.getcwd() != rundir:
+	shutil.copy("copy_status.log", "/".join([rundir,"copy_status.log"]) )
