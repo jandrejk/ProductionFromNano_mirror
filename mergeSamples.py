@@ -63,7 +63,7 @@ class Merger():
             if os.path.exists(outfile):
                 shutil.rmtree(outfile, ignore_errors=True)
 
-            print "\033[1m{0}\033[0m".format(m[0])
+            print "\033[1m{0}\033[0m: {1}-{2}".format(*m)
             # Fallback
             # os.system("hadd -f {0} {1}".format(outfile, " ".join(self.samples[m[0]][m[1]][m[2]]["files"]) ) ) 
 
@@ -106,9 +106,10 @@ class Merger():
 
                 mergecmd = self.getMergeCmd(mergename, tomerge) 
                 if mergecmd:
-                    cmd_list[mergename] = mergecmd 
+                    os.system(mergecmd)
+        #             cmd_list[mergename] = mergecmd 
 
-        self.applyCmdMulti(cmd_list)
+        # self.applyCmdMulti(cmd_list)
   
     def getMergeCmd(self, name, parts):
 
