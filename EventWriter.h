@@ -77,7 +77,7 @@ class EventWriter
   float stitchedWeight;
   float topWeight;
   float topWeight_run1;
-  float ZWeight;
+  float zPtReweightWeight;
   float zpt_weight_nom;
   float zpt_weight_esup;
   float zpt_weight_esdown;
@@ -108,12 +108,15 @@ class EventWriter
   int trg_muontau_lowptmu;
   int trg_singleelectron;
   int trg_singleelectron_lowpt;
-  int trg_singletau;
+  int trg_electrontau;
+  int trg_singletau_leading;
+  int trg_singletau_trailing;
   int trg_doubletau;
   int trg_doubletau_mediso;
   int trg_doubletau_lowpt;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
+  int Flag_METFilters;
   int Flag_goodVertices;
   int Flag_globalTightHalo2016Filter;
   int Flag_HBHENoiseFilter;
@@ -396,6 +399,7 @@ class EventWriter
   TauTriggerSFs2017 *tauTrigSF;
   void fillScalefactors();
   void fillLeptonFakeRateWeights();
+  void fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType);
   void fillLeg1Branches();
   void fillLeg2Branches();
   void fillJetBranches(HTTJetCollection jets);

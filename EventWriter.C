@@ -73,6 +73,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     Flag_BadChargedCandidateFilter =          ev->getFilter(FilterEnum::Flag_BadChargedCandidateFilter);
     Flag_eeBadScFilter =                      ev->getFilter(FilterEnum::Flag_eeBadScFilter);
     Flag_ecalBadCalibFilter =                 ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
+    Flag_METFilters =                         ev->getFilter(FilterEnum::Flag_METFilters);    
 
     flagMETFilter = Flag_goodVertices 
                     && Flag_globalTightHalo2016Filter 
@@ -116,6 +117,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     //this is quite slow, calling the function for each trigger item...
     if ( channel == HTTAnalysis::MuTau ) //mu-tau
     {
+        trg_singletau_leading= false;
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+
         trg_singlemuon =       leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
         trg_singlemuon_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
 
@@ -124,12 +128,19 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
+        trg_singletau_leading= false;
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+
         trg_singleelectron =       leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
         trg_singleelectron_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
 
+        trg_electrontau = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1) 
+                          && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1);
+
     } else if ( channel == HTTAnalysis::TauTau )
     {
-        trg_singletau= false;
+        trg_singletau_leading= leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
 
         trg_doubletau=        ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) );
         trg_doubletau_mediso= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
@@ -154,10 +165,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     gen_ll_vis_py=llvis.Py();
     gen_ll_vis_pz=llvis.Pz();
 
-    stitchedWeight=1.;
     topWeight=ev->getTopPtReWeight(false);
     topWeight_run1=ev->getTopPtReWeight(true);
-    ZWeight=ev->getZPtReWeightSUSY();
+    zPtReweightWeight=ev->getZPtReWeight();
 
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
@@ -182,12 +192,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         genWeight = ev->getMCWeight();
         genNEventsWeight = ev->getGenNEventsWeight();
         puWeight = ev->getPUWeight();
-        weight = DEFWEIGHT;
-        lumiWeight=DEFWEIGHT;
+        lumiWeight=xsec*genNEventsWeight;
         NUP=ev->getLHEnOutPartons();
+        fillStitchingWeight( ev->getSampleType() );
         fillScalefactors();
-        fillLeptonFakeRateWeights();    
-    }else
+        fillLeptonFakeRateWeights();
+
+    } else
     {
         effweight = DEFWEIGHT;
         xsec = DEFWEIGHT;
@@ -198,6 +209,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         NUP=-1;
         lumiWeight=DEFWEIGHT;
     }
+
+    // Make sure this weight is up to date. 
+    // To apply precalculated stiching weight use weight*(stitchedWeight/lumiWeight)
+    // Trigger sf need to be applied according to what triggers are used
+    weight = puWeight*lumiWeight*genWeight*eleTauFakeRateWeight*muTauFakeRateWeight*topWeight_run1*zPtReweightWeight*idisoweight_1*idisoweight_2*trk_sf*reco_sf;
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -648,6 +664,28 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
+{
+    if(sampleType == HTTEvent::DY)
+    {
+        if(NUP == 0) stitchedWeight = 5.91296350328e-05;
+        if(NUP == 1) stitchedWeight = 1.01562362959e-05;
+        if(NUP == 2) stitchedWeight = 2.15030982864e-05;
+        if(NUP == 3) stitchedWeight = 1.35063197418e-05;
+        if(NUP == 4) stitchedWeight = 9.22459522375e-06;
+
+    } else if(sampleType == HTTEvent::WJets)
+    {
+        if(NUP == 0) stitchedWeight = 0.000790555230048;
+        if(NUP == 1) stitchedWeight = 0.000150361226486;
+        if(NUP == 2) stitchedWeight = 0.000307137166339;
+        if(NUP == 3) stitchedWeight = 5.55843884964e-05;
+        if(NUP == 4) stitchedWeight = 5.2271728229e-05;
+
+    } else stitchedWeight=lumiWeight;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillLeptonFakeRateWeights()
 {
     eleTauFakeRateWeight = 1.0;
@@ -919,7 +957,7 @@ void EventWriter::setDefault(){
     stitchedWeight=DEFWEIGHT;
     topWeight=DEFWEIGHT;
     topWeight_run1=DEFWEIGHT;
-    ZWeight=DEFWEIGHT;
+    zPtReweightWeight=DEFWEIGHT;
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
     zpt_weight_esdown=DEFWEIGHT;
@@ -956,7 +994,9 @@ void EventWriter::setDefault(){
     trg_muontau_lowptmu=DEF;
     trg_singleelectron=DEF;
     trg_singleelectron_lowpt=DEF;
-    trg_singletau=DEF;
+    trg_electrontau=DEF;
+    trg_singletau_leading=DEF;
+    trg_singletau_trailing=DEF;
     trg_doubletau=DEF;
     trg_doubletau_mediso=DEF;
     trg_doubletau_lowpt=DEF;
@@ -1276,69 +1316,90 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     isMC=isMC_;
     isSync=isSync_;
 
+    if(!isSync){
+        t->Branch("pfpt_sum", &pfpt_sum);
+        t->Branch("pt_sum", &pt_sum);
+        t->Branch("dr_leptau", &dr_leptau);
 
-    t->Branch("fileEntry", &fileEntry);
-    t->Branch("entry", &entry);
-    t->Branch("run", &run_syncro);
-    t->Branch("lumi", &lumi_syncro);
-    t->Branch("evt", &evt_syncro);
-    t->Branch("weight", &weight);
-    t->Branch("eventWeight", &weight);
-    t->Branch("lumiWeight", &lumiWeight);
-    t->Branch("puweight", &puWeight);
-    t->Branch("genweight", &genWeight);
-    t->Branch("xsec", &xsec);
-    t->Branch("genNEventsWeight", &genNEventsWeight);
+        t->Branch("jeta1eta2", &jeta1eta2);
+        t->Branch("met_centrality", &met_centrality);
+        t->Branch("lep_etacentrality", &lep_etacentrality);
+        t->Branch("sphericity", &sphericity);
 
-    t->Branch("singleTriggerSFLeg1",&singleTriggerSFLeg1);
-    t->Branch("singleTriggerSFLeg2",&singleTriggerSFLeg2);
-    t->Branch("xTriggerSFLeg1",&xTriggerSFLeg1);
-    t->Branch("xTriggerSFLeg2",&xTriggerSFLeg2);
+        t->Branch("addlepton_p4", &addlepton_p4);
+        t->Branch("addlepton_pt", &addlepton_pt);
+        t->Branch("addlepton_eta", &addlepton_eta);
+        t->Branch("addlepton_phi", &addlepton_phi);
+        t->Branch("addlepton_m", &addlepton_m);
+        t->Branch("addlepton_iso", &addlepton_iso);
+        t->Branch("addlepton_pdgId", &addlepton_pdgId);
+        t->Branch("addlepton_mc_match", &addlepton_mc_match);
+        t->Branch("addlepton_d0", &addlepton_d0);
+        t->Branch("addlepton_dZ", &addlepton_dZ);
+        t->Branch("addlepton_mt", &addlepton_mt);
+        t->Branch("addlepton_mvis", &addlepton_mvis);
+        t->Branch("addlepton_tauCombIso", &addlepton_tauCombIso);
+        t->Branch("addlepton_tauID", &addlepton_tauID);
+        t->Branch("addlepton_tauDM", &addlepton_tauDM);
+        t->Branch("addlepton_tauAntiEle", &addlepton_tauAntiEle);
+        t->Branch("addlepton_tauAntiMu", &addlepton_tauAntiMu);
 
-    t->Branch("isoWeight_1",&isoWeight_1);
-    t->Branch("isoWeight_2",&isoWeight_2);
-    t->Branch("idWeight_1",&idWeight_1);
-    t->Branch("idWeight_2",&idWeight_2);
+        t->Branch("nadditionalMu", &nadditionalMu);
+        t->Branch("addmuon_pt", &addmuon_pt);
+        t->Branch("addmuon_eta", &addmuon_eta);
+        t->Branch("addmuon_phi", &addmuon_phi);
+        t->Branch("addmuon_m", &addmuon_m);
+        t->Branch("addmuon_q", &addmuon_q);
+        t->Branch("addmuon_iso", &addmuon_iso);
+        t->Branch("addmuon_gen_match", &addmuon_gen_match);
 
-    t->Branch("trigweight_1", &trigweight_1 );
-    t->Branch("trigweight_2", &trigweight_2 );
-    t->Branch("anti_trigweight_1", &anti_trigweight_1);
-    t->Branch("idisoweight_1", &idisoweight_1);
-    t->Branch("anti_idisoweight_1", &anti_idisoweight_1);
-    t->Branch("idisoweight_2", &idisoweight_2);
-    t->Branch("trk_sf", &trk_sf);
-    t->Branch("reco_sf", &reco_sf);
-    t->Branch("effweight", &effweight);
-    t->Branch("stitchedWeight", &stitchedWeight);
-    t->Branch("topWeight", &topWeight);
-    t->Branch("topWeight_run1", &topWeight_run1);
-    t->Branch("zPtReweightWeight", &ZWeight);
-    t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
-    t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
-    t->Branch("antilep_tauscaling", &antilep_tauscaling);
+        t->Branch("nadditionalEle", &nadditionalEle);
+        t->Branch("addele_pt", &addele_pt);
+        t->Branch("addele_eta", &addele_eta);
+        t->Branch("addele_phi", &addele_phi);
+        t->Branch("addele_m", &addele_m);
+        t->Branch("addele_q", &addele_q);
+        t->Branch("addele_iso", &addele_iso);
+        t->Branch("addele_gen_match", &addele_gen_match);
 
-    t->Branch("zpt_weight_nom",&zpt_weight_nom);
-    t->Branch("zpt_weight_esup",&zpt_weight_esup);
-    t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
-    t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
-    t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
-    t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
-    t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
-    t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
-    t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
-    t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
-    t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
+        t->Branch("nadditionalTau", &nadditionalTau);
+        t->Branch("addtau_pt", &addtau_pt);
+        t->Branch("addtau_eta", &addtau_eta);
+        t->Branch("addtau_phi", &addtau_phi);
+        t->Branch("addtau_m", &addtau_m);
+        t->Branch("addtau_q", &addtau_q);
+        t->Branch("addtau_byIsolationMVArun2v1DBoldDMwLTraw", &addtau_byIsolationMVArun2v1DBoldDMwLTraw);
+        t->Branch("addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits", &addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits);
+        t->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
+        t->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
+        t->Branch("addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits", &addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits);
+        t->Branch("addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT);
+        t->Branch("addtau_byVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVLooseIsolationMVArun2v1DBoldDMwLT);
+        t->Branch("addtau_byLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byLooseIsolationMVArun2v1DBoldDMwLT);
+        t->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
+        t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
+        t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
+        // t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
+        // t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
 
-    t->Branch("trg_singlemuon" ,&trg_singlemuon);
-    t->Branch("trg_singlemuon_lowpt" ,&trg_singlemuon_lowpt);
-    t->Branch("trg_muontau_lowptmu" ,&trg_muontau_lowptmu);
-    t->Branch("trg_singleelectron" ,&trg_singleelectron);
-    t->Branch("trg_singleelectron_lowpt" ,&trg_singleelectron_lowpt);
-    t->Branch("trg_singletau" ,&trg_singletau);
-    t->Branch("trg_doubletau" ,&trg_doubletau);
-    t->Branch("trg_doubletau_mediso" ,&trg_doubletau_mediso);
-    t->Branch("trg_doubletau_lowpt" ,&trg_doubletau_lowpt);
-    t->Branch("trg_muonelectron", &trg_muonelectron);
+        // t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
+        // t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
+        // t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
+        // t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
+        // t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
+        // t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
+      
+        t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
+        t->Branch("addtau_decayMode", &addtau_decayMode);
+        t->Branch("addtau_d0", &addtau_d0);
+        t->Branch("addtau_dZ", &addtau_dZ);
+        t->Branch("addtau_gen_match", &addtau_gen_match);
+        t->Branch("addtau_mt", &addtau_mt);
+        t->Branch("addtau_mvis", &addtau_mvis);
+    }
 
     t->Branch("gen_Mll", &gen_Mll);
     t->Branch("genpX", &gen_ll_px);
@@ -1365,6 +1426,7 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter);
     t->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter);
     t->Branch("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter);
+    t->Branch("Flag_METFilters", &Flag_METFilters);
 
     if(isMC){
         t->Branch("Flag_badMuons", &failBadGlobalMuonTagger);
@@ -1515,16 +1577,16 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("pzetavis", &pzetavis);
     t->Branch("pzetamiss", &pzetamiss);
     t->Branch("dzeta", &dzeta);
-    
+
+    t->Branch("m_vis", &m_vis);
+    t->Branch("m_coll", &m_coll);
+    t->Branch("m_sv", &m_sv);
+    t->Branch("pt_sv", &pt_sv);
     t->Branch("pt_tt", &pt_tt);
     t->Branch("pt_vis", &pt_vis);
     t->Branch("dphi", &dphi);
     t->Branch("mt_tot", &mt_tot);
     t->Branch("pfpt_tt", &pfpt_tt);
-    t->Branch("m_vis", &m_vis);
-    t->Branch("m_coll", &m_coll);
-
-
 
     t->Branch("passesIsoCuts", &passesIsoCuts);
     t->Branch("passesLepIsoCuts", &passesLepIsoCuts);
@@ -1534,10 +1596,10 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
     t->Branch("diMuonVeto", &diMuonVeto);
     t->Branch("diElectronVeto", &diElectronVeto);    
-
     t->Branch("dilepton_veto", &dilepton_veto);
     t->Branch("extraelec_veto", &extraelec_veto);
     t->Branch("extramuon_veto", &extramuon_veto);
+
     t->Branch("uncorrmet", &uncorrmet );
     t->Branch("met", &met);
     t->Branch("metphi", &metphi);
@@ -1564,143 +1626,123 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("metcov10", &metcov10);
     t->Branch("metcov11", &metcov11);
 
-    t->Branch("m_sv", &m_sv);
-    t->Branch("pt_sv", &pt_sv);
-
     // vec_njets.reserve( (unsigned int)JecUncertEnum::NONE );
 
-    t->Branch("mjj", &mjj);
-    t->Branch("mjjUp", &mjjUp);
-    t->Branch("mjjDown", &mjjDown);
-    t->Branch("jdeta", &jdeta);
-    t->Branch("jdetaUp", &jdetaUp);
-    t->Branch("jdetaDown", &jdetaDown);
+    t->Branch("nbtag", &nbtag);
+    t->Branch("njets", &njets);
+    t->Branch("njetspt20", &njetspt20);    
     t->Branch("njetingap", &njetingap);
     t->Branch("njetingap20", &njetingap20);
     t->Branch("dijetpt", &dijetpt);
     t->Branch("dijetphi", &dijetphi);
     t->Branch("jdphi", &jdphi);
-    t->Branch("nbtag", &nbtag);
-    t->Branch("njets", &njets);
+    t->Branch("jdeta", &jdeta);        
+    t->Branch("mjj", &mjj);
+
     t->Branch("njetsUp", &njetsUp);
     t->Branch("njetsDown", &njetsDown);
-    t->Branch("njetspt20", &njetspt20);
-
-
-    t->Branch("jpt_1", &jpt_1);
-    t->Branch("jptUp_1", &jptUp_1);
-    t->Branch("jptDown_1", &jptDown_1);
-    t->Branch("jeta_1", &jeta_1);
-    t->Branch("jphi_1", &jphi_1);
-    t->Branch("jm_1", &jm_1);
-    t->Branch("jrawf_1", &jrawf_1);
-    t->Branch("jmva_1", &jmva_1);
-    t->Branch("jcsv_1", &jcsv_1);
-    t->Branch("jpt_2", &jpt_2);
+    t->Branch("jdetaUp", &jdetaUp);
+    t->Branch("jdetaDown", &jdetaDown);
+    t->Branch("mjjUp", &mjjUp);
+    t->Branch("mjjDown", &mjjDown);
     t->Branch("jptUp_2", &jptUp_2);
     t->Branch("jptDown_2", &jptDown_2);
-    t->Branch("jeta_2", &jeta_2);
-    t->Branch("jphi_2", &jphi_2);
+    t->Branch("jptUp_1", &jptUp_1);
+    t->Branch("jptDown_1", &jptDown_1);
+
+    t->Branch("jpt_1", &jpt_1);
+    t->Branch("jpt_2", &jpt_2);    
+    t->Branch("jeta_1", &jeta_1);
+    t->Branch("jeta_2", &jeta_2);    
+    t->Branch("jphi_1", &jphi_1);
+    t->Branch("jphi_2", &jphi_2);    
+    t->Branch("jm_1", &jm_1);
     t->Branch("jm_2", &jm_2);
-    t->Branch("jrawf_2", &jrawf_2);
-    t->Branch("jmva_2",&jmva_2);
-    t->Branch("jcsv_2",&bcsv_2);
+    t->Branch("jrawf_1", &jrawf_1);
+    t->Branch("jrawf_2", &jrawf_2);    
+    t->Branch("jmva_1", &jmva_1);
+    t->Branch("jmva_2",&jmva_2);    
+    t->Branch("jcsv_1", &jcsv_1);
+    t->Branch("jcsv_2",&bcsv_2);    
+
     t->Branch("bpt_1", &bpt_1);
+    t->Branch("bpt_2", &bpt_2);    
     t->Branch("beta_1", &beta_1);
+    t->Branch("beta_2", &beta_2);    
     t->Branch("bphi_1", &bphi_1);
+    t->Branch("bphi_2", &bphi_2);    
     t->Branch("brawf_1",&brawf_1);
+    t->Branch("brawf_2",&brawf_2);    
     t->Branch("bmva_1",&bmva_1);
+    t->Branch("bmva_2",&bmva_2);    
     t->Branch("bcsv_1", &bcsv_1);
-    t->Branch("bpt_2", &bpt_2);
-    t->Branch("beta_2", &beta_2);
-    t->Branch("bphi_2", &bphi_2);
-    t->Branch("brawf_2",&brawf_2);
-    t->Branch("bmva_2",&bmva_2);
     t->Branch("bcsv_2", &bcsv_2);
 
-    if(!isSync){
-        t->Branch("pfpt_sum", &pfpt_sum);
-        t->Branch("pt_sum", &pt_sum);
-        t->Branch("dr_leptau", &dr_leptau);
+    t->Branch("weight", &weight);
+    t->Branch("eventWeight", &weight);
+    t->Branch("lumiWeight", &lumiWeight);
+    t->Branch("puweight", &puWeight);
+    t->Branch("genweight", &genWeight);
+    t->Branch("xsec", &xsec);
+    t->Branch("genNEventsWeight", &genNEventsWeight);
 
-        t->Branch("jeta1eta2", &jeta1eta2);
-        t->Branch("met_centrality", &met_centrality);
-        t->Branch("lep_etacentrality", &lep_etacentrality);
-        t->Branch("sphericity", &sphericity);
+    t->Branch("singleTriggerSFLeg1",&singleTriggerSFLeg1);
+    t->Branch("singleTriggerSFLeg2",&singleTriggerSFLeg2);
+    t->Branch("xTriggerSFLeg1",&xTriggerSFLeg1);
+    t->Branch("xTriggerSFLeg2",&xTriggerSFLeg2);
 
-        t->Branch("addlepton_p4", &addlepton_p4);
-        t->Branch("addlepton_pt", &addlepton_pt);
-        t->Branch("addlepton_eta", &addlepton_eta);
-        t->Branch("addlepton_phi", &addlepton_phi);
-        t->Branch("addlepton_m", &addlepton_m);
-        t->Branch("addlepton_iso", &addlepton_iso);
-        t->Branch("addlepton_pdgId", &addlepton_pdgId);
-        t->Branch("addlepton_mc_match", &addlepton_mc_match);
-        t->Branch("addlepton_d0", &addlepton_d0);
-        t->Branch("addlepton_dZ", &addlepton_dZ);
-        t->Branch("addlepton_mt", &addlepton_mt);
-        t->Branch("addlepton_mvis", &addlepton_mvis);
-        t->Branch("addlepton_tauCombIso", &addlepton_tauCombIso);
-        t->Branch("addlepton_tauID", &addlepton_tauID);
-        t->Branch("addlepton_tauDM", &addlepton_tauDM);
-        t->Branch("addlepton_tauAntiEle", &addlepton_tauAntiEle);
-        t->Branch("addlepton_tauAntiMu", &addlepton_tauAntiMu);
+    t->Branch("isoWeight_1",&isoWeight_1);
+    t->Branch("isoWeight_2",&isoWeight_2);
+    t->Branch("idWeight_1",&idWeight_1);
+    t->Branch("idWeight_2",&idWeight_2);
 
-        t->Branch("nadditionalMu", &nadditionalMu);
-        t->Branch("addmuon_pt", &addmuon_pt);
-        t->Branch("addmuon_eta", &addmuon_eta);
-        t->Branch("addmuon_phi", &addmuon_phi);
-        t->Branch("addmuon_m", &addmuon_m);
-        t->Branch("addmuon_q", &addmuon_q);
-        t->Branch("addmuon_iso", &addmuon_iso);
-        t->Branch("addmuon_gen_match", &addmuon_gen_match);
+    t->Branch("trigweight_1", &trigweight_1 );
+    t->Branch("trigweight_2", &trigweight_2 );
+    t->Branch("anti_trigweight_1", &anti_trigweight_1);
+    t->Branch("idisoweight_1", &idisoweight_1);
+    t->Branch("anti_idisoweight_1", &anti_idisoweight_1);
+    t->Branch("idisoweight_2", &idisoweight_2);
+    t->Branch("trk_sf", &trk_sf);
+    t->Branch("reco_sf", &reco_sf);
+    t->Branch("effweight", &effweight);
+    t->Branch("stitchedWeight", &stitchedWeight);
+    t->Branch("topWeight", &topWeight);
+    t->Branch("topWeight_run1", &topWeight_run1);
+    t->Branch("zPtReweightWeight", &zPtReweightWeight);
+    t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
+    t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
+    t->Branch("antilep_tauscaling", &antilep_tauscaling);
 
-        t->Branch("nadditionalEle", &nadditionalEle);
-        t->Branch("addele_pt", &addele_pt);
-        t->Branch("addele_eta", &addele_eta);
-        t->Branch("addele_phi", &addele_phi);
-        t->Branch("addele_m", &addele_m);
-        t->Branch("addele_q", &addele_q);
-        t->Branch("addele_iso", &addele_iso);
-        t->Branch("addele_gen_match", &addele_gen_match);
+    t->Branch("zpt_weight_nom",&zpt_weight_nom);
+    t->Branch("zpt_weight_esup",&zpt_weight_esup);
+    t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
+    t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
+    t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
+    t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
+    t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
+    t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
+    t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
+    t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
+    t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
 
-        t->Branch("nadditionalTau", &nadditionalTau);
-        t->Branch("addtau_pt", &addtau_pt);
-        t->Branch("addtau_eta", &addtau_eta);
-        t->Branch("addtau_phi", &addtau_phi);
-        t->Branch("addtau_m", &addtau_m);
-        t->Branch("addtau_q", &addtau_q);
-        t->Branch("addtau_byIsolationMVArun2v1DBoldDMwLTraw", &addtau_byIsolationMVArun2v1DBoldDMwLTraw);
-        t->Branch("addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits", &addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits);
-        t->Branch("addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits", &addtau_byMediumCombinedIsolationDeltaBetaCorr3Hits);
-        t->Branch("addtau_byTightCombinedIsolationDeltaBetaCorr3Hits", &addtau_byTightCombinedIsolationDeltaBetaCorr3Hits);
-        t->Branch("addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits", &addtau_byLooseCombinedIsolationDeltaBetaCorr3Hits);
-        t->Branch("addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVVLooseIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byVLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byVLooseIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byLooseIsolationMVArun2v1DBoldDMwLT", &addtau_byLooseIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
-        t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
-        // t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
+    t->Branch("trg_singlemuon" ,&trg_singlemuon);
+    t->Branch("trg_singlemuon_lowpt" ,&trg_singlemuon_lowpt);
+    t->Branch("trg_muontau_lowptmu" ,&trg_muontau_lowptmu);
+    t->Branch("trg_electrontau", &trg_electrontau);
+    t->Branch("trg_singleelectron" ,&trg_singleelectron);
+    t->Branch("trg_singleelectron_lowpt" ,&trg_singleelectron_lowpt);
+    t->Branch("trg_singletau_leading" ,&trg_singletau_leading);
+    t->Branch("trg_singletau_trailing" ,&trg_singletau_trailing);
+    t->Branch("trg_doubletau" ,&trg_doubletau);
+    t->Branch("trg_doubletau_mediso" ,&trg_doubletau_mediso);
+    t->Branch("trg_doubletau_lowpt" ,&trg_doubletau_lowpt);
+    t->Branch("trg_muonelectron", &trg_muonelectron);
 
-        // t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
-        // t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
-        // t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
-        // t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
-        // t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
-        // t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
-      
-        t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
-        t->Branch("addtau_decayMode", &addtau_decayMode);
-        t->Branch("addtau_d0", &addtau_d0);
-        t->Branch("addtau_dZ", &addtau_dZ);
-        t->Branch("addtau_gen_match", &addtau_gen_match);
-        t->Branch("addtau_mt", &addtau_mt);
-        t->Branch("addtau_mvis", &addtau_mvis);
-    }
+    t->Branch("fileEntry", &fileEntry);
+    t->Branch("entry", &entry);
+    t->Branch("run", &run_syncro);
+    t->Branch("lumi", &lumi_syncro);
+    t->Branch("evt", &evt_syncro);
+
 
 }
