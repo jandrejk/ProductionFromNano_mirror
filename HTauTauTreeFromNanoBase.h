@@ -106,7 +106,7 @@ public :
   void writePropertiesHeader(const std::vector<std::string> & propertiesList);
   void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
   void writeFiltersHeader(const std::vector<std::string> &filterBits);
-  double getJecUnc(unsigned int index, std::string name="Total", bool up=true);
+  double getJecUnc(unsigned int index, unsigned int isrc, bool up=true);
   static bool compareLeptons(const HTTParticle& i, const HTTParticle& j);
   static bool comparePairs(const HTTPair& i, const HTTPair& j);
   //int isGenPartDaughterPdgId(int index, unsigned int aPdgId);
@@ -132,8 +132,7 @@ public :
   std::unique_ptr<HTTEvent> httEvent;
   TH1D* puweights_histo;
   TH1F* hStats;
-  TH2F* zptmass_histo, *zptmass_histo_SUSY;
-  
+  TH1D* zptmass_histo;  
 
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
@@ -143,7 +142,6 @@ public :
   std::vector<edm::LuminosityBlockRange> jsonVector;
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
-  bool tweak_nano;
   bool isMC;
   int passMask_;
   unsigned int check_event_number;
