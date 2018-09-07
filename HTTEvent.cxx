@@ -28,14 +28,6 @@ const TString HTTEvent::tauIDStrings[ntauIds] = {
 };
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-HTTEvent::HTTEvent()
-{
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
-    w = (RooWorkspace*)wsp.Get("w");
-    clear();
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
 void HTTEvent::clear(){
 
   runId = 0;
@@ -53,29 +45,13 @@ void HTTEvent::clear(){
   topPtReWeight =1.0;
   topPtReWeightR1 =1.0;
 
+  isSetGenBosonP4 = false;
   zPtReWeight =1.0;
   zPtReWeightSUSY =1.0;
 
   lheHt = 1.0;
   lheNOutPartons = 0;
   aMCatNLOweight = 1.0;
-
-  sampleType = DUMMY;
-
-#ifdef PROJECT_NAME
-  decayModeMinus = WawGenInfoHelper::tauDecayModes::tauDecayOther;
-  decayModePlus = WawGenInfoHelper::tauDecayModes::tauDecayOther;
-#else
-  decayModeMinus  = 99;
-  decayModePlus  = 99;
-#endif
-
-
-#ifdef PROJECT_NAME
-  decayModeBoson = WawGenInfoHelper::bosonDecayModes::kUndefined;
-#else
-  decayModeBoson = -1;
-#endif
 
   genPV*=0;
   AODPV*=0;
@@ -92,27 +68,21 @@ void HTTEvent::clear(){
   metFilterDecision = 0;
   selectionWord.ResetAllBits();
 }
-double HTTEvent::getTopPtReWeight(bool run_1) const
+void HTTEvent::setSampleType(string sampletype)
 {
-  if(!isSetTopP4) return 1.;
 
-  double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
-  double antitopPt = antiTopP4.Perp()  > 400 ? 400 : antiTopP4.Perp();
-
-  double weightTop;
-  double weightAntitop;
-  if(run_1)
-  {
-    weightTop = exp(0.156-0.00137*topPt);
-    weightAntitop= exp(0.156-0.00137*antitopPt);
-  }else
-  {
-    weightTop = exp(0.0615-0.0005*topPt);
-    weightAntitop= exp(0.0615-0.0005*antitopPt);
-  }
-
-  return sqrt(weightTop*weightAntitop);
-
+  if(sampletype == "SingleMuon")     sampleType = MuonData;
+  if(sampletype == "SingleElectron") sampleType = EleData;
+  if(sampletype == "Tau")            sampleType = TauData;
+  if(sampletype == "dy")             sampleType = DY;
+  if(sampletype == "dy_lowmass")     sampleType = DYLowM;
+  if(sampletype == "w")              sampleType = WJets;
+  if(sampletype == "tt")             sampleType = TTbar;
+  if(sampletype == "st")             sampleType = ST;
+  if(sampletype == "diboson")        sampleType = Diboson;
+  if(sampletype == "ewk")            sampleType = EWK;   
+  if(sampletype == "signal")         sampleType = h;
+  sampletype = DUMMY;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -554,6 +524,6 @@ int HTTJetCollection::getNJetInGap(double pt)
 bool HTTJetCollection::sortJets(HTTJet j1, HTTJet j2)
 {
   if( j1.Pt() == j2.Pt() ) return true;
-  return j1.Pt() == j2.Pt();
+  return j1.Pt() > j2.Pt();
 }
 

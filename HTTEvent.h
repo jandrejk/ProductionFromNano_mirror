@@ -33,7 +33,7 @@ class HTTEvent{
 
   static std::map<string,PropertyEnum> usePropertyFor;
 
-  enum sampleTypeEnum {DUMMY = -1, DATA = 0, DY = 1, DYLowM = 2, WJets=3, TTbar=4, Diboson=5, h=6, H=7, A=8};
+  enum sampleTypeEnum {DUMMY, MuonData, EleData, TauData , DY, DYLowM, WJets, TTbar, ST, Diboson, EWK, h, H, A};
 
   static const int ntauIds = 13;
   static const int againstMuIdOffset = 0;
@@ -41,10 +41,10 @@ class HTTEvent{
   static const int mvaIsoIdOffset = againstEIdOffset+5;
   static const TString tauIDStrings[ntauIds];//implementation in cxx
 
-  HTTEvent();
+  HTTEvent(){clear();}
   ~HTTEvent(){}
-
   ///Data member setters.
+
   void setRun(unsigned int x){runId = x;}
 
   void setEvent(unsigned long int x){eventId = x;}
@@ -73,7 +73,7 @@ class HTTEvent{
 
   void setTopPtReWeightR1(float x){topPtReWeightR1 = x;}
 
-  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; }
+  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; isSetGenBosonP4 = true; }
 
   void setZPtReWeight(float x){zPtReWeight = x;}
 
@@ -83,7 +83,7 @@ class HTTEvent{
 
   void setLHEnOutPartons(int x){lheNOutPartons = x;}
 
-  void setSampleType(sampleTypeEnum x){sampleType = x;}
+  void setSampleType(string sampletype);
 
   void setDecayModeMinus(int x){decayModeMinus = x;}
 
@@ -135,11 +135,9 @@ class HTTEvent{
 
   float getMCatNLOWeight() const {return aMCatNLOweight;}
 
-  double getTopPtReWeight(bool run_1) const;
+  double getTopPtReWeight(bool run_1=true) const {return run_1 ? topPtReWeightR1 : topPtReWeight;}
 
-  float getZPtReWeight() const {return zPtReWeight;}
-
-  float getZPtReWeightSUSY() const {return zPtReWeightSUSY;}
+  double getZPtReWeight() const { return zPtReWeight;}
 
   float getMCWeight() const {return mcWeight;}
 
@@ -183,11 +181,10 @@ class HTTEvent{
 
   int getFilter(FilterEnum index) const {return (unsigned int)index<filters.size()?  filters[(unsigned int)index]: -999;}
 
+
+
  private:
-
   ///Event run, run and LS number
-
-  RooWorkspace *w;
 
   unsigned int runId;
   unsigned long int eventId, lsId;
@@ -228,6 +225,7 @@ class HTTEvent{
   int decayModeBoson;
 
   ///Boson (H, Z, W) p4 and visible p4
+  bool isSetGenBosonP4;
   TLorentzVector bosP4, bosVisP4;
 
   ///top and antitop p4
@@ -320,8 +318,8 @@ class HTTParticle
 
     Double_t getProperty(PropertyEnum index) const {return (unsigned int)index<properties.size()?  properties[(unsigned int)index]: -999;}
 
-    bool hasTriggerMatch(TriggerEnum index) const {return (unsigned int)getProperty(PropertyEnum::isGoodTriggerType)& (1<<(unsigned int)index)
-                                 && (unsigned int)getProperty(PropertyEnum::FilterFired)& (1<<(unsigned int)index);}
+    bool hasTriggerMatch(TriggerEnum index) const {return (unsigned int)getProperty(PropertyEnum::isGoodTriggerType) & (1<<(unsigned int)index)
+                                                           && (unsigned int)getProperty(PropertyEnum::FilterFired) & (1<<(unsigned int)index);}
 
    private:
 
