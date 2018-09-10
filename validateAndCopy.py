@@ -13,11 +13,11 @@ rundir =  str(sys.argv[3])
 files = glob.glob("{channel}-*.root".format(channel = channel) )
 
 summary = ""
-
+print "#####   VALIDATING ######"
 for filename in files:
 	error = 0
 	tmpfile = R.TFile(filename)
-	if tmpfile.IsOpen() and not tmpfile.IsZombie():
+	if tmpfile.IsOpen() and not tmpfile.IsZombie() and not tmpfile.TestBit(R.TFile.kRecovered) and len(tmp.GetListOfKeys()) > 0:
 		shutil.copyfile(filename, "/".join([outdir,filename]) )
 		remotefile = R.TFile("/".join([outdir,filename]))
 		if remotefile.IsOpen() and not remotefile.IsZombie():
