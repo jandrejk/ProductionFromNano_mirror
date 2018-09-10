@@ -196,9 +196,9 @@ class Bookkeeping():
 
   def resubmitFailedjobs(self):
 
-    print "_"*105
+    print "_"*83
     print "Resubmitting failed jobs"
-    print "_"*105
+    print "_"*83
     if not checkProxy(): return
 
     for failed in self.failed_paths:
@@ -217,7 +217,7 @@ class Bookkeeping():
       if self.system == "hephybatch":
         os.system( "sbatch submit.sh" )        
 
-    print "_"*105
+    print "_"*83
 
 
   def killJobs(self, killorder):
@@ -289,8 +289,9 @@ class Bookkeeping():
               r = p = u = "?"
 
             if self.verbose:
-              print "\033[1;31mFailed:\033[0m"
-              for ff in self.summary[sample][shift][channel]["failed_files"]:
+              for i,ff in enumerate(self.summary[sample][shift][channel]["failed_files"]):
+                if i == 0:
+                  print_summary += "\033[1;31mFailed:\033[0m\n"
                 print_summary += ff[0]+"\n"
 
             ft = " {0}/{1}/{2}/{3}/{4} ".format( cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
