@@ -41,18 +41,6 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
 
     debugWayPoint("[pairSelection] Found Tau",{},{(int)indexTauLeg});
 
-    int tauIDmask = 0;
-    int tauID = (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu);
-    tauID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiEle);
-    tauID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idMVAoldDM2017v2);
-
-    for(unsigned int iBit=0;iBit<HTTEvent::ntauIds;iBit++)
-    {
-        if(HTTEvent::tauIDStrings[iBit]=="byTightIsolationMVArun2v1DBoldDMwLT") tauIDmask |= (1<<iBit);
-        if(HTTEvent::tauIDStrings[iBit]=="againstMuonTight3") tauIDmask |= (1<<iBit);
-        if(HTTEvent::tauIDStrings[iBit]=="againstElectronVLooseMVA6") tauIDmask |= (1<<iBit);
-    }
-
     TLorentzVector muonP4 = httLeptonCollection[indexMuonLeg].getP4();
     TLorentzVector tauP4 = httLeptonCollection[indexTauLeg].getP4();
 
@@ -72,28 +60,34 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
 
 
     bool baselinePair = muonP4.DeltaR(tauP4) > 0.5;
-    bool postSynchMuon = httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::pfRelIso04_all)<0.15;
-    bool loosePostSynchMuon = httLeptonCollection[indexMuonLeg].getProperty(PropertyEnum::pfRelIso04_all)<0.3;
-    bool postSynchTau = (tauID & tauIDmask) == tauIDmask;
 
     debugWayPoint("[pairSelection] Overlap",{(double)muonP4.DeltaR(tauP4)}, {(int)baselinePair},{"DR","noOL"});
 
-    httEvent->clearSelectionWord();
-    httEvent->setSelectionBit(SelectionBitsEnum::muonBaselineSelection,muonBaselineSelection);
-    httEvent->setSelectionBit(SelectionBitsEnum::tauBaselineSelection,tauBaselineSelection);
-    httEvent->setSelectionBit(SelectionBitsEnum::baselinePair,baselinePair);
-    httEvent->setSelectionBit(SelectionBitsEnum::postSynchMuon,postSynchMuon);
-    httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau);
-    httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,diMuonVeto());
-    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,0);
-    httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13));
-    httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11));
+    bool boolDiElectronVeto = false;
+    bool boolDiMuonVeto = diMuonVeto();
+    bool boolDiLeptonVeto = boolDiElectronVeto || boolDiMuonVeto;
 
+    bool boolAntiEle = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
+    bool boolAntiMu  = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu)  & 0x2) == 0x2;   //Tight AntiMu Id
+    bool boolAntiLeptonId = boolAntiEle && boolAntiMu;
+
+    bool boolExtraElectronVeto = thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11);
+    bool boolExtraMuonVeto     = thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13);
+    bool boolThirdLeptonVeto   = boolExtraMuonVeto || boolExtraElectronVeto;
+
+    httEvent->clearSelectionWord();
+    httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,boolDiMuonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,    boolDiElectronVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::diLeptonVeto,      boolDiLeptonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::antiLeptonId,      boolAntiLeptonId);
+    httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,     boolExtraMuonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto, boolExtraElectronVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::thirdLeptonVeto,   boolThirdLeptonVeto);
+
+    
 
     return muonBaselineSelection && tauBaselineSelection && baselinePair
-          //&& postSynchTau && loosePostSynchMuon //comment out for sync
-          //&& !diMuonVeto() && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11) //comment out for sync
-          && true;
+           && true;
 }
 
 bool HMuTauhTreeFromNano::diMuonVeto(){

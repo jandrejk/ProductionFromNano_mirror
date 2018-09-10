@@ -45,6 +45,21 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     fillPairBranches(pair);
     fillAdditionalLeptons( leptons, pair );
 
+    TLorentzVector vmet; 
+    vmet.SetPtEtaPhiM(met, 0, metphi, 0);
+
+    TLorentzVector Hjj = leg1P4 + leg2P4 + vmet;
+    if ( njetspt20 >=1 )
+    {
+        Hjj += jets.getJet(0).P4();
+    }
+    if ( njetspt20 >=2 )
+    {
+        Hjj += jets.getJet(1).P4();
+    }
+    pt_Hjj = Hjj.Pt();
+    m_Hjj = Hjj.M()
+
     vector<TLorentzVector> objs;
     objs.push_back(leg1P4);
     objs.push_back(leg2P4);
@@ -93,12 +108,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
     diMuonVeto= ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto);
     diElectronVeto= ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto);
+    dilepton_veto = ev->checkSelectionBit(SelectionBitsEnum::diLeptonVeto);
 
-    passesDiMuonVeto=!diMuonVeto;
-    passesDiElectronVeto=!diElectronVeto;
+    passesDiMuonVeto=!diMuonVeto;           // silly to pass a veto...
+    passesDiElectronVeto=!diElectronVeto;   // kept for backward compatibility
 
-    dilepton_veto= diMuonVeto || diElectronVeto ;
-    passesThirdLepVeto=!( extramuon_veto && extraelec_veto );
+    passesThirdLepVeto=!ev->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto); 
+    passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);    
 
 
     //////////////////////////////////////////////////////////////////
@@ -108,9 +124,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
     if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
 
-    if( channel == HTTAnalysis::MuTau )  passesTauLepVetos = againstElectronVLooseMVA6_2 && againstMuonTight3_2;
-    if( channel == HTTAnalysis::EleTau ) passesTauLepVetos = againstElectronTightMVA6_2 && againstMuonLoose3_2;
-    if( channel == HTTAnalysis::TauTau)  passesTauLepVetos = againstElectronVLooseMVA6_1 && againstMuonLoose3_1 && againstElectronVLooseMVA6_2 && againstMuonLoose3_2;
 
     //////////////////////////////////////////////////////////////////
 
@@ -1210,10 +1223,12 @@ void EventWriter::setDefault(){
     dzeta=DEF;
     //////////////////////////////////////////////////////////////////
     pt_tt=DEF;
+    pt_Hjj=DEF;
     pt_vis=DEF;
     mt_tot=DEF;
     pfpt_tt=DEF;
     m_vis=DEF;
+    m_Hjj=DEF;
     m_coll=DEF;
     dphi=DEF;
     //////////////////////////////////////////////////////////////////
@@ -1583,6 +1598,8 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("m_sv", &m_sv);
     t->Branch("pt_sv", &pt_sv);
     t->Branch("pt_tt", &pt_tt);
+    t->Branch("pt_Hjj", &pt_Hjj);
+    t->Branch("m_Hjj", &m_Hjj);
     t->Branch("pt_vis", &pt_vis);
     t->Branch("dphi", &dphi);
     t->Branch("mt_tot", &mt_tot);

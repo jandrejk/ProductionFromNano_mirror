@@ -1839,17 +1839,24 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 
     //set logM regularization term which is final state dependent
     double kappa = 4;
-    if(measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay) { //1st tau is lepton
-        if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay){
+    if(measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
+       || measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+    { //1st tau is lepton
+        if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
+           || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+        {
             kappa = 3; //ll decay
-        }else{
+        } else{
             kappa = 4; //lt decay
         }
 
-    }else {//1st tau is hadron
-      if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay){
+    } else
+    { //1st tau is hadron
+      if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay
+         || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+      {
           kappa = 4; //ltau decay
-      }else{
+      } else{
           kappa = 5; //tt decay
       }
     }    

@@ -359,11 +359,13 @@ class EventWriter
   float dzeta;
   //////////////////////////////////////////////////////////////////
   float pt_tt;
+  float pt_Hjj;
   float pt_vis;
   float mt_3;
   float mt_tot;
   float pfpt_tt;
   float m_vis;
+  float m_Hjj;
   float m_coll;
   float dphi;
   //////////////////////////////////////////////////////////////////

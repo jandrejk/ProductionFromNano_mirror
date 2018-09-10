@@ -22,81 +22,49 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   int pdgIdLeg1 = httPairs_[iPair].getLeg1().getPDGid();
   int pdgIdLeg2 = httPairs_[iPair].getLeg2().getPDGid();
 
-  if (event==check_event_number) cout << "pS 1 " << pdgIdLeg1 << " " << pdgIdLeg2 << endl;
   if( std::abs(pdgIdLeg1)!=15 || std::abs(pdgIdLeg2)!=15 ) return 0;
 
-  int tauIDmask = 0, tauIDmaskMedium = 0 , tauIDmaskLoose = 0;
-  for(unsigned int iBit=0;iBit<HTTEvent::ntauIds;iBit++){
-    if(HTTEvent::tauIDStrings[iBit]=="byTightIsolationMVArun2v1DBoldDMwLT")
-      tauIDmask |= (1<<iBit);
-    if(HTTEvent::tauIDStrings[iBit]=="byMediumIsolationMVArun2v1DBoldDMwLT")
-      tauIDmaskMedium |= (1<<iBit);
-    if(HTTEvent::tauIDStrings[iBit]=="byLooseIsolationMVArun2v1DBoldDMwLT")
-      tauIDmaskLoose |= (1<<iBit);
-    if(HTTEvent::tauIDStrings[iBit]=="againstMuonLoose3") {
-      tauIDmask |= (1<<iBit);
-      tauIDmaskMedium |= (1<<iBit);
-      tauIDmaskLoose |= (1<<iBit);
-    }
-    if(HTTEvent::tauIDStrings[iBit]=="againstElectronVLooseMVA6") {
-      tauIDmask |= (1<<iBit);
-      tauIDmaskMedium |= (1<<iBit);
-      tauIDmaskLoose |= (1<<iBit);
-    }
-  }
   unsigned int indexLeg1 = httPairs_[iPair].getIndexLeg1();
   unsigned int indexLeg2 = httPairs_[iPair].getIndexLeg2();
   //MB sort taus within the pair
   double pt_1 = httLeptonCollection[indexLeg1].getP4().Pt();
   double pt_2 = httLeptonCollection[indexLeg2].getP4().Pt();
+
   if(pt_2>pt_1){//tau with higher-Pt first
     unsigned int indexLegTmp = indexLeg1;
     indexLeg1 = indexLeg2;
     indexLeg2 = indexLegTmp;
   }
+
   TLorentzVector tau1P4 = httLeptonCollection[indexLeg1].getP4();
   TLorentzVector tau2P4 = httLeptonCollection[indexLeg2].getP4();
-
-  if (event==check_event_number) cout << "pS 2 " << tau1P4.Eta() << " " << tau2P4.Eta() << endl;
-
-  int tau1ID = (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu);
-  tau1ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle);
-  tau1ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idMVAoldDM2017v2);
-  int tau2ID = (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu);
-  tau2ID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle);
-  tau2ID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idMVAoldDM2017v2);
-
 
   bool tauBaselineSelection1 =  httLeptonCollection[indexLeg1].isFullHadLeadTau();
   bool tauBaselineSelection2 = httLeptonCollection[indexLeg2].isFullHadSubTau();
 
   bool baselinePair = tau1P4.DeltaR(tau2P4) > 0.5;
-  bool postSynchTau1 = (tau1ID & tauIDmask) == tauIDmask;
-  bool postSynchTau2 = (tau2ID & tauIDmask) == tauIDmask;
-  ///
-  bool postSynchLooseTau1 = (tau1ID & tauIDmaskLoose) == tauIDmaskLoose;
-  bool postSynchLooseTau2 = (tau2ID & tauIDmaskLoose) == tauIDmaskLoose;
-  bool postSynchMediumTau1 = (tau1ID & tauIDmaskMedium) == tauIDmaskMedium;
-  bool postSynchMediumTau2 = (tau2ID & tauIDmaskMedium) == tauIDmaskMedium;
+
+  bool boolAntiEleLeg1 = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
+  bool boolAntiEleLeg2 = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
+  bool boolAntiMuLeg1  = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
+  bool boolAntiMuLeg2  = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id  
+  bool boolAntiLeptonId = boolAntiEleLeg1 && boolAntiMuLeg1 && boolAntiEleLeg2 && boolAntiMuLeg2;
+
+
+  bool boolExtraElectronVeto = thirdLeptonVeto(indexLeg1, indexLeg2, 11);
+  bool boolExtraMuonVeto     = thirdLeptonVeto(indexLeg1, indexLeg2, 13);
+  bool boolThirdLeptonVeto   = boolExtraMuonVeto || boolExtraElectronVeto;
 
   httEvent->clearSelectionWord();
-  httEvent->setSelectionBit(SelectionBitsEnum::muonBaselineSelection,tauBaselineSelection1);
-  httEvent->setSelectionBit(SelectionBitsEnum::tauBaselineSelection,tauBaselineSelection2);
-  httEvent->setSelectionBit(SelectionBitsEnum::baselinePair,baselinePair);
-  httEvent->setSelectionBit(SelectionBitsEnum::postSynchMuon,postSynchTau1);
-  httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau2);
   httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,0); //only set explicitly for mutau
   httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,0); //only set explicitly for etau  
-  httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexLeg1,indexLeg2,13));
-  httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexLeg1,indexLeg2,11));
-
-  if (event==check_event_number) cout << "pS 2 " << tauBaselineSelection1 << " " << tauBaselineSelection2 << " " << baselinePair << endl;
+  httEvent->setSelectionBit(SelectionBitsEnum::diLeptonVeto, 0);
+  httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,boolExtraMuonVeto);
+  httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto, boolExtraElectronVeto);
+  httEvent->setSelectionBit(SelectionBitsEnum::thirdLeptonVeto, boolThirdLeptonVeto);
 
   return tauBaselineSelection1 && tauBaselineSelection2 && baselinePair
-    //&& ( (postSynchLooseTau1 && postSynchMediumTau2) || (postSynchLooseTau2 && postSynchMediumTau1) )
-    //&& !thirdLeptonVeto(indexLeg1,indexLeg2,13)
-    //&& !thirdLeptonVeto(indexLeg1,indexLeg2,11)
-    && true;
+         && true;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////

@@ -121,7 +121,7 @@ const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) c
         int mc_match = getProperty(PropertyEnum::mc_match);
 
 
-        float tauES = HTTAnalysis::getEnergyScale(pdg, mc_match, dm, type);
+        float tauES = HTTAnalysis::getEnergyScale(pdg, mc_match, dm, type); // Defined in AnalysisEnums.h
         float tauES_mass = tauES;
         if (dm == 0) tauES_mass=0;
 
@@ -248,8 +248,7 @@ const TVector2 & HTTPair::getSystScaleMET(HTTAnalysis::sysEffects defaultType) c
             return metCache;
         }
         return met;
-    }
-    else if(lastSystEffect==type) return metCache;
+    } else if(lastSystEffect==type) return metCache;
 
     double metX = met.X();
     metX+=leg1.getP4(HTTAnalysis::DUMMY_SYS).X();

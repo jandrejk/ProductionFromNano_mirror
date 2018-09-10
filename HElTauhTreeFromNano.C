@@ -40,17 +40,6 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   debugWayPoint("[pairSelection] Found Tau",{},{(int)indexTauLeg});
 
-  int tauIDmask = 0;
-  int tauID = (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu);
-  tauID += (int)std::pow(2,HTTEvent::againstEIdOffset)*(int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiEle);
-  tauID += (int)std::pow(2,HTTEvent::mvaIsoIdOffset)*(int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idMVAoldDM2017v2);
-
-  for(unsigned int iBit=0;iBit<HTTEvent::ntauIds;iBit++){
-    if(HTTEvent::tauIDStrings[iBit]=="byTightIsolationMVArun2v1DBoldDMwLT") tauIDmask |= (1<<iBit);
-    if(HTTEvent::tauIDStrings[iBit]=="againstMuonLoose3") tauIDmask |= (1<<iBit);
-    if(HTTEvent::tauIDStrings[iBit]=="againstElectronTightMVA6") tauIDmask |= (1<<iBit);
-  }
-
   TLorentzVector elecP4 = httLeptonCollection[indexElecLeg].getP4();
   TLorentzVector tauP4 =  httLeptonCollection[indexTauLeg].getP4();
 
@@ -70,29 +59,33 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
               {"pt","eta","passCuts"});
 
     bool baselinePair = elecP4.DeltaR(tauP4) > 0.5;
-    bool postSynchElectron = httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::pfRelIso03_all)<0.1;
-    bool loosePostSynchElectron = httLeptonCollection[indexElecLeg].getProperty(PropertyEnum::pfRelIso03_all)<0.3;
-    bool postSynchTau = (tauID & tauIDmask) == tauIDmask;
 
     debugWayPoint("[pairSelection] Overlap",{(double)elecP4.DeltaR(tauP4)}, {(int)baselinePair},{"DR","noOL"});
 
+    bool boolDiElectronVeto = diElectronVeto();
+    bool boolDiMuonVeto = false;
+    bool boolDiLeptonVeto = boolDiElectronVeto || boolDiMuonVeto;
+
+    bool boolAntiEle = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiEle) & 0x8) == 0x8;   //Tight AntiEle Id
+    bool boolAntiMu  = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
+    bool boolAntiLeptonId = boolAntiEle && boolAntiMu;
+
+    bool boolExtraElectronVeto = thirdLeptonVeto(indexElecLeg, indexTauLeg, 11);
+    bool boolExtraMuonVeto     = thirdLeptonVeto(indexElecLeg, indexTauLeg, 13);
+    bool boolThirdLeptonVeto   = boolExtraMuonVeto || boolExtraElectronVeto;
+
     httEvent->clearSelectionWord();
-    httEvent->setSelectionBit(SelectionBitsEnum::electronBaselineSelection,electronBaselineSelection);
-    httEvent->setSelectionBit(SelectionBitsEnum::tauBaselineSelection,tauBaselineSelection);
-    httEvent->setSelectionBit(SelectionBitsEnum::baselinePair,baselinePair);
-    httEvent->setSelectionBit(SelectionBitsEnum::postSynchElectron,postSynchElectron);
-    httEvent->setSelectionBit(SelectionBitsEnum::postSynchTau,postSynchTau);
-    httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,0);
-    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,diElectronVeto());
-    httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 13));
-    httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto,thirdLeptonVeto(indexElecLeg, indexTauLeg, 11));
+    httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,boolDiMuonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,boolDiElectronVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::diLeptonVeto, boolDiLeptonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,boolExtraMuonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto, boolExtraElectronVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::thirdLeptonVeto, boolThirdLeptonVeto);
 
 
 
   return electronBaselineSelection && tauBaselineSelection && baselinePair
-    //&& postSynchTau && loosePostSynchMuon //comment out for sync
-    //&& !diMuonVeto() && !thirdLeptonVeto(indexElecLeg, indexTauLeg, 13) && !thirdLeptonVeto(indexElecLeg, indexTauLeg, 11) //comment out for sync
-    && true;
+         && true;
 }
 
 bool HElTauhTreeFromNano::diElectronVeto(){
