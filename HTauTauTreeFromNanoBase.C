@@ -406,7 +406,11 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
             HTTPair & bestPair = httPairCollection[0];
 
-            computeSvFit(bestPair, HTTParticle::corrType);
+            if( httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId)
+                && !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
+                && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
+            )
+                computeSvFit(bestPair, HTTParticle::corrType);
 
 
             evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);

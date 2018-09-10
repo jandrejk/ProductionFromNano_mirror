@@ -58,7 +58,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
         Hjj += jets.getJet(1).P4();
     }
     pt_Hjj = Hjj.Pt();
-    m_Hjj = Hjj.M()
+    m_Hjj = Hjj.M();
 
     vector<TLorentzVector> objs;
     objs.push_back(leg1P4);
