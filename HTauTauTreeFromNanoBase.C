@@ -13,7 +13,6 @@
 #include <algorithm>
 
 //move these two to the configuration
-bool isSync=0;
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
@@ -22,6 +21,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     Settings = json::parse(S);
 
     isMC = Settings["isMC"].get<bool>();
+    isSync = Settings["isSync"].get<bool>();
 
 
     ///Init HTT ntuple
@@ -393,6 +393,9 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             ///Call pairSelection again to set selection bits for the selected pair.
             pairSelection(bestPairIndex);
 
+            // Throw away a lot of events if not producing sync ntuples.
+            if(!isSync && !httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId) ) continue;
+
             fillJets(bestPairIndex);
             fillGenLeptons();
             fillPairs(bestPairIndex);
@@ -401,8 +404,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
             HTTPair & bestPair = httPairCollection[0];
 
-            if( httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId)
-                && !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
+            if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ) computeSvFit(bestPair, HTTParticle::corrType);
 

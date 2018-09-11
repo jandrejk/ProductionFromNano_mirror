@@ -146,6 +146,7 @@ public :
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
   bool isMC;
+  bool isSync;
   int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
