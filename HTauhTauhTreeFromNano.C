@@ -47,7 +47,7 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   bool boolAntiEleLeg1 = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
   bool boolAntiEleLeg2 = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
   bool boolAntiMuLeg1  = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
-  bool boolAntiMuLeg2  = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id  
+  bool boolAntiMuLeg2  = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
   bool boolAntiLeptonId = boolAntiEleLeg1 && boolAntiMuLeg1 && boolAntiEleLeg2 && boolAntiMuLeg2;
 
 
@@ -59,6 +59,7 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
   httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,0); //only set explicitly for mutau
   httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,0); //only set explicitly for etau  
   httEvent->setSelectionBit(SelectionBitsEnum::diLeptonVeto, 0);
+  httEvent->setSelectionBit(SelectionBitsEnum::antiLeptonId, boolAntiLeptonId);
   httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,boolExtraMuonVeto);
   httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto, boolExtraElectronVeto);
   httEvent->setSelectionBit(SelectionBitsEnum::thirdLeptonVeto, boolThirdLeptonVeto);
