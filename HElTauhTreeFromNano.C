@@ -78,6 +78,7 @@ bool HElTauhTreeFromNano::pairSelection(unsigned int iPair){
     httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,boolDiMuonVeto);
     httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,boolDiElectronVeto);
     httEvent->setSelectionBit(SelectionBitsEnum::diLeptonVeto, boolDiLeptonVeto);
+    httEvent->setSelectionBit(SelectionBitsEnum::antiLeptonId, boolAntiLeptonId);
     httEvent->setSelectionBit(SelectionBitsEnum::extraMuonVeto,boolExtraMuonVeto);
     httEvent->setSelectionBit(SelectionBitsEnum::extraElectronVeto, boolExtraElectronVeto);
     httEvent->setSelectionBit(SelectionBitsEnum::thirdLeptonVeto, boolThirdLeptonVeto);
