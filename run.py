@@ -17,7 +17,6 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE', default = "")
-    parser.add_argument('-v', dest='version', help='Version of ntuples.', type=str, metavar = 'VERSION', default = 'v1')
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt','all'], default = 'mt')
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t'
                                                                                            'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m'
@@ -30,7 +29,8 @@ def main():
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
-    parser.add_argument('--svfit', dest='svfit', help='Calculate svfit mass', action = "store_true")    
+    parser.add_argument('--svfit', dest='svfit', help='Calculate svfit mass', action = "store_true")
+    parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
 
 
     args = parser.parse_args()
@@ -46,7 +46,7 @@ def main():
 
     if not args.merge:
 
-        SNP = SteerNanoProduction(args.outdir, args.submit, args.jobs, args.debug, args.force, args.event, args.cert)
+        SNP = SteerNanoProduction(args.outdir, args.submit, args.svfit, args.jobs, args.debug, args.sync, args.force, args.event, args.cert)
         for cmd in makeSubmitList(args.sample, args.channel, args.shift):
 
             print "\033[1m" +  "_"*100 + "\033[0m"
@@ -55,8 +55,6 @@ def main():
             print 'Shift:', cmd["shift"]
             print "\033[1m" +  "_"*100 + "\033[0m"
 
-            cmd["version"] = args.version
-            cmd["svfit"] = args.svfit
             SNP.runOneSample( **cmd )
 
     else:
@@ -111,11 +109,12 @@ def makeSubmitList( sample, channel, shift):
 
 class SteerNanoProduction():
 
-    def __init__(self, outdir='', submit='local', nthreads=8, debug=False, force = False, event = 0, cert = ""):
+    def __init__(self, outdir='', submit='local', svfit = False, nthreads=8, debug=False, sync = False, force = False, event = 0, cert = ""):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
         self.recoil = False
+        self.svfit = svfit
 
         cell = getSystem()
         if submit == "batch":
@@ -125,6 +124,7 @@ class SteerNanoProduction():
         else: self.submit = submit
 
         self.debug = debug
+        self.sync = sync
         self.force = force
         self.event = event
 
@@ -159,7 +159,7 @@ class SteerNanoProduction():
 
         self.certJson = cert
 
-    def runOneSample(self, sample, channel, shift, version="v1", svfit = False):
+    def runOneSample(self, sample, channel, shift):
         threads = []
         os.chdir(self.basedir)
 
@@ -188,7 +188,7 @@ class SteerNanoProduction():
                 return 
 
         sleeping = 0
-        for idx,configBall in enumerate( self.makeConfigBalls(sample, svfit) ):
+        for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
             file = configBall["file"]
 
             if self.debug and idx > 0: break
@@ -315,7 +315,7 @@ class SteerNanoProduction():
 
         return False
 
-    def makeConfigBalls(self,sample, svfit):
+    def makeConfigBalls(self,sample):
         configBalls = []
         samples_avail = glob("samples/*/*/*")
         for sa in samples_avail:
@@ -334,11 +334,12 @@ class SteerNanoProduction():
             configBall["samplename"]  = sample
             configBall["channel"]     = self.channel
             configBall["systShift"]   = self.systShift
-            configBall["svfit"]       = svfit
+            configBall["svfit"]       = self.svfit
             configBall["recoil"]      = self.recoil
             configBall["system"]      = self.submit
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
+            configBall["isSync"]      = self.sync
             if  parts[1] == "mc":
                 configBall["isMC"]        = True
                 configBall["certJson"] = ""
@@ -368,35 +369,6 @@ class SteerNanoProduction():
             buf = FSO.read()
         return buf.splitlines()    
 
-def mergeSample(version, outdir, single_sample=""):
-
-    import ROOT as R
-
-    path = "/".join([ outdir, version])
-
-    if single_sample: samples = [ "/".join([path, single_sample.split("/")[-1].replace(".txt","")] ) ]
-    else: samples = glob(path + "/*")
-
-
-    for sample in samples:
-        files = glob( sample + "/*" )
-
-        types = {}
-        for f in files:
-            t = f.split("/")[-1].split("_")[0]
-            if "_all.root" in f or "rundir" in f: continue
-
-            if not t in types:
-                types[t] = {"chain":R.TChain("TauCheck"), "N":1}
-                types[t]["chain"].Add(f)
-            else:
-                types[t]["chain"].Add(f)
-                types[t]["N"] += 1
-
-        for t in types:
-            print "Merging {0} for sample {1}: total {2} files".format(t, sample.split("/")[-1], types[t]["N"] )
-
-            types[t]["chain"].Merge( "/".join([sample, t+"_all.root"]) )
 
 def checkProxy():
     proxy_path = glob("/tmp/x509*_u{0}".format( os.getuid() ) )
