@@ -263,7 +263,7 @@ class EventWriter
   float jpt_2_arr[Njecshifts];
 
   int nbtag;
-  int njets;
+  int njets[56];
   int njetsUp;
   int njetsDown;
   int njetspt20;
@@ -397,8 +397,7 @@ class EventWriter
 
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 
-  RooWorkspace *w;
-  TauTriggerSFs2017 *tauTrigSF;
+
   void fillScalefactors();
   void fillLeptonFakeRateWeights();
   void fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType);
@@ -408,6 +407,9 @@ class EventWriter
   void fillPairBranches(HTTPair *pair);
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
+  RooWorkspace *w;
+  TauTriggerSFs2017 *tauTrigSF;
+  vector< pair<string,string> > JecShifts;
 
   vector<TLorentzVector> addlepton_p4;
   vector<double> addlepton_pt;

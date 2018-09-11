@@ -1,63 +1,94 @@
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
+//                  Define all needed JEC uncertainty sources here            //
+////////////////////////////////////////////////////////////////////////////////
+enum class JecUncertEnum {
+AbsoluteStat = 0,
+AbsoluteScale,
+AbsoluteFlavMap,
+AbsoluteMPFBias,
+Fragmentation,
+SinglePionECAL,
+SinglePionHCAL,
+FlavorQCD,
+TimePtEta,
+RelativeJEREC1,
+RelativeJEREC2,
+RelativeJERHF,
+RelativePtBB,
+RelativePtEC1,
+RelativePtEC2,
+RelativePtHF,
+RelativeBal,
+RelativeSample,
+RelativeFSR,
+RelativeStatFSR,
+RelativeStatEC,
+RelativeStatHF,
+PileUpDataMC,
+PileUpPtRef,
+PileUpPtBB,
+PileUpPtEC1,
+PileUpPtEC2,
+PileUpPtHF,
+Total,
+NONE
+};
 
-	enum class JecUncertEnum {
-	AbsoluteStat = 0, 
-	AbsoluteScale = 1, 
-	AbsoluteMPFBias = 2, 
-	Fragmentation = 3, 
-	SinglePionECAL = 4, 
-	SinglePionHCAL = 5, 
-	FlavorQCD = 6, 
-	TimePtEta = 7, 
-	RelativeJEREC1 = 8, 
-	RelativeJEREC2 = 9, 
-	RelativeJERHF = 10, 
-	RelativePtBB = 11, 
-	RelativePtEC1 = 12, 
-	RelativePtEC2 = 13, 
-	RelativePtHF = 14, 
-	RelativeBal = 15, 
-	RelativeFSR = 16, 
-	RelativeStatFSR = 17, 
-	RelativeStatEC = 18, 
-	RelativeStatHF = 19, 
-	PileUpDataMC = 20, 
-	PileUpPtRef = 21, 
-	PileUpPtBB = 22, 
-	PileUpPtEC1 = 23, 
-	PileUpPtEC2 = 24, 
-	PileUpPtHF = 25, 
-	Total = 26, 
-	NONE = 27
-	};
+const vector<string> JecUncertNames =
+{
+"AbsoluteStat",
+"AbsoluteScale",
+"AbsoluteFlavMap",
+"AbsoluteMPFBias",
+"Fragmentation",
+"SinglePionECAL",
+"SinglePionHCAL",
+"FlavorQCD",
+"TimePtEta",
+"RelativeJEREC1",
+"RelativeJEREC2",
+"RelativeJERHF",
+"RelativePtBB",
+"RelativePtEC1",
+"RelativePtEC2",
+"RelativePtHF",
+"RelativeBal",  
+"RelativeSample",
+"RelativeFSR",
+"RelativeStatFSR",
+"RelativeStatEC",
+"RelativeStatHF",
+"PileUpDataMC",
+"PileUpPtRef",
+"PileUpPtBB",
+"PileUpPtEC1",
+"PileUpPtEC2",
+"PileUpPtHF",
+"Total",
+""
+};
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 
-	const vector<string> JecUncertNames =
-	{
-	"AbsoluteStat",
-	"AbsoluteScale",
-	"AbsoluteMPFBias",
-	"Fragmentation",
-	"SinglePionECAL",
-	"SinglePionHCAL",
-	"FlavorQCD",
-	"TimePtEta",
-	"RelativeJEREC1",
-	"RelativeJEREC2",
-	"RelativeJERHF",
-	"RelativePtBB",
-	"RelativePtEC1",
-	"RelativePtEC2",
-	"RelativePtHF",
-	"RelativeBal",
-	"RelativeFSR",
-	"RelativeStatFSR",
-	"RelativeStatEC",
-	"RelativeStatHF",
-	"PileUpDataMC",
-	"PileUpPtRef",
-	"PileUpPtBB",
-	"PileUpPtEC1",
-	"PileUpPtEC2",
-	"PileUpPtHF",
-	"Total",
-	""
-	};
+const map< string, std::vector<JecUncertEnum> > JecAfterSplitting = {
+    { "Total", {JecUncertEnum::Total} },
+    {"CMS_scale_j_eta0to5_13Tev", {JecUncertEnum::SinglePionECAL, JecUncertEnum::SinglePionHCAL, JecUncertEnum::AbsoluteFlavMap,
+                                   JecUncertEnum::AbsoluteMPFBias, JecUncertEnum::AbsoluteScale, JecUncertEnum::AbsoluteStat, 
+                                   JecUncertEnum::Fragmentation, JecUncertEnum::FlavorQCD, JecUncertEnum::TimePtEta,
+                                   JecUncertEnum::PileUpDataMC, JecUncertEnum::RelativeFSR, JecUncertEnum::RelativeStatFSR,
+                                   JecUncertEnum::PileUpPtRef }
+    },
+
+    {"CMS_scale_j_eta0to3_13TeV", {JecUncertEnum::PileUpPtEC1, JecUncertEnum::PileUpPtEC2, JecUncertEnum::PileUpPtBB,
+                                   JecUncertEnum::RelativeJEREC1, JecUncertEnum::RelativeJEREC2, JecUncertEnum::RelativePtEC1,
+                                   JecUncertEnum::RelativePtEC2, JecUncertEnum::RelativeStatEC, JecUncertEnum::RelativePtBB}
+    },
+
+    {"CMS_scale_j_eta3to5_13TeV",{JecUncertEnum::RelativeStatHF, JecUncertEnum::RelativePtHF, JecUncertEnum::PileUpPtHF, JecUncertEnum::RelativeJERHF} },
+
+    {"CMS_scale_j_RelativeBal_13TeV", {JecUncertEnum::RelativeBal} },
+
+    {"CMS_scale_j_RelativeSample_13TeV", {JecUncertEnum::RelativeSample} },
+};
+

@@ -61,7 +61,6 @@ public :
   };
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
-  void initJecUnc(std::string correctionFile);
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
   void fillEvent(unsigned int bestPairIndex = 9999);
   virtual bool buildPairs();
@@ -106,7 +105,11 @@ public :
   void writePropertiesHeader(const std::vector<std::string> & propertiesList);
   void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
   void writeFiltersHeader(const std::vector<std::string> &filterBits);
+
+  void initJecUnc(std::string correctionFile);
   double getJecUnc(unsigned int index, unsigned int isrc, bool up=true);
+  std::map<string, double> getValuesAfterJecSplitting(unsigned int iJet);
+
   static bool compareLeptons(const HTTParticle& i, const HTTParticle& j);
   static bool comparePairs(const HTTPair& i, const HTTPair& j);
   //int isGenPartDaughterPdgId(int index, unsigned int aPdgId);
@@ -150,7 +153,6 @@ public :
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
-  std::vector<string> jecSources_;
 
   json Settings;
 

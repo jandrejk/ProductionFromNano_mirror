@@ -69,7 +69,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
         std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
-        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
+        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt");
 
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
         httJetCollection.initForPromoteDemote();
@@ -331,13 +331,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
-        filterBits_.push_back(filter);  
-
-    ////////////////////////////////////////////////////////////
-    ///JEC uncertainty sources
-    for(auto jec : JecUncertNames) // Defined in JecUncEnum.h
-        jecSources_.push_back(jec);
-
+        filterBits_.push_back(filter);
+    
     return;
 }
 /////////////////////////////////////////////////
@@ -409,8 +404,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if( httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
-            )
-                computeSvFit(bestPair, HTTParticle::corrType);
+            ) computeSvFit(bestPair, HTTParticle::corrType);
 
 
             evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
@@ -629,7 +623,7 @@ void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 
     for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++)
     {
-        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, jecSources_[isrc]);
+        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, JecUncertNames[isrc]);
         JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
         jecUncerts.push_back(unc);
         // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
@@ -651,6 +645,21 @@ double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, unsigned int isrc,
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+map<string,double> HTauTauTreeFromNanoBase::getValuesAfterJecSplitting(unsigned int iJet)
+{   
+    map<string,double> values = { {"", 0.} };
+    for(auto uncert : JecAfterSplitting)
+    {   
+        double uncertSum = 0.;
+        for(auto source : uncert.second)
+        {
+            uncertSum = sqrt( uncertSum*uncertSum +  pow( getJecUnc(iJet, (unsigned int)source, true), 2 )  );
+        }
+        values[uncert.first] = uncertSum ;
+    }
+    return values;
+}
+
 bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
 {
 
@@ -697,9 +706,13 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
 
         ///JEC uncertaintes
-        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-            //Only need up since shifts are symmetric
-            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, iUnc ,true), true  );
+        // getValuesAfterJecSplitting(iJet);
+        aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );
+
+        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc){
+        //     //Only need up since shifts are symmetric
+        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, iUnc ,true), true  );
+        // }
 
         // Fallback when jec uncerts get asymmetric
         // Up
@@ -1419,19 +1432,19 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
-{
-    ofstream outputFile("JecUncEnum.h");
-    outputFile<<"enum class JecUncEnum { ";
+// void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
+// {
+//     ofstream outputFile("JecUncEnum.h");
+//     outputFile<<"enum class JecUncEnum { ";
 
-    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
-    {
-        outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
-    }
-    outputFile<<"NONE"<<" = "<<jecSources_.size()<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
-}
+//     for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
+//     {
+//         outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
+//     }
+//     outputFile<<"NONE"<<" = "<<jecSources_.size()<<std::endl;
+//     outputFile<<"};"<<std::endl;
+//     outputFile.close();
+// }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData> &triggerBits)

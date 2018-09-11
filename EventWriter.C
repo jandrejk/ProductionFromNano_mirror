@@ -9,7 +9,7 @@ const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
-    jets.setCurrentUncertShift( JecUncertEnum::NONE, true );
+    jets.setCurrentUncertShift( "", true );
 
     channel = pair->getFinalState();
 
@@ -390,8 +390,18 @@ void EventWriter::fillLeg2Branches()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillJetBranches(HTTJetCollection jets)
 {
-    nbtag= jets.getNBtag();
-    njets= jets.getNJets(30);
+    bool up = true;
+    for(unsigned int shift = 0; shift<JecShifts.size(); ++shift )
+    {
+        if(JecShifts[shift].second.find("Down") != string::npos ) up = false;
+        else up = true;
+
+        jets.setCurrentUncertShift( JecShifts[shift].first, up);
+        njets[shift]= jets.getNJets(30);
+    }
+    jets.setCurrentUncertShift("",true);
+
+
     njetspt20=jets.getNJets(20);
     njetingap=jets.getNJetInGap(30);
     njetingap20=jets.getNJetInGap(20);
@@ -399,7 +409,6 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
 
     if ( njetspt20 >=1 )
     {
-
         jpt_1=  jets.getJet(0).Pt();
         jeta_1= jets.getJet(0).Eta();
         jphi_1= jets.getJet(0).Phi();
@@ -408,10 +417,6 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
         jmva_1= jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
         jcsv_1= jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
         //    gen_match_jetId_1=jets.getJet(0).getProperty(PropertyEnum::partonFlavour);
-        genJet_match_1=0;
-        jptUp_1=jpt_1;
-        jptDown_1=jpt_1;
-
     }
     if ( njetspt20 >=2 )
     {
@@ -420,34 +425,23 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
         jeta_2= jets.getJet(1).Eta();
         jphi_2= jets.getJet(1).Phi();
         jm_2=   jets.getJet(1).M();
-        jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
-        jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
-        jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
-        //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
-        genJet_match_2=0;
-        jptUp_2=jpt_2;
-        jptDown_2=jpt_2;
-
-        jeta1eta2=jeta_1*jeta_2;
-        lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
-
 
         mjj=jets.getDiJetP4().M();
         dijetpt=jets.getDiJetP4().Pt();
         dijetphi=jets.getDiJetP4().Phi();
-        
         jdeta=std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
         jdphi=jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
+
+        jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
+        jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
+        jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
+        //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
+
+        jeta1eta2=jeta_1*jeta_2;
+        lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
     }
 
-    njetsUp=njets;
-    njetsDown=njets;
-    mjjUp=mjj;
-    mjjDown=mjj;
-    jdetaUp=jdeta;
-    jdetaDown=jdeta;
-
-
+    nbtag= jets.getNBtag();
     if (nbtag >= 1)
     {
         bpt_1=   jets.getBtagJet(0).Pt();
@@ -1133,24 +1127,17 @@ void EventWriter::setDefault(){
      // Testing for later
 
     nbtag=DEF;
-    njets=DEF;
-    njetsUp=DEF;
-    njetsDown=DEF;
+    // njets=DEF;
+
     njetspt20=DEF;
     mjj=DEF;
-    mjjUp=DEF;
-    mjjDown=DEF;
     jdeta=DEF;
-    jdetaUp=DEF;
-    jdetaDown=DEF;
     njetingap=0;
     njetingap20=0;
     dijetpt=DEF;
     dijetphi=DEF;
     jdphi=DEF;
     jpt_1=DEF;
-    jptUp_1=DEF;
-    jptDown_1=DEF;
     jeta_1=DEF;
     jphi_1=DEF;
     jm_1=DEF;
@@ -1158,8 +1145,6 @@ void EventWriter::setDefault(){
     jmva_1=DEF;
     jcsv_1=DEF;
     jpt_2=DEF;
-    jptUp_2=DEF;
-    jptDown_2=DEF;
     jeta_2=DEF;
     jphi_2=DEF;
     jm_2=DEF;
@@ -1327,6 +1312,15 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
 
     TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
     w = (RooWorkspace*)wsp.Get("w");
+
+    JecShifts = { {"",""} };
+    for(auto uncert : JecAfterSplitting)
+    {   
+        for(auto shift : {"Up","Down"})
+        {
+            JecShifts.push_back( make_pair(uncert.first, uncert.first + shift) );
+        } 
+    }
 
     isMC=isMC_;
     isSync=isSync_;
@@ -1645,8 +1639,13 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
 
     // vec_njets.reserve( (unsigned int)JecUncertEnum::NONE );
 
+    for(unsigned int shift = 0; shift<JecShifts.size(); ++shift )
+    {
+        t->Branch( ("njets"+JecShifts[shift].second).c_str() , &njets[shift]);
+    }
+    
+
     t->Branch("nbtag", &nbtag);
-    t->Branch("njets", &njets);
     t->Branch("njetspt20", &njetspt20);    
     t->Branch("njetingap", &njetingap);
     t->Branch("njetingap20", &njetingap20);
@@ -1655,17 +1654,6 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("jdphi", &jdphi);
     t->Branch("jdeta", &jdeta);        
     t->Branch("mjj", &mjj);
-
-    t->Branch("njetsUp", &njetsUp);
-    t->Branch("njetsDown", &njetsDown);
-    t->Branch("jdetaUp", &jdetaUp);
-    t->Branch("jdetaDown", &jdetaDown);
-    t->Branch("mjjUp", &mjjUp);
-    t->Branch("mjjDown", &mjjDown);
-    t->Branch("jptUp_2", &jptUp_2);
-    t->Branch("jptDown_2", &jptDown_2);
-    t->Branch("jptUp_1", &jptUp_1);
-    t->Branch("jptDown_1", &jptDown_1);
 
     t->Branch("jpt_1", &jpt_1);
     t->Branch("jpt_2", &jpt_2);    

@@ -452,8 +452,9 @@ class HTTJet
     void SetPtEtaPhiM(float pt, float eta, float phi, float m){ p4.SetPtEtaPhiM(pt,eta,phi,m); currentP4 = getP4(); }
 
     void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
-    void setJecUncertSourceValue(unsigned int uncert, double value, bool up);
-    void setUncertShift( JecUncertEnum uncert, bool up ){ currentP4 = getP4( uncert, up ); }
+    void setJecUncertSourceValue(string uncert, double value, bool up);
+    void setJecUncertValues( std::map<string, double> aUncertainties ){ jecUncertSourceValues = aUncertainties; }
+    void setUncertShift( string uncert, bool up ){ currentP4 = getP4( uncert, up ); }
 
     TLorentzVector & P4(){ return currentP4; }
     float Pt(){ return currentP4.Pt(); }
@@ -466,18 +467,18 @@ class HTTJet
     // Fallback when jec uncerts get asymmetric
     // double getJecUncertValue(unsigned int index, bool up){ return up ? jecUncertSourceValuesUp[index] : jecUncertSourceValuesDown[index]; };
     
-    double getJecUncertValue(unsigned int index, bool up){ return jecUncertSourceValues[index]; };
+    double getJecUncertValue(string uncert, bool up){ return jecUncertSourceValues[uncert]; };
 
 
   private:
 
-    const TLorentzVector & getP4(JecUncertEnum uncert = JecUncertEnum::NONE, bool up = true);
+    const TLorentzVector & getP4(string uncert = "", bool up = true);
 
     TLorentzVector p4;
     TLorentzVector currentP4;
 
     std::vector<Double_t> properties;
-    std::vector<double> jecUncertSourceValues;
+    std::map<string,double> jecUncertSourceValues;
 
     // Fallback when jec uncerts get asymmetric
     // std::vector<double> jecUncertSourceValuesUp;
@@ -496,8 +497,8 @@ class HTTJetCollection
     void btagPromoteDemote();
 
     void addJet(HTTJet newJet){ jetCollection.push_back(newJet); };
-    void setCurrentUncertShift( JecUncertEnum uncert, bool up ){ fillCurrentCollections(uncert,up); }
-    void fillCurrentCollections(JecUncertEnum uncert = JecUncertEnum::NONE, bool up = true);
+    void setCurrentUncertShift( string uncert, bool up ){ fillCurrentCollections(uncert,up); }
+    void fillCurrentCollections(string uncert = "", bool up = true);
 
     HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
     HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
@@ -519,7 +520,7 @@ class HTTJetCollection
     TFile *eff_file;
     TH2F *hb_eff;
     TH2F *hc_eff;
-    TH2F *hoth_eff;    
+    TH2F *hoth_eff;  
 
     std::vector<HTTJet> jetCollection;
     std::vector<HTTJet> jetCurrentCollection;

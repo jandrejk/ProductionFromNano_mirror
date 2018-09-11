@@ -298,7 +298,7 @@ void HTTJet::clear()
     currentP4.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
 
     jecUncertSourceValues.clear();
-    jecUncertSourceValues.reserve( (unsigned int)JecUncertEnum::NONE );
+    // jecUncertSourceValues.reserve( (unsigned int)JecUncertEnum::NONE );
 
     // Fallback when jec uncerts get asymmetric
     // jecUncertSourceValuesUp.clear();
@@ -310,13 +310,13 @@ void HTTJet::clear()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTJet::getP4(JecUncertEnum uncert, bool up)
+const TLorentzVector & HTTJet::getP4(string uncert, bool up)
 {
     currentP4 = p4;
-    if(uncert == JecUncertEnum::NONE) return currentP4;
+    if(uncert == "") return currentP4;
 
     double shift = up ? 1. : -1.;   
-    double scale = jecUncertSourceValues[(unsigned int)uncert]; 
+    double scale = jecUncertSourceValues[uncert]; 
 
     // Fallback when jec uncerts get asymmetric
     // if(currentShift)
@@ -329,7 +329,6 @@ const TLorentzVector & HTTJet::getP4(JecUncertEnum uncert, bool up)
     //     scale = jecUncertSourceValuesDown[(unsigned int)currentUncert];
     //     shift = -1.;
     // }
-
     currentP4.SetPtEtaPhiM( p4.Pt()*(1 + scale*shift),
                             p4.Eta(),
                             p4.Phi(),
@@ -340,7 +339,7 @@ const TLorentzVector & HTTJet::getP4(JecUncertEnum uncert, bool up)
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-void HTTJet::setJecUncertSourceValue(unsigned int uncert, double value, bool up)
+void HTTJet::setJecUncertSourceValue(string uncert, double value, bool up)
 {
     jecUncertSourceValues[uncert] = value;
 
@@ -448,7 +447,7 @@ void HTTJetCollection::btagPromoteDemote(){
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-void HTTJetCollection::fillCurrentCollections(JecUncertEnum uncert, bool up)
+void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
 {
     jetCurrentCollection.clear();
     btagCurrentCollection.clear();
