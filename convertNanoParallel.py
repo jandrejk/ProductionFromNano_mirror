@@ -48,11 +48,14 @@ JSONfile =         str(configBall["certJson"])
 nevents =          int(configBall["nevents"])
 check_event =      int(configBall["check_event"])
 
+print "-"*30
+for i,k in configBall.items():
+    if i == "file": continue
+    print i,k
+print "-"*30
 
 if not "root://" in aFile: aFile = "file://" + aFile
-print sys.argv
 
-print 'Channel: ',channel
 
 print "Using file: ",aFile
 if str( configBall["system"] ) == "lxbatch":
