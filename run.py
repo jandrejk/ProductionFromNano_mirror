@@ -82,6 +82,7 @@ def makeSubmitList( sample, channel, shift):
 
     if os.path.exists(sample): samples = [sample]
     else:
+        if sample == "all": samples = glob("samples/*/*/*")
         if sample == "mc": samples = glob("samples/mc/*/*")
         if sample == "data": samples = glob("samples/data/*/*")
         if sample == "dy": samples = glob("samples/mc/dy/*")
