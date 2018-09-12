@@ -51,7 +51,7 @@ check_event =      int(configBall["check_event"])
 print "-"*30
 for i,k in configBall.items():
     if i == "file": continue
-    print i,k
+    print i+" "*(15 - len(i)),k
 print "-"*30
 
 if not "root://" in aFile: aFile = "file://" + aFile
