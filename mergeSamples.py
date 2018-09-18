@@ -104,14 +104,15 @@ class Merger():
                     for ext in glob.glob( "/".join([ self.outdir, sample + "*", self.version, self.channel + "-*" ]) ):
                         tomerge.append(ext)
 
-                mergecmd = self.getMergeCmd(mergename, tomerge) 
-                if mergecmd:
-                    os.system(mergecmd)
+                mergecmds = self.getMergeCmds(mergename, tomerge) 
+                if mergecmds:
+                    for mergecmd in mergecmds:
+                        os.system(mergecmd)
         #             cmd_list[mergename] = mergecmd 
 
         # self.applyCmdMulti(cmd_list)
   
-    def getMergeCmd(self, name, parts):
+    def getMergeCmds(self, name, parts):
 
         mergedir = "/".join([self.outdir,self.version])
         shifts = ["NOMINAL"]
@@ -120,9 +121,11 @@ class Merger():
                 for sh in ["Up","Down"]:
                     shifts.append( es + dm + sh )
 
+        mergeCmds = []
+
         for shift in shifts:
 
-            filename = "_".join([ name.replace("BASIS",shift), self.channel ]) + ".root"
+            filename = "-".join([ self.channel, name.replace("BASIS",shift) ]) + ".root"
             outfile =  "/".join([mergedir, filename ])
             addfiles = []
 
@@ -130,7 +133,8 @@ class Merger():
                 if "{0}-{1}".format( self.channel, shift ) in file:
                     addfiles.append(file)
             if addfiles:
-                return "hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) 
+                mergeCmds.append("hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) )
+        return mergeCmds
 
 
 
