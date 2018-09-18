@@ -40,7 +40,7 @@ def getJets(sample):
 
 def calcStitchingWeights(nnlo_xsec, xsecs, nevents):
 
-	corr = nnlo_xsec / xsecs[0]
+	corr = (1000*nnlo_xsec) / xsecs[0]
 	weights = [0]*5
 	for i in xrange(len(xsecs)):
 		if i == 0:
