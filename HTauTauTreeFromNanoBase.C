@@ -903,7 +903,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                       } );
 
         if( !(Muon_pt[iMu] > loosestMuonPtCut ) ) continue;
-        debugWayPoint("[fillLeptons] Muon passes loosest pt cut");
+        debugWayPoint("[fillLeptons] Muon passes loosest pt cut",{(double)Muon_pt[iMu], (double)loosestMuonPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
         TLorentzVector p4;
 
@@ -937,7 +937,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
 
         if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
         if( !(e_pt>loosestElectronPtCut) ) continue;
-        debugWayPoint("[fillLeptons] Electron passes loosest pt cut");
+        debugWayPoint("[fillLeptons] Electron passes loosest pt cut",{(double)e_pt,(double)loosestElectronPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
         TLorentzVector p4;
 
@@ -980,7 +980,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         if( aLepton.getP4().Pt() < 20 ) continue;
         if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
         if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
-        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES");
+        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES",{(double)aLepton.getP4().Pt()},{},{"pt"});
 
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
