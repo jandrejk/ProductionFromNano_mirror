@@ -18,8 +18,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE', default = "")
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt','all'], default = 'mt')
-    parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t'
-                                                                                           'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m'
+    parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t',
+                                                                                           'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m',
                                                                                            'e0u','e1u','e10u','e0d','e1d','e10d','e0','e1','e10','e'], default = '')
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
