@@ -1,4 +1,5 @@
 #include "EventWriter.h"
+#include <string.h>
 
 const float DEF = -10.;
 const float DEFWEIGHT = 1.0;
@@ -49,11 +50,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     vmet.SetPtEtaPhiM(met, 0, metphi, 0);
 
     TLorentzVector Hjj = leg1P4 + leg2P4 + vmet;
-    if ( njetspt20 >=1 )
+    if ( njetspt20[0] >=1 )
     {
         Hjj += jets.getJet(0).P4();
     }
-    if ( njetspt20 >=2 )
+    if ( njetspt20[0] >=2 )
     {
         Hjj += jets.getJet(1).P4();
     }
@@ -63,8 +64,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     vector<TLorentzVector> objs;
     objs.push_back(leg1P4);
     objs.push_back(leg2P4);
-    if ( njetspt20>0 ) objs.push_back(jets.getJet(0).P4());
-    if ( njetspt20>1 ) objs.push_back(jets.getJet(1).P4());
+    if ( njetspt20[0]>0 ) objs.push_back(jets.getJet(0).P4());
+    if ( njetspt20[0]>1 ) objs.push_back(jets.getJet(1).P4());
     sphericity=calcSphericity(objs);  
 
     gen_top_pt_1=DEF;
@@ -200,7 +201,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
     if(isMC)
     {
-        effweight = DEFWEIGHT;
         xsec = ev->getXsec();
         genWeight = ev->getMCWeight();
         genNEventsWeight = ev->getGenNEventsWeight();
@@ -397,49 +397,50 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
         else up = true;
 
         jets.setCurrentUncertShift( JecShifts[shift].first, up);
-        njets[shift]= jets.getNJets(30);
+        njets[shift]        = jets.getNJets(30);
+        njetspt20[shift]    = jets.getNJets(20);
+        njetingap[shift]    = jets.getNJetInGap(30);
+        njetingap20[shift]  = jets.getNJetInGap(20);        
+
+
+        if ( njetspt20[shift] >=1 )
+        {
+            jpt_1[shift]   =  jets.getJet(0).Pt();
+            jeta_1[shift]  = jets.getJet(0).Eta();
+            jphi_1[shift]  = jets.getJet(0).Phi();
+            if( strcmp(JecShifts[shift].first.c_str(), "") == 0 )
+            {
+                jm_1=   jets.getJet(0).M();
+                jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
+                jmva_1= jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
+                jcsv_1= jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
+            }
+        }
+        if ( njetspt20[shift] >=2 )
+        {
+
+            jpt_2[shift]   =  jets.getJet(1).Pt();
+            jeta_2[shift]  = jets.getJet(1).Eta();
+            jphi_2[shift]  = jets.getJet(1).Phi();
+            
+            mjj[shift]      = jets.getDiJetP4().M();
+            dijetpt[shift]  = jets.getDiJetP4().Pt();
+            dijetphi[shift] = jets.getDiJetP4().Phi();
+            jdeta[shift]    = std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
+            jdphi[shift]    = jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
+
+            if( strcmp(JecShifts[shift].first.c_str(), "") == 0 )
+            {
+                jm_2=   jets.getJet(1).M();
+                jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
+                jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
+                jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
+                jeta1eta2=jeta_1[shift]*jeta_2[shift];
+                lep_etacentrality=TMath::Exp( -4/pow(jeta_1[shift]-jeta_2[shift],2) * pow( (eta_1-( jeta_1[shift]+jeta_2[shift] )*0.5), 2 ) );
+            }
+        }
     }
     jets.setCurrentUncertShift("",true);
-
-
-    njetspt20=jets.getNJets(20);
-    njetingap=jets.getNJetInGap(30);
-    njetingap20=jets.getNJetInGap(20);
-
-
-    if ( njetspt20 >=1 )
-    {
-        jpt_1=  jets.getJet(0).Pt();
-        jeta_1= jets.getJet(0).Eta();
-        jphi_1= jets.getJet(0).Phi();
-        jm_1=   jets.getJet(0).M();
-        jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
-        jmva_1= jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
-        jcsv_1= jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
-        //    gen_match_jetId_1=jets.getJet(0).getProperty(PropertyEnum::partonFlavour);
-    }
-    if ( njetspt20 >=2 )
-    {
-
-        jpt_2=  jets.getJet(1).Pt();
-        jeta_2= jets.getJet(1).Eta();
-        jphi_2= jets.getJet(1).Phi();
-        jm_2=   jets.getJet(1).M();
-
-        mjj=jets.getDiJetP4().M();
-        dijetpt=jets.getDiJetP4().Pt();
-        dijetphi=jets.getDiJetP4().Phi();
-        jdeta=std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
-        jdphi=jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
-
-        jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
-        jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
-        jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
-        //    gen_match_jetId_2=jets.at(1).getProperty(PropertyEnum::partonFlavour);
-
-        jeta1eta2=jeta_1*jeta_2;
-        lep_etacentrality=TMath::Exp( -4/pow(jeta_1-jeta_2,2) * pow( (eta_1-( jeta_1+jeta_2 )*0.5), 2 ) );
-    }
 
     nbtag= jets.getNBtag();
     if (nbtag >= 1)
@@ -769,38 +770,62 @@ void EventWriter::fillLeptonFakeRateWeights()
 void EventWriter::fillScalefactors()
 {
     // from https://github.com/CMS-HTT/CorrectionsWorkspace/tree/2017_17NovReRecoData_Fall17MC
-    singleTriggerSFLeg1 = 1.;
-    singleTriggerSFLeg2 = 1.;
+    singleTriggerSFLeg1 = DEFWEIGHT;
+    singleTriggerSFLeg2 = DEFWEIGHT;
 
-    isoWeight_1 = 1.0;
-    isoWeight_2 = 1.0;
-    idWeight_1 = 1.0;
-    idWeight_2 = 1.0;
+    double s1_data = DEFWEIGHT;
+    double s1_mc   = DEFWEIGHT;
+    double x1_data = DEFWEIGHT;
+    double x1_mc   = DEFWEIGHT;
+    double x2_data = DEFWEIGHT;
+    double x2_mc   = DEFWEIGHT;
 
-    idisoweight_1 = 1.;
-    idisoweight_2 = 1.;
+    isoWeight_1 = DEFWEIGHT;
+    isoWeight_2 = DEFWEIGHT;
+    idWeight_1 = DEFWEIGHT;
+    idWeight_2 = DEFWEIGHT;
 
-    trk_sf =1.;
-    reco_sf=1.;
+    idisoweight_1 = DEFWEIGHT;
+    idisoweight_2 = DEFWEIGHT;
+
+    trk_sf =DEFWEIGHT;
+    reco_sf=DEFWEIGHT;
 
     // from https://github.com/truggles/TauTriggerSFs2017/tree/tauTriggers2017_MCv2_PreReMiniaod
-    xTriggerSFLeg1 = 1.;
-    xTriggerSFLeg2 = 1.;
+    xTriggerSFLeg1 = DEFWEIGHT;
+    xTriggerSFLeg2 = DEFWEIGHT;
+
+    effweight = DEFWEIGHT;
+    weight_SingleOrCross = DEFWEIGHT;
 
     if( channel == HTTAnalysis::MuTau )
     {
         w->var("m_pt")->setVal(  pt_1  );
         w->var("m_eta")->setVal( eta_1 );
 
-        singleTriggerSFLeg1 = w->function("m_trg24or27_ratio")->getVal();
+        singleTriggerSFLeg1 = w->function("m_trg_SingleMu_Mu24ORMu27_desy_ratio")->getVal();
+        s1_data = w->function("m_trg_SingleMu_Mu24ORMu27_desy_data")->getVal();
+        s1_mc   = w->function("m_trg_SingleMu_Mu24ORMu27_desy_mc")->getVal();
+
+        if( std::abs(eta_1) < 2.1 )
+        {
+            xTriggerSFLeg1 = w->function("m_trg_MuTau_Mu20Leg_desy_ratio")->getVal();
+            x1_data = w->function("m_trg_MuTau_Mu20Leg_desy_data")->getVal();
+            x1_mc   = w->function("m_trg_MuTau_Mu20Leg_desy_mc")->getVal();
+        }
         if( std::abs(eta_2) < 2.1 )
-            xTriggerSFLeg1 = tauTrigSF->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        {
+            xTriggerSFLeg2 = tauTrigSF->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+            x2_data        = tauTrigSF->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+            x2_mc          = tauTrigSF->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        }
 
         idWeight_1  = w->function("m_id_ratio")->getVal();
         isoWeight_1 = w->function("m_iso_ratio")->getVal();
         idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
         trk_sf = w->function("m_trk_ratio")->getVal();
+        weight_SingleOrCross = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
     }
 
     if( channel == HTTAnalysis::EleTau )
@@ -808,15 +833,27 @@ void EventWriter::fillScalefactors()
         w->var("e_pt")->setVal(  pt_1  );
         w->var("e_eta")->setVal( eta_1 );
 
-        singleTriggerSFLeg1 = w->function("e_trg32or35_ratio")->getVal();
+        singleTriggerSFLeg1 = w->function("e_trg_SingleEle_Ele32OREle35_desy_ratio")->getVal();
+
+        if( std::abs(eta_1) < 2.1 )
+        {
+            xTriggerSFLeg1 = w->function("e_trg_EleTau_Ele24Leg_desy_ratio")->getVal();
+            x1_data = w->function("e_trg_EleTau_Ele24Leg_desy_data")->getVal();
+            x1_mc   = w->function("e_trg_EleTau_Ele24Leg_desy_mc")->getVal();
+        }       
         if( std::abs(eta_2) < 2.1 )
-            xTriggerSFLeg1 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        {
+            xTriggerSFLeg2 = tauTrigSF->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+            x2_data        = tauTrigSF->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+            x2_mc          = tauTrigSF->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        }    
 
         idWeight_1  = w->function("e_id_ratio")->getVal();
         isoWeight_1 = w->function("e_iso_ratio")->getVal();
         idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
         reco_sf = w->function("e_reco_ratio")->getVal();
+        weight_SingleOrCross = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
     }
 
     if( channel == HTTAnalysis::TauTau )
@@ -961,6 +998,7 @@ void EventWriter::setDefault(){
     trk_sf=DEFWEIGHT;
     reco_sf=DEFWEIGHT;
     effweight=DEFWEIGHT;
+    weight_SingleOrCross=DEFWEIGHT;
     stitchedWeight=DEFWEIGHT;
     topWeight=DEFWEIGHT;
     topWeight_run1=DEFWEIGHT;
@@ -1126,31 +1164,33 @@ void EventWriter::setDefault(){
     //////////////////////////////////////////////////////////////////
      // Testing for later
 
-    nbtag=DEF;
-    // njets=DEF;
 
-    njetspt20=DEF;
-    mjj=DEF;
-    jdeta=DEF;
-    njetingap=0;
-    njetingap20=0;
-    dijetpt=DEF;
-    dijetphi=DEF;
-    jdphi=DEF;
-    jpt_1=DEF;
-    jeta_1=DEF;
-    jphi_1=DEF;
+    njets[0]=DEF;
+    njetspt20[0]=DEF;
+    njetingap[0]=0;
+    njetingap20[0]=0;
+    mjj[0]=DEF;
+    jdeta[0]=DEF;
+    dijetpt[0]=DEF;
+    dijetphi[0]=DEF;
+    jdphi[0]=DEF;
+    jpt_1[0]=DEF;
+    jpt_2[0]=DEF;
+    jeta_1[0]=DEF;
+    jeta_2[0]=DEF;
+    jphi_1[0]=DEF;
+    jphi_2[0]=DEF;
+
     jm_1=DEF;
-    jrawf_1=DEF;
-    jmva_1=DEF;
-    jcsv_1=DEF;
-    jpt_2=DEF;
-    jeta_2=DEF;
-    jphi_2=DEF;
     jm_2=DEF;
+    jrawf_1=DEF;
     jrawf_2=DEF;
+    jmva_1=DEF;
     jmva_2=DEF;
+    jcsv_1=DEF;
     jcsv_2=DEF;
+
+    nbtag=DEF;
     bpt_1=DEF;
     beta_1=DEF;
     bphi_1=DEF;
@@ -1306,7 +1346,7 @@ void EventWriter::setDefault(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
+void EventWriter::initTree(TTree *t, bool isMC_, bool isSync){
 
     tauTrigSF = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
 
@@ -1314,16 +1354,17 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     w = (RooWorkspace*)wsp.Get("w");
 
     JecShifts = { {"",""} };
-    for(auto uncert : JecAfterSplitting)
-    {   
-        for(auto shift : {"Up","Down"})
-        {
-            JecShifts.push_back( make_pair(uncert.first, uncert.first + shift) );
-        } 
+    if(!isSync && HTTParticle::corrType == HTTAnalysis::NOMINAL)
+    {
+        for(auto uncert : JecAfterSplitting)
+        {   
+            for(auto shift : {"Up","Down"})
+            {
+                JecShifts.push_back( make_pair(uncert.first, uncert.first + shift) );
+            } 
+        }
     }
-
     isMC=isMC_;
-    isSync=isSync_;
 
     if(!isSync){
         t->Branch("pfpt_sum", &pfpt_sum);
@@ -1641,26 +1682,25 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
 
     for(unsigned int shift = 0; shift<JecShifts.size(); ++shift )
     {
-        t->Branch( ("njets"+JecShifts[shift].second).c_str() , &njets[shift]);
+        t->Branch( ("njets"+JecShifts[shift].second).c_str() ,      &njets[shift]);
+
+        t->Branch( ("njetspt20"+JecShifts[shift].second).c_str(),   &njetspt20[shift]);
+        t->Branch( ("njetingap"+JecShifts[shift].second).c_str(),   &njetingap[shift]);
+        t->Branch( ("njetingap20"+JecShifts[shift].second).c_str(), &njetingap20[shift]);
+        t->Branch( ("dijetpt"+JecShifts[shift].second).c_str(),     &dijetpt[shift]);
+        t->Branch( ("dijetphi"+JecShifts[shift].second).c_str(),    &dijetphi[shift]);
+        t->Branch( ("jdphi"+JecShifts[shift].second).c_str(),       &jdphi[shift]);
+        t->Branch( ("jdeta"+JecShifts[shift].second).c_str(),       &jdeta[shift]);
+        t->Branch( ("mjj"+JecShifts[shift].second).c_str(),         &mjj[shift]);
+
+        t->Branch( ("jpt_1"+JecShifts[shift].second).c_str(),       &jpt_1[shift]);
+        t->Branch( ("jpt_2"+JecShifts[shift].second).c_str(),       &jpt_2[shift]);
+        t->Branch( ("jeta_1"+JecShifts[shift].second).c_str(),      &jeta_1[shift]);
+        t->Branch( ("jeta_2"+JecShifts[shift].second).c_str(),      &jeta_2[shift]);
+        t->Branch( ("jphi_1"+JecShifts[shift].second).c_str(),      &jphi_1[shift]);
+        t->Branch( ("jphi_2"+JecShifts[shift].second).c_str(),      &jphi_2[shift]);
     }
     
-
-    t->Branch("nbtag", &nbtag);
-    t->Branch("njetspt20", &njetspt20);    
-    t->Branch("njetingap", &njetingap);
-    t->Branch("njetingap20", &njetingap20);
-    t->Branch("dijetpt", &dijetpt);
-    t->Branch("dijetphi", &dijetphi);
-    t->Branch("jdphi", &jdphi);
-    t->Branch("jdeta", &jdeta);        
-    t->Branch("mjj", &mjj);
-
-    t->Branch("jpt_1", &jpt_1);
-    t->Branch("jpt_2", &jpt_2);    
-    t->Branch("jeta_1", &jeta_1);
-    t->Branch("jeta_2", &jeta_2);    
-    t->Branch("jphi_1", &jphi_1);
-    t->Branch("jphi_2", &jphi_2);    
     t->Branch("jm_1", &jm_1);
     t->Branch("jm_2", &jm_2);
     t->Branch("jrawf_1", &jrawf_1);
@@ -1670,6 +1710,7 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("jcsv_1", &jcsv_1);
     t->Branch("jcsv_2",&bcsv_2);    
 
+    t->Branch( "nbtag",&nbtag);
     t->Branch("bpt_1", &bpt_1);
     t->Branch("bpt_2", &bpt_2);    
     t->Branch("beta_1", &beta_1);
@@ -1710,6 +1751,7 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("trk_sf", &trk_sf);
     t->Branch("reco_sf", &reco_sf);
     t->Branch("effweight", &effweight);
+    t->Branch("weight_SingleOrCross", &weight_SingleOrCross);
     t->Branch("stitchedWeight", &stitchedWeight);
     t->Branch("topWeight", &topWeight);
     t->Branch("topWeight_run1", &topWeight_run1);

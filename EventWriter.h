@@ -17,8 +17,6 @@
 class EventWriter
 {
 
- static const unsigned Njecshifts = 28;
-
  public:
 
   //ClassDef(EventWriter,0);
@@ -74,6 +72,7 @@ class EventWriter
   float trk_sf;
   float reco_sf;
   float effweight;
+  float weight_SingleOrCross;
   float stitchedWeight;
   float topWeight;
   float topWeight_run1;
@@ -258,56 +257,43 @@ class EventWriter
   int decayMode_2;
   //////////////////////////////////////////////////////////////////
 
-  // Testing for later
-  float jpt_1_arr[Njecshifts];
-  float jpt_2_arr[Njecshifts];
+  int njets[56];
+  int njetspt20[56];
+  int njetingap[56];
+  int njetingap20[56];
+  float mjj[56];
+  float jdeta[56];
+  float dijetpt[56];
+  float dijetphi[56];
+  float jdphi[56];
+  float jpt_1[56];
+  float jpt_2[56];
+  float jeta_1[56];
+  float jeta_2[56];
+  float jphi_1[56];
+  float jphi_2[56];
+  float jm_1;
+  float jm_2;  
+  float jrawf_1;
+  float jrawf_2;  
+  float jmva_1;
+  float jmva_2;  
+  float jcsv_1;
+  float jcsv_2;
 
   int nbtag;
-  int njets[56];
-  int njetsUp;
-  int njetsDown;
-  int njetspt20;
-  float mjj;
-  float mjjUp;
-  float mjjDown;
-  float jdeta;
-  float jdetaUp;
-  float jdetaDown;
-  int njetingap;
-  int njetingap20;
-  float dijetpt;
-  float dijetphi;
-  float jdphi;
-  float jpt_1;
-  float jptUp_1;
-  float jptDown_1;
-  float jeta_1;
-  float jphi_1;
-  float jm_1;
-  float jrawf_1;
-  float jmva_1;
-  float jcsv_1;
-  float jpt_2;
-  float jptUp_2;
-  float jptDown_2;
-  float jeta_2;
-  float jphi_2;
-  float jm_2;
-  float jrawf_2;
-  float jmva_2;
-  float jcsv_2;
   float bpt_1;
+  float bpt_2;  
   float beta_1;
+  float beta_2;  
   float bphi_1;
+  float bphi_2;  
   float brawf_1;
+  float brawf_2;  
   float bmva_1;
+  float bmva_2;  
   float bcsv_1;
-  float bpt_2;
-  float beta_2;
-  float bphi_2;
-  float brawf_2;
-  float bmva_2;
-  float bcsv_2;
+  float bcsv_2;  
   //////////////////////////////////////////////////////////////////
   float met;
   float uncorrmet;
