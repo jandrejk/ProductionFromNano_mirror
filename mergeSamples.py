@@ -126,6 +126,9 @@ class Merger():
         for shift in shifts:
 
             filename = "-".join([ self.channel, name.replace("BASIS",shift) ]) + ".root"
+            if "_SingleElectron" in filename: filename = filename.replace("SingleElectron","Data")
+            if "_SingleMuon" in filename: filename = filename.replace("SingleMuon","Data")
+            if "_Tau" in filename: filename = filename.replace("Tau","Data")
             outfile =  "/".join([mergedir, filename ])
             addfiles = []
 
