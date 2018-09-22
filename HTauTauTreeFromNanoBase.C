@@ -330,7 +330,11 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
     Long64_t nentries = fChain->GetEntries();
     Long64_t nentries_use=nentries;
-    if (nentries_max>0 && nentries_max < nentries) nentries_use=nentries_max;
+    if (nentries_max>0 && nentries_max < nentries)
+    {
+        nentries_use=nentries_max;
+        check_event_number = 670998; // Usefull event in mutau for debug in 2017
+    }
 
     Long64_t nbytes = 0, nb = 0;
     int entry=0;
@@ -342,7 +346,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-        if (check_event_number>0 && event!=check_event_number) continue;
+        // if (check_event_number>0 && event!=check_event_number) continue;
         httEvent->clear();
         evtWriter->setDefault();
 
@@ -716,6 +720,7 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
         httJetCollection.addJet(aJet);
         
     }
+    //Set Jet collection to unshifted jets
     httJetCollection.fillCurrentCollections();
 
 }
@@ -913,12 +918,13 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                         0.10566); //muon mass
         
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
+        aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
         aLepton.setChargedP4(p4);//same as p4 for muon
         //aLepton.setNeutralP4(p4Neutral); not defined for muon
         aLepton.setPCA(pca);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
-        aLepton.setProperties(aProperties);
+
         aLepton.setCutBitmask( muonSelection(aLepton) );
 
         httLeptonCollection.push_back(aLepton);
@@ -947,12 +953,14 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                         0.51100e-3); //electron mass
 
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
+
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
+        aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
         aLepton.setChargedP4(p4);//same as p4 for electron
         //aLepton.setNeutralP4(p4Neutral); not defined for electron
         aLepton.setPCA(pca);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
-        aLepton.setProperties(aProperties);
+
         aLepton.setCutBitmask( electronSelection(aLepton) );
         httLeptonCollection.push_back(aLepton);
     }//Electrons
@@ -971,16 +979,16 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                            Tau_eta[iTau],
                            Tau_phi[iTau],
                            Tau_mass[iTau]);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
 
-        aLepton.setP4(newp4);
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle (mc_match needed)
+        aLepton.setP4(newp4);
         aLepton.setCutBitmask( tauSelection(aLepton) );
 
         if( aLepton.getP4().Pt() < 20 ) continue;
         if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
         if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
-        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES",{(double)aLepton.getP4().Pt()},{},{"pt"});
+        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES",{(double)aLepton.getP4().Pt()},{(int)aLepton.getProperty(PropertyEnum::decayMode)},{"pt","dm"});
 
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
@@ -1270,12 +1278,11 @@ bool HTauTauTreeFromNanoBase::buildPairs()
             TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
             HTTPair aHTTpair;
 
-            aHTTpair.setMET(met);
-            aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
-
             aHTTpair.setLeg1(httLeptonCollection.at(iL1),iL1);
             aHTTpair.setLeg2(httLeptonCollection.at(iL2),iL2);
 
+            aHTTpair.setMET(met); // Set MET after legs to propagate shifts to MET
+            aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
             
             httPairs_.push_back(aHTTpair); 
         }
