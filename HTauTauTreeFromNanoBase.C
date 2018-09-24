@@ -112,57 +112,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
     evtWriter->initTree(t_TauCheck, isMC, isSync);
     
+    leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
 
-    leptonPropertiesList.push_back("pdgId");
-    leptonPropertiesList.push_back("charge");
-    leptonPropertiesList.push_back("dxy");
-    leptonPropertiesList.push_back("dz");
-    leptonPropertiesList.push_back("sip3d");
-    leptonPropertiesList.push_back("pfRelIso03_all");//R=0.4 used for mu?
-    leptonPropertiesList.push_back("genPartFlav");
-    leptonPropertiesList.push_back("isGoodTriggerType");
-    leptonPropertiesList.push_back("FilterFired");
-    leptonPropertiesList.push_back("mc_match");
-
-    leptonPropertiesList.push_back("Tau_decayMode");
-    leptonPropertiesList.push_back("Tau_rawIso");
-    leptonPropertiesList.push_back("Tau_photonsOutsideSignalCone");
-    leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v1");
-    leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v2");
-    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v1");
-    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v2");
-    leptonPropertiesList.push_back("Tau_rawAntiEleCat");
-    leptonPropertiesList.push_back("Tau_idDecayMode");
-    leptonPropertiesList.push_back("Tau_idAntiEle");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT 
-    leptonPropertiesList.push_back("Tau_idAntiMu");//bits: 1-L, 2-T
-    leptonPropertiesList.push_back("Tau_leadTkPtOverTauPt");
-    leptonPropertiesList.push_back("Tau_chargedIso");
-    leptonPropertiesList.push_back("Tau_neutralIso");
-    leptonPropertiesList.push_back("Tau_puCorr");
-
-    leptonPropertiesList.push_back("Muon_softId");
-    leptonPropertiesList.push_back("Muon_mediumId");
-    leptonPropertiesList.push_back("Muon_tightId");
-    leptonPropertiesList.push_back("Muon_highPtId");
-    leptonPropertiesList.push_back("Muon_pfRelIso04_all");//R=0.4 used for mu?
-
-    leptonPropertiesList.push_back("Electron_cutBased");
-    leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP80");
-    leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP90");
-    leptonPropertiesList.push_back("Electron_deltaEtaSC");
-    leptonPropertiesList.push_back("Electron_lostHits");
-    leptonPropertiesList.push_back("Electron_convVeto");
-
-
-    leptonPropertiesList.push_back("Jet_rawFactor");//was rawPt is rawFactor=rawPt/corrPt
-    leptonPropertiesList.push_back("Jet_area");
-    leptonPropertiesList.push_back("Jet_puId");
-    leptonPropertiesList.push_back("Jet_partonFlavour");
-    leptonPropertiesList.push_back("Jet_btagCSVV2");
-    leptonPropertiesList.push_back("Jet_btagCMVA");
-    leptonPropertiesList.push_back("Jet_btagDeepB");
-    leptonPropertiesList.push_back("Jet_hadronFlavour");
-    leptonPropertiesList.push_back("Jet_jetId");//bit1=L,bit2=T
     ////////////////////////////////////////////////////////////
     ///Gen Lepton properties MUST be synchronized with lepton properties
     ///since the branches name are not uniform, we need a second names vector.
