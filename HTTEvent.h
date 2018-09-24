@@ -283,7 +283,7 @@ class HTTParticle
     void clear();
 
     ///Data member setters.
-    void setP4(const TLorentzVector &aP4) { p4 = aP4;}
+    void setP4(const TLorentzVector &aP4);
     void setChargedP4(const TLorentzVector &aP4) { chargedP4 = aP4;}
     void setNeutralP4(const TLorentzVector &aP4) { neutralP4 = aP4;}
 
@@ -296,6 +296,7 @@ class HTTParticle
 
     ///Data member getters.
     const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
+    const TVector2 & getDeltaVector() const { return deltaVector; }
     const TLorentzVector & getChargedP4() const {return chargedP4;}
     const TLorentzVector getNeutralP4() const {return neutralP4;}
 
@@ -325,13 +326,14 @@ class HTTParticle
 
     ///Return four-momentum shifted with scale.
     ///Shift modifies three-momentum transverse part only, leaving mass constant.
-    const TLorentzVector & getShiftedP4(float scale, bool preserveMass=true) const;
+    const TLorentzVector getShiftedP4(HTTAnalysis::sysEffects shift) const;
 
     ///Nominal (as recontructed) four-momentum
     TLorentzVector p4;
 
-    ///Scaled four-momentum cache;
-    mutable TLorentzVector p4Cache;
+    ///Scaled four-momentum;
+    mutable TLorentzVector currentP4;
+    mutable TVector2 deltaVector; // Shift propagated to MET
     mutable HTTAnalysis::sysEffects lastSystEffect;
 
     ///Charged and neutral components four-momentum
@@ -366,24 +368,19 @@ class HTTPair
     void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)defaultType] = aP4;}
     void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)defaultType] = aP4;}
 
-    void setMET(const TVector2 &aVector) {met = aVector;}
-    void setSVMET(const TVector2 &aVector, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {svMetVector[(unsigned int)defaultType] = aVector;}
-
     void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
     void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
 
+    void setMET(const TVector2 &aVector);
     void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 
     ///Data member getters.
     const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
-    const TLorentzVector & getLeg1P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
-    const TLorentzVector & getLeg2P4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
-    const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return getSystScaleMET(defaultType);}
-    const TVector2 & getSVMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return svMetVector[(unsigned int)defaultType];}
+    const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
-    float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getSystScaleMET(defaultType), defaultType ); }
-    float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getSystScaleMET(defaultType), defaultType ); }
+    float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getMET(defaultType), defaultType ); }
+    float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getMET(defaultType), defaultType ); }
     float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
     const HTTParticle & getLeg1() const {return leg1;}
@@ -397,11 +394,6 @@ class HTTPair
     int getIndexLeg2() {return indexLeg2;}
 
     HTTAnalysis::finalState getFinalState();
-
-    const HTTParticle & getMuon() const {return abs(leg1.getPDGid())==13 ? leg1 : leg2; }
-    const HTTParticle & getTau() const {return abs(leg1.getPDGid())==15 ? leg1 : leg2; }
-
-    // float getMTMuon(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return abs(leg1.getPDGid())==13 ? getMTLeg1(defaultType) : getMTLeg2(defaultType); }
 
     std::vector<float> getMETMatrix() const {return metMatrix;}
 
@@ -500,6 +492,7 @@ class HTTJetCollection
     void setCurrentUncertShift( string uncert, bool up ){ fillCurrentCollections(uncert,up); }
     void fillCurrentCollections(string uncert = "", bool up = true);
 
+    const TLorentzVector getTotalJetShift(string uncert, bool up);
     HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
     HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
 
@@ -526,7 +519,6 @@ class HTTJetCollection
     std::vector<HTTJet> jetCurrentCollection;
     std::vector<HTTJet> btagCurrentCollection;
     std::vector<HTTJet> antibtagCurrentCollection;
-
     TLorentzVector dijet;
     void setDijetP4();
     void fillCurrentCollection();
