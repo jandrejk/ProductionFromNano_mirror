@@ -67,6 +67,24 @@ void HTTEvent::clear(){
 
   metFilterDecision = 0;
   selectionWord.ResetAllBits();
+
+
+
+}
+void HTTEvent::setNeededJECShifts(bool isSync)
+{
+  jecShifts = { {"",{"",true}} };
+
+  if(!isSync && HTTParticle::corrType == HTTAnalysis::NOMINAL)
+  {
+      for(auto uncert : JecAfterSplitting)
+      {   
+          for(auto shift : { make_pair("Up",true), make_pair("Down",false) } )
+          {
+            jecShifts.push_back( make_pair(uncert.first + shift.first, make_pair(uncert.first, shift.second) ) );
+          }
+      }
+  }
 }
 void HTTEvent::setSampleType(string sampletype)
 {

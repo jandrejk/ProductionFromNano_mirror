@@ -390,13 +390,10 @@ void EventWriter::fillLeg2Branches()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillJetBranches(HTTJetCollection jets)
 {
-    bool up = true;
-    for(unsigned int shift = 0; shift<JecShifts.size(); ++shift )
+    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
     {
-        if(JecShifts[shift].second.find("Down") != string::npos ) up = false;
-        else up = true;
 
-        jets.setCurrentUncertShift( JecShifts[shift].first, up);
+        jets.setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second);
         njets[shift]        = jets.getNJets(30);
         njetspt20[shift]    = jets.getNJets(20);
         njetingap[shift]    = jets.getNJetInGap(30);
@@ -408,7 +405,7 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
             jpt_1[shift]   =  jets.getJet(0).Pt();
             jeta_1[shift]  = jets.getJet(0).Eta();
             jphi_1[shift]  = jets.getJet(0).Phi();
-            if( strcmp(JecShifts[shift].first.c_str(), "") == 0 )
+            if( strcmp(jecShifts[shift].first.c_str(), "") == 0 )
             {
                 jm_1=   jets.getJet(0).M();
                 jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
@@ -429,7 +426,7 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
             jdeta[shift]    = std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
             jdphi[shift]    = jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
 
-            if( strcmp(JecShifts[shift].first.c_str(), "") == 0 )
+            if( strcmp(jecShifts[shift].first.c_str(), "") == 0 )
             {
                 jm_2=   jets.getJet(1).M();
                 jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
@@ -1346,24 +1343,15 @@ void EventWriter::setDefault(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::initTree(TTree *t, bool isMC_, bool isSync){
+void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync){
+
+    jecShifts = jecShifts_;
 
     tauTrigSF = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
 
     TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
     w = (RooWorkspace*)wsp.Get("w");
 
-    JecShifts = { {"",""} };
-    if(!isSync && HTTParticle::corrType == HTTAnalysis::NOMINAL)
-    {
-        for(auto uncert : JecAfterSplitting)
-        {   
-            for(auto shift : {"Up","Down"})
-            {
-                JecShifts.push_back( make_pair(uncert.first, uncert.first + shift) );
-            } 
-        }
-    }
     isMC=isMC_;
 
     if(!isSync){
@@ -1680,25 +1668,25 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync){
 
     // vec_njets.reserve( (unsigned int)JecUncertEnum::NONE );
 
-    for(unsigned int shift = 0; shift<JecShifts.size(); ++shift )
+    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
     {
-        t->Branch( ("njets"+JecShifts[shift].second).c_str() ,      &njets[shift]);
+        t->Branch( ("njets"+jecShifts[shift].first).c_str() ,      &njets[shift]);
 
-        t->Branch( ("njetspt20"+JecShifts[shift].second).c_str(),   &njetspt20[shift]);
-        t->Branch( ("njetingap"+JecShifts[shift].second).c_str(),   &njetingap[shift]);
-        t->Branch( ("njetingap20"+JecShifts[shift].second).c_str(), &njetingap20[shift]);
-        t->Branch( ("dijetpt"+JecShifts[shift].second).c_str(),     &dijetpt[shift]);
-        t->Branch( ("dijetphi"+JecShifts[shift].second).c_str(),    &dijetphi[shift]);
-        t->Branch( ("jdphi"+JecShifts[shift].second).c_str(),       &jdphi[shift]);
-        t->Branch( ("jdeta"+JecShifts[shift].second).c_str(),       &jdeta[shift]);
-        t->Branch( ("mjj"+JecShifts[shift].second).c_str(),         &mjj[shift]);
+        t->Branch( ("njetspt20"+jecShifts[shift].first).c_str(),   &njetspt20[shift]);
+        t->Branch( ("njetingap"+jecShifts[shift].first).c_str(),   &njetingap[shift]);
+        t->Branch( ("njetingap20"+jecShifts[shift].first).c_str(), &njetingap20[shift]);
+        t->Branch( ("dijetpt"+jecShifts[shift].first).c_str(),     &dijetpt[shift]);
+        t->Branch( ("dijetphi"+jecShifts[shift].first).c_str(),    &dijetphi[shift]);
+        t->Branch( ("jdphi"+jecShifts[shift].first).c_str(),       &jdphi[shift]);
+        t->Branch( ("jdeta"+jecShifts[shift].first).c_str(),       &jdeta[shift]);
+        t->Branch( ("mjj"+jecShifts[shift].first).c_str(),         &mjj[shift]);
 
-        t->Branch( ("jpt_1"+JecShifts[shift].second).c_str(),       &jpt_1[shift]);
-        t->Branch( ("jpt_2"+JecShifts[shift].second).c_str(),       &jpt_2[shift]);
-        t->Branch( ("jeta_1"+JecShifts[shift].second).c_str(),      &jeta_1[shift]);
-        t->Branch( ("jeta_2"+JecShifts[shift].second).c_str(),      &jeta_2[shift]);
-        t->Branch( ("jphi_1"+JecShifts[shift].second).c_str(),      &jphi_1[shift]);
-        t->Branch( ("jphi_2"+JecShifts[shift].second).c_str(),      &jphi_2[shift]);
+        t->Branch( ("jpt_1"+jecShifts[shift].first).c_str(),       &jpt_1[shift]);
+        t->Branch( ("jpt_2"+jecShifts[shift].first).c_str(),       &jpt_2[shift]);
+        t->Branch( ("jeta_1"+jecShifts[shift].first).c_str(),      &jeta_1[shift]);
+        t->Branch( ("jeta_2"+jecShifts[shift].first).c_str(),      &jeta_2[shift]);
+        t->Branch( ("jphi_1"+jecShifts[shift].first).c_str(),      &jphi_1[shift]);
+        t->Branch( ("jphi_2"+jecShifts[shift].first).c_str(),      &jphi_2[shift]);
     }
     
     t->Branch("jm_1", &jm_1);

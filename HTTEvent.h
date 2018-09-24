@@ -57,6 +57,8 @@ class HTTEvent{
 
   void setNPV(unsigned int x){nPV = x;}
 
+  void setNeededJECShifts(bool isSync = false);
+
   void setRho(float x){rho = x;}
 
   void setMCatNLOWeight(float x){aMCatNLOweight = x;}
@@ -131,6 +133,8 @@ class HTTEvent{
 
   unsigned int getNPV() const {return nPV;}
 
+  vector< pair< string, pair<string,bool> > > getNeededJECShifts(){ return jecShifts; }
+
   float getRho() const {return rho;}
 
   float getMCatNLOWeight() const {return aMCatNLOweight;}
@@ -194,6 +198,9 @@ class HTTEvent{
   float xsec;
   float genNEvents;
 
+  // Names of JES uncertainty shifts.
+  vector< pair< string, pair<string,bool> > > jecShifts;
+ 
   ///Weight used to modify the pt shape.
   float topPtReWeight, topPtReWeightR1;
   float zPtReWeight,   zPtReWeightSUSY;

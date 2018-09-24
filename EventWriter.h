@@ -374,7 +374,7 @@ class EventWriter
 
   void setDefault();
   void fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair);
-  void initTree(TTree *t, bool isMC_, bool isSync_);
+  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
@@ -395,7 +395,7 @@ class EventWriter
 
   RooWorkspace *w;
   TauTriggerSFs2017 *tauTrigSF;
-  vector< pair<string,string> > JecShifts;
+  vector< pair< string, pair<string,bool> > > jecShifts;
 
   vector<TLorentzVector> addlepton_p4;
   vector<double> addlepton_pt;

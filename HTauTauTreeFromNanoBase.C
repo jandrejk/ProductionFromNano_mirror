@@ -100,7 +100,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     httFile = std::unique_ptr<TFile>( new TFile(fileName.c_str(),"RECREATE") );
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
     httEvent->setSampleType( Settings["sample"].get<string>() );
-
+    httEvent->setNeededJECShifts(isSync);
 
     //  httTree = new TTree("HTauTauTree","");
     //  httTree->SetDirectory(httFile);
@@ -110,15 +110,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
-    evtWriter->initTree(t_TauCheck, isMC, isSync);
+    evtWriter->initTree(t_TauCheck, httEvent->getNeededJECShifts() , isMC, isSync);
     
     leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
-
-    ////////////////////////////////////////////////////////////
-    ///Gen Lepton properties MUST be synchronized with lepton properties
-    ///since the branches name are not uniform, we need a second names vector.
-    genLeptonPropertiesList.push_back("genpart_pdg");//needed?
-    genLeptonPropertiesList.push_back("genpart_TauGenDetailedDecayMode");//needed?
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
@@ -345,7 +339,11 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
-            ) computeSvFit(bestPair, HTTParticle::corrType);
+            ){
+                for(int i = 0; i < 10;i++){
+                    computeSvFit(bestPair, HTTParticle::corrType);
+                }
+            }
 
 
             evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
@@ -694,7 +692,7 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
         if(muonPt > LeptonCuts::Baseline.Muon.pt
            && muonEta < LeptonCuts::Baseline.Muon.eta
            && muonID
-        ) bitmask += LeptonCuts::Baseline.bitmask;
+        ) bitmask |= LeptonCuts::Baseline.bitmask;
 
         
         if(muonIso)
@@ -702,19 +700,19 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
             // Passes ilepton cuts
             if(muonPt > LeptonCuts::Di.Muon.pt
                && muonEta < LeptonCuts::Di.Muon.eta
-            ) bitmask += LeptonCuts::Di.bitmask; 
+            ) bitmask |= LeptonCuts::Di.bitmask; 
 
             if(muonID)
             {
                 // Passes extra lepton cuts
                 if(muonPt > LeptonCuts::Extra.Muon.pt
                    && muonEta < LeptonCuts::Extra.Muon.eta
-                ) bitmask += LeptonCuts::Extra.bitmask;
+                ) bitmask |= LeptonCuts::Extra.bitmask;
 
                 // Passes additional lepton cuts
                 if(muonPt > LeptonCuts::Additional.Muon.pt
                    && muonEta < LeptonCuts::Additional.Muon.eta
-                ) bitmask += LeptonCuts::Additional.bitmask;
+                ) bitmask |= LeptonCuts::Additional.bitmask;
             }
         }
 
@@ -758,7 +756,7 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
             && eleEta < LeptonCuts::Di.Electron.eta
             && eleIso
             && eleIDCB
-        ) bitmask += LeptonCuts::Di.bitmask;
+        ) bitmask |= LeptonCuts::Di.bitmask;
 
         if(convVeto && lostHits)
         {
@@ -766,21 +764,21 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
             if(elePt >  LeptonCuts::Baseline.Electron.pt
                 && eleEta < LeptonCuts::Baseline.Electron.eta
                 && eleIDWP80
-            ) bitmask += LeptonCuts::Baseline.bitmask;
+            ) bitmask |= LeptonCuts::Baseline.bitmask;
 
             // Passes additional lepton cuts
             if(elePt >  LeptonCuts::Additional.Electron.pt
                 && eleEta < LeptonCuts::Additional.Electron.eta
                 && eleIDWP80
                 && eleIso
-            ) bitmask += LeptonCuts::Additional.bitmask;
+            ) bitmask |= LeptonCuts::Additional.bitmask;
 
             // Passes extra lepton cuts
             if(elePt >  LeptonCuts::Extra.Electron.pt
                 && eleEta < LeptonCuts::Extra.Electron.eta
                 && eleIDWP90
                 && eleIso
-            ) bitmask += LeptonCuts::Extra.bitmask;
+            ) bitmask |= LeptonCuts::Extra.bitmask;
         }
 
     }
@@ -1756,6 +1754,7 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
 
     }else{//tau->hadrs.
         decay2 = leg2.getProperty(PropertyEnum::decayMode);
+        if( (  (unsigned int)leg2.getProperty(HTTEvent::usePropertyFor.at("tauID")) & 0x10 ) == 0x10 ) return;
         mass2 = leg2.getP4().M();
         if(decay2==0) mass2 = 0.13957; //pi+/- mass
         type2 = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
