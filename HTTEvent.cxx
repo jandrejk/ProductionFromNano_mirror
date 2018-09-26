@@ -3,7 +3,6 @@
 #include "m2n/HTT/interface/GenInfoHelper.h"
 #else
 #include "HTTEvent.h"
-// #include "EnergyScales.h"
 #endif
 
 std::map<string,PropertyEnum> HTTEvent::usePropertyFor = {};
@@ -71,21 +70,6 @@ void HTTEvent::clear(){
 
 
 }
-void HTTEvent::setNeededJECShifts(bool isSync)
-{
-  jecShifts = { {"",{"",true}} };
-
-  if(!isSync && HTTParticle::corrType == HTTAnalysis::NOMINAL)
-  {
-      for(auto uncert : JecAfterSplitting)
-      {   
-          for(auto shift : { make_pair("Up",true), make_pair("Down",false) } )
-          {
-            jecShifts.push_back( make_pair(uncert.first + shift.first, make_pair(uncert.first, shift.second) ) );
-          }
-      }
-  }
-}
 void HTTEvent::setSampleType(string sampletype)
 {
 
@@ -134,7 +118,6 @@ const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) c
     HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : corrType;
 
     if(type == lastSystEffect) return currentP4;
-    
     lastSystEffect = type;
     currentP4 = getShiftedP4(type); // Set currentP4 before returning
     return currentP4;
@@ -144,7 +127,7 @@ const TLorentzVector & HTTParticle::getP4(HTTAnalysis::sysEffects defaultType) c
 const TLorentzVector HTTParticle::getShiftedP4(HTTAnalysis::sysEffects shift) const
 {
 
-  TLorentzVector shiftdP4 = p4;
+  TLorentzVector shiftedP4 = p4;
   int pdg = std::abs(getPDGid());
   int dm = getProperty(PropertyEnum::decayMode);
   int mc_match = getProperty(PropertyEnum::mc_match);
@@ -153,36 +136,39 @@ const TLorentzVector HTTParticle::getShiftedP4(HTTAnalysis::sysEffects shift) co
   float tauES_mass = tauES;
   if (dm == 0) tauES_mass=0;
 
-  shiftdP4.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
+  shiftedP4.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
                        p4.Eta(),
                        p4.Phi(),
                        p4.M() * (1.0+tauES_mass) );
 
-  deltaVector.SetMagPhi( (shiftdP4 - p4).Pt(), p4.Phi() );
+  deltaVector.SetMagPhi( (shiftedP4 - p4).Pt(), p4.Phi() );
 
-  return shiftdP4;
+  return shiftedP4;
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void HTTPair::clear()
 {
-    if(!p4Vector.size()) p4Vector.resize(HTTAnalysis::DUMMY_SYS);
-    if(!leg1p4Vector.size()) leg1p4Vector.resize(HTTAnalysis::DUMMY_SYS);
-    if(!leg2p4Vector.size()) leg2p4Vector.resize(HTTAnalysis::DUMMY_SYS);
-    if(!svMetVector.size()) svMetVector.resize(HTTAnalysis::DUMMY_SYS);
+    met.clear();
+    met[""] = TVector2(0.,0.);
+    metCache = TVector2(0.,0.);
 
-    for(auto &it:p4Vector) it*=0;
-    for(auto &it:leg1p4Vector) it*=0;
-    for(auto &it:leg2p4Vector) it*=0;
-    for(auto &it:svMetVector) it*=0;
-
+    p4Vector.clear();
+    p4Vector[""].SetPtEtaPhiM(-10,-10,-10,-10);
     metMatrix.clear();
 
     leg1.clear();
     leg2.clear();
 
-    lastSystEffect = HTTAnalysis::NOMINAL;
+    lastMETShift = "";
+}
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+const TLorentzVector & HTTPair::getP4()
+{
+    if( p4Vector.find(lastMETShift) == p4Vector.end() ) return p4Vector.at("");
+    return p4Vector.at(lastMETShift);
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -198,34 +184,30 @@ HTTAnalysis::finalState HTTPair::getFinalState()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getP4(HTTAnalysis::sysEffects defaultType) const
+bool HTTPair::isInLooseSR()
 {
-    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
-    if(p4Vector.size()>(unsigned int)defaultType) return p4Vector[(unsigned int)defaultType];
-    return p4Vector[(unsigned int)HTTAnalysis::NOMINAL];
+    bool mt = getMTLeg1() < 50;
+    bool os = leg1.getCharge()*leg2.getCharge() < 0;
+    bool tauiso = true;
+
+    HTTAnalysis::finalState fs = getFinalState();
+    if( fs == HTTAnalysis::EleTau || fs == HTTAnalysis::MuTau )
+    {
+      tauiso = ((unsigned int)leg2.getProperty( HTTEvent::usePropertyFor.at("tauID") ) & 0x10) == 0x10;
+    } else if( fs == HTTAnalysis::TauTau )
+    {
+      tauiso = ((unsigned int)leg1.getProperty( HTTEvent::usePropertyFor.at("tauID") ) & 0x10) == 0x10;
+      tauiso &= ((unsigned int)leg2.getProperty( HTTEvent::usePropertyFor.at("tauID") ) & 0x10) == 0x10;
+    }
+
+    return (mt && os && tauiso);
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-
-void HTTPair::setMET(const TVector2 &aVector)
+void HTTPair::setCurrentMETShift(string uncert)
 {
-    met = aVector;
-
-    metCache = met - ( leg1.getDeltaVector() + leg2.getDeltaVector() );
-    lastSystEffect = HTTParticle::corrType;
-}
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-const TVector2 & HTTPair::getMET(HTTAnalysis::sysEffects defaultType) const
-{
-    HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
-
-    if(lastSystEffect == type) return metCache;
-    lastSystEffect = type;
-
-    metCache = met - ( leg1.getDeltaVector() + leg2.getDeltaVector() );
-    return metCache;
-
+  metCache = met.at(uncert);
+  lastMETShift = uncert;
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -233,8 +215,8 @@ float HTTPair::getMTTOT(HTTAnalysis::sysEffects defaultType) const
 {
   HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
 
-  float mt1 = 2. * leg1.getP4(type).Pt() * getMET(type).Mod() * (1. - TMath::Cos(leg1.getP4(type).Phi()-getMET(type).Phi()));
-  float mt2 = 2. * leg2.getP4(type).Pt() * getMET(type).Mod() * (1. - TMath::Cos(leg2.getP4(type).Phi()-getMET(type).Phi()));
+  float mt1 = 2. * leg1.getP4(type).Pt() * getMET().Mod() * (1. - TMath::Cos(leg1.getP4(type).Phi()-getMET().Phi()));
+  float mt2 = 2. * leg2.getP4(type).Pt() * getMET().Mod() * (1. - TMath::Cos(leg2.getP4(type).Phi()-getMET().Phi()));
   float mt3 = 2. * leg1.getP4(type).Pt() * leg2.getP4(type).Pt() * (1. - TMath::Cos(leg1.getP4(type).Phi()-leg2.getP4(type).Phi()));
   return TMath::Sqrt( mt1 + mt2 + mt3 );
 }
@@ -244,7 +226,7 @@ float HTTPair::getPT_TT(HTTAnalysis::sysEffects defaultType) const
   HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
 
   TLorentzVector vmet; 
-  vmet.SetPtEtaPhiM(getMET(type).Mod(),0,getMET(type).Phi(),0);
+  vmet.SetPtEtaPhiM(getMET().Mod(),0,getMET().Phi(),0);
 
   return (vmet + leg1.getP4(type) + leg2.getP4(type) ).Pt();
 }
@@ -253,20 +235,10 @@ float HTTPair::getPT_TT(HTTAnalysis::sysEffects defaultType) const
 
 void HTTJet::clear()
 {
-
     p4.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
     currentP4.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
 
     jecUncertSourceValues.clear();
-    // jecUncertSourceValues.reserve( (unsigned int)JecUncertEnum::NONE );
-
-    // Fallback when jec uncerts get asymmetric
-    // jecUncertSourceValuesUp.clear();
-    // jecUncertSourceValuesUp.reserve( (unsigned int)JecUncertEnum::NONE );
-
-    // jecUncertSourceValuesDown.clear();
-    // jecUncertSourceValuesDown.reserve( (unsigned int)JecUncertEnum::NONE );
-
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -278,39 +250,31 @@ const TLorentzVector & HTTJet::getP4(string uncert, bool up)
     double shift = up ? 1. : -1.;   
     double scale = jecUncertSourceValues[uncert]; 
 
-    // Fallback when jec uncerts get asymmetric
-    // if(currentShift)
-    // {
-    //     scale = jecUncertSourceValuesUp[(unsigned int)currentUncert];
-    //     shift = 1.;
-
-    // }else
-    // {
-    //     scale = jecUncertSourceValuesDown[(unsigned int)currentUncert];
-    //     shift = -1.;
-    // }
     currentP4.SetPtEtaPhiM( p4.Pt()*(1 + scale*shift),
                             p4.Eta(),
                             p4.Phi(),
                             p4.M()*(1 + scale*shift)
                           );
     return currentP4;
-
 }
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-void HTTJet::setJecUncertSourceValue(string uncert, double value, bool up)
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void HTTJetCollection::initCollection(bool isMC, bool applyRecoil, bool isSync)
 {
-    jecUncertSourceValues[uncert] = value;
+  jecShifts = { {"",{"",true}} };
 
-    // Fallback when jec uncerts get asymmetric
-    // if(up) jecUncertSourceValuesUp[uncert] = value;
-    // else   jecUncertSourceValuesDown[uncert] = value;
+  if( HTTParticle::corrType == HTTAnalysis::NOMINAL && isMC && !applyRecoil && !isSync)
+  {
+      for(auto uncert : JecAfterSplitting)
+      {
+          for(auto shift : { make_pair("Up",true), make_pair("Down",false) } )
+          {
+            jecShifts.push_back( make_pair(uncert.first + shift.first, make_pair(uncert.first, shift.second) ) );
+          }
+      }
+  }
+  clear();
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 void HTTJetCollection::clear()
 {
     usePromoteDemote = false;
@@ -438,7 +402,7 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector  HTTJetCollection::getTotalJetShift(string uncert, bool up)
+const TVector2  HTTJetCollection::getTotalJetShift(string uncert, bool up)
 {
   TLorentzVector before; before.SetPtEtaPhiE(0,0,0,0);
   TLorentzVector after; after.SetPtEtaPhiE(0,0,0,0);
@@ -449,7 +413,7 @@ const TLorentzVector  HTTJetCollection::getTotalJetShift(string uncert, bool up)
         after += jet.P4();
   }
 
-  return after - before;
+  return TVector2( (after - before).Px(), (after - before).Py() )  ;
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////

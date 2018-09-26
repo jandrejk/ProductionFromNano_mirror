@@ -15,6 +15,7 @@
 #include <vector>
 #include <bitset>
 #include <iostream>
+#include <string.h>
 
 #include "PropertyEnum.h"
 #include "JecUncEnum.h"
@@ -56,8 +57,6 @@ class HTTEvent{
   void setPUWeight(float x){puWeight = x;}
 
   void setNPV(unsigned int x){nPV = x;}
-
-  void setNeededJECShifts(bool isSync = false);
 
   void setRho(float x){rho = x;}
 
@@ -133,7 +132,7 @@ class HTTEvent{
 
   unsigned int getNPV() const {return nPV;}
 
-  vector< pair< string, pair<string,bool> > > getNeededJECShifts(){ return jecShifts; }
+
 
   float getRho() const {return rho;}
 
@@ -197,9 +196,6 @@ class HTTEvent{
   float mcWeight;
   float xsec;
   float genNEvents;
-
-  // Names of JES uncertainty shifts.
-  vector< pair< string, pair<string,bool> > > jecShifts;
  
   ///Weight used to modify the pt shape.
   float topPtReWeight, topPtReWeightR1;
@@ -371,23 +367,22 @@ class HTTPair
     void clear();
 
     ///Data member setters.
-    void setP4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {p4Vector[(unsigned int)defaultType] = aP4;}
-    void setLeg1P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg1p4Vector[(unsigned int)defaultType] = aP4;}
-    void setLeg2P4(const TLorentzVector &aP4, HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) {leg2p4Vector[(unsigned int)defaultType] = aP4;}
+    void setP4(const TLorentzVector aP4, string uncert) {p4Vector[uncert] = aP4;}
 
     void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
     void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
 
-    void setMET(const TVector2 &aVector);
+    void setMET(const TVector2 &aVector, string uncert){ met[uncert] = aVector  - ( leg1.getDeltaVector() + leg2.getDeltaVector() ); };
+    void setCurrentMETShift(string uncert);
     void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 
     ///Data member getters.
-    const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    const TLorentzVector & getP4();
 
-    const TVector2 & getMET(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
+    const TVector2 & getMET() const {return metCache;}
 
-    float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getMET(defaultType), defaultType ); }
-    float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getMET(defaultType), defaultType ); }
+    float getMTLeg1(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg1.getMT( getMET(), defaultType ); }
+    float getMTLeg2(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return leg2.getMT( getMET(), defaultType ); }
     float getMTTOT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const;
 
     const HTTParticle & getLeg1() const {return leg1;}
@@ -401,6 +396,7 @@ class HTTPair
     int getIndexLeg2() {return indexLeg2;}
 
     HTTAnalysis::finalState getFinalState();
+    bool isInLooseSR();
 
     std::vector<float> getMETMatrix() const {return metMatrix;}
 
@@ -416,19 +412,16 @@ class HTTPair
 
     ///Nominal met as calculated from PF.
     ///Includes recoil corrections.
-    TVector2 met;
+    mutable std::map<string,TVector2> met;
 
     ///Scaled four-momentum cache;
     mutable TVector2 metCache;
-    mutable HTTAnalysis::sysEffects lastSystEffect;
+    mutable string lastMETShift;
     mutable float mtCache;
 
     ///Vectors holding p4 and MET for
     ///for various scale variances.
-    std::vector<TLorentzVector> p4Vector;
-    std::vector<TLorentzVector> leg1p4Vector;
-    std::vector<TLorentzVector> leg2p4Vector;
-    std::vector<TVector2> svMetVector;
+    std::map<string, TLorentzVector> p4Vector;
 
     //MVAMET covariance matrix in order 00,01,10,11
     std::vector<float> metMatrix;
@@ -451,7 +444,7 @@ class HTTJet
     void SetPtEtaPhiM(float pt, float eta, float phi, float m){ p4.SetPtEtaPhiM(pt,eta,phi,m); currentP4 = getP4(); }
 
     void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
-    void setJecUncertSourceValue(string uncert, double value, bool up);
+    void setJecUncertSourceValue(string uncert, double value, bool up){ jecUncertSourceValues[uncert] = value; };
     void setJecUncertValues( std::map<string, double> aUncertainties ){ jecUncertSourceValues = aUncertainties; }
     void setUncertShift( string uncert, bool up ){ currentP4 = getP4( uncert, up ); }
 
@@ -487,9 +480,10 @@ class HTTJet
 class HTTJetCollection
 {
   public:
-    HTTJetCollection(){clear();}
+    HTTJetCollection(){clear();};
     ~HTTJetCollection(){}
 
+    void initCollection(bool isMC, bool applyRecoil, bool isSync);
     void clear();
 
     void initForPromoteDemote();
@@ -499,7 +493,8 @@ class HTTJetCollection
     void setCurrentUncertShift( string uncert, bool up ){ fillCurrentCollections(uncert,up); }
     void fillCurrentCollections(string uncert = "", bool up = true);
 
-    const TLorentzVector getTotalJetShift(string uncert, bool up);
+    vector< pair< string, pair<string,bool> > > getNeededJECShifts(){ return jecShifts; }
+    const TVector2 getTotalJetShift(string uncert, bool up);
     HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
     HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
 
@@ -520,7 +515,10 @@ class HTTJetCollection
     TFile *eff_file;
     TH2F *hb_eff;
     TH2F *hc_eff;
-    TH2F *hoth_eff;  
+    TH2F *hoth_eff;
+
+    // Names of JES uncertainty shifts.
+    vector< pair< string, pair<string,bool> > > jecShifts;
 
     std::vector<HTTJet> jetCollection;
     std::vector<HTTJet> jetCurrentCollection;
