@@ -140,7 +140,6 @@ class EventWriter
   int q_1;
   float d0_1;
   float dZ_1;
-  float mt_1;
   float iso_1;
   int againstElectronMVA6_1;  
   int againstElectronLooseMVA6_1;
@@ -207,7 +206,6 @@ class EventWriter
   int q_2;
   float d0_2;
   float dZ_2;
-  float mt_2;
   float iso_2;
   int againstElectronMVA6_2;  
   int againstElectronLooseMVA6_2;
@@ -295,11 +293,7 @@ class EventWriter
   float bcsv_1;
   float bcsv_2;  
   //////////////////////////////////////////////////////////////////
-  float met;
-  float uncorrmet;
-  float met_ex;
-  float met_ey;
-  float metphi;
+  float uncorrmet;  
   float corrmet;
   float corrmet_ex;
   float corrmet_ey;
@@ -320,8 +314,20 @@ class EventWriter
   float metcov01;
   float metcov10;
   float metcov11;
-  float m_sv;
-  float pt_sv;
+  //////////////////////////////////////////////////////////////////
+  float met[56];
+  float met_ex[56];
+  float met_ey[56];
+  float metphi[56];
+  float mt_1[56];
+  float mt_2[56];
+  float mt_tot[56];
+  float m_sv[56];
+  float pt_sv[56];
+  float pt_tt[56];
+  float pt_ttjj[56];
+  float m_ttjj[56];
+  float pt_sum[56];
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
@@ -344,21 +350,16 @@ class EventWriter
   float pzetamiss;
   float dzeta;
   //////////////////////////////////////////////////////////////////
-  float pt_tt;
-  float pt_Hjj;
   float pt_vis;
   float mt_3;
-  float mt_tot;
   float pfpt_tt;
   float m_vis;
-  float m_Hjj;
   float m_coll;
   float dphi;
   //////////////////////////////////////////////////////////////////
   float pfmt_1;
   float pfmt_2;
   float pfpt_sum;
-  float pt_sum;
   float dr_leptau;
   float jeta1eta2;
   float met_centrality;
@@ -373,13 +374,13 @@ class EventWriter
   ~EventWriter(){}  
 
   void setDefault();
-  void fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair);
+  void fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair);
   void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
 
-  int getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets);
+  int getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection *jets);
 
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 
@@ -389,8 +390,8 @@ class EventWriter
   void fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType);
   void fillLeg1Branches();
   void fillLeg2Branches();
-  void fillJetBranches(HTTJetCollection jets);
-  void fillPairBranches(HTTPair *pair);
+  void fillJetBranches(HTTJetCollection *jets);
+  void fillPairBranches(HTTPair *pair, HTTJetCollection *jets);
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
   RooWorkspace *w;

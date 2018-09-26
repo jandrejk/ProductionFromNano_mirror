@@ -1,5 +1,4 @@
 #include "EventWriter.h"
-#include <string.h>
 
 const float DEF = -10.;
 const float DEFWEIGHT = 1.0;
@@ -8,9 +7,11 @@ const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 
 const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair){
+void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair){
 
-    jets.setCurrentUncertShift( "", true );
+    // Make sure that current Collections are filled
+    jets->setCurrentUncertShift( "", true );
+    pair->setCurrentMETShift("");
 
     channel = pair->getFinalState();
 
@@ -43,30 +44,12 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
     fillLeg1Branches();
     fillLeg2Branches();
     fillJetBranches(jets);
-    fillPairBranches(pair);
+    fillPairBranches(pair, jets);
     fillAdditionalLeptons( leptons, pair );
 
-    TLorentzVector vmet; 
-    vmet.SetPtEtaPhiM(met, 0, metphi, 0);
 
-    TLorentzVector Hjj = leg1P4 + leg2P4 + vmet;
-    if ( njetspt20[0] >=1 )
-    {
-        Hjj += jets.getJet(0).P4();
-    }
-    if ( njetspt20[0] >=2 )
-    {
-        Hjj += jets.getJet(1).P4();
-    }
-    pt_Hjj = Hjj.Pt();
-    m_Hjj = Hjj.M();
 
-    vector<TLorentzVector> objs;
-    objs.push_back(leg1P4);
-    objs.push_back(leg2P4);
-    if ( njetspt20[0]>0 ) objs.push_back(jets.getJet(0).P4());
-    if ( njetspt20[0]>1 ) objs.push_back(jets.getJet(1).P4());
-    sphericity=calcSphericity(objs);  
+
 
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
@@ -388,76 +371,76 @@ void EventWriter::fillLeg2Branches()
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::fillJetBranches(HTTJetCollection jets)
+void EventWriter::fillJetBranches(HTTJetCollection *jets)
 {
     for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
     {
 
-        jets.setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second);
-        njets[shift]        = jets.getNJets(30);
-        njetspt20[shift]    = jets.getNJets(20);
-        njetingap[shift]    = jets.getNJetInGap(30);
-        njetingap20[shift]  = jets.getNJetInGap(20);        
+        jets->setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second);
+        njets[shift]        = jets->getNJets(30);
+        njetspt20[shift]    = jets->getNJets(20);
+        njetingap[shift]    = jets->getNJetInGap(30);
+        njetingap20[shift]  = jets->getNJetInGap(20);        
 
 
         if ( njetspt20[shift] >=1 )
         {
-            jpt_1[shift]   =  jets.getJet(0).Pt();
-            jeta_1[shift]  = jets.getJet(0).Eta();
-            jphi_1[shift]  = jets.getJet(0).Phi();
+            jpt_1[shift]   =  jets->getJet(0).Pt();
+            jeta_1[shift]  = jets->getJet(0).Eta();
+            jphi_1[shift]  = jets->getJet(0).Phi();
             if( strcmp(jecShifts[shift].first.c_str(), "") == 0 )
             {
-                jm_1=   jets.getJet(0).M();
-                jrawf_1=jets.getJet(0).getProperty(PropertyEnum::rawFactor);
-                jmva_1= jets.getJet(0).getProperty(PropertyEnum::btagCMVA);
-                jcsv_1= jets.getJet(0).getProperty(PropertyEnum::btagCSVV2);
+                jm_1=   jets->getJet(0).M();
+                jrawf_1=jets->getJet(0).getProperty(PropertyEnum::rawFactor);
+                jmva_1= jets->getJet(0).getProperty(PropertyEnum::btagCMVA);
+                jcsv_1= jets->getJet(0).getProperty(PropertyEnum::btagCSVV2);
             }
         }
         if ( njetspt20[shift] >=2 )
         {
 
-            jpt_2[shift]   =  jets.getJet(1).Pt();
-            jeta_2[shift]  = jets.getJet(1).Eta();
-            jphi_2[shift]  = jets.getJet(1).Phi();
+            jpt_2[shift]   =  jets->getJet(1).Pt();
+            jeta_2[shift]  = jets->getJet(1).Eta();
+            jphi_2[shift]  = jets->getJet(1).Phi();
             
-            mjj[shift]      = jets.getDiJetP4().M();
-            dijetpt[shift]  = jets.getDiJetP4().Pt();
-            dijetphi[shift] = jets.getDiJetP4().Phi();
-            jdeta[shift]    = std::abs( jets.getJet(0).Eta()-jets.getJet(1).Eta() );
-            jdphi[shift]    = jets.getJet(0).P4().DeltaPhi( jets.getJet(1).P4() );
+            mjj[shift]      = jets->getDiJetP4().M();
+            dijetpt[shift]  = jets->getDiJetP4().Pt();
+            dijetphi[shift] = jets->getDiJetP4().Phi();
+            jdeta[shift]    = std::abs( jets->getJet(0).Eta()-jets->getJet(1).Eta() );
+            jdphi[shift]    = jets->getJet(0).P4().DeltaPhi( jets->getJet(1).P4() );
 
             if( strcmp(jecShifts[shift].first.c_str(), "") == 0 )
             {
-                jm_2=   jets.getJet(1).M();
-                jrawf_2=jets.getJet(1).getProperty(PropertyEnum::rawFactor);
-                jmva_2= jets.getJet(1).getProperty(PropertyEnum::btagCMVA);
-                jcsv_2= jets.getJet(1).getProperty(PropertyEnum::btagCSVV2);
+                jm_2=   jets->getJet(1).M();
+                jrawf_2=jets->getJet(1).getProperty(PropertyEnum::rawFactor);
+                jmva_2= jets->getJet(1).getProperty(PropertyEnum::btagCMVA);
+                jcsv_2= jets->getJet(1).getProperty(PropertyEnum::btagCSVV2);
                 jeta1eta2=jeta_1[shift]*jeta_2[shift];
                 lep_etacentrality=TMath::Exp( -4/pow(jeta_1[shift]-jeta_2[shift],2) * pow( (eta_1-( jeta_1[shift]+jeta_2[shift] )*0.5), 2 ) );
             }
         }
     }
-    jets.setCurrentUncertShift("",true);
+    jets->setCurrentUncertShift("",true);
 
-    nbtag= jets.getNBtag();
+    nbtag= jets->getNBtag();
     if (nbtag >= 1)
     {
-        bpt_1=   jets.getBtagJet(0).Pt();
-        beta_1=  jets.getBtagJet(0).Eta();
-        bphi_1=  jets.getBtagJet(0).Phi();
-        brawf_1= jets.getBtagJet(0).getProperty(PropertyEnum::rawFactor);
-        bmva_1=  jets.getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
-        bcsv_1=  jets.getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
+        bpt_1=   jets->getBtagJet(0).Pt();
+        beta_1=  jets->getBtagJet(0).Eta();
+        bphi_1=  jets->getBtagJet(0).Phi();
+        brawf_1= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
+        bmva_1=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
+        bcsv_1=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
     }
 
     if (nbtag >= 2)
     {
-        bpt_2=   jets.getBtagJet(1).Pt();
-        beta_2=  jets.getBtagJet(1).Eta();
-        bphi_2=  jets.getBtagJet(1).Phi();
-        brawf_2= jets.getBtagJet(1).getProperty(PropertyEnum::rawFactor);
-        bmva_2=  jets.getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
-        bcsv_2=  jets.getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
+        bpt_2=   jets->getBtagJet(1).Pt();
+        beta_2=  jets->getBtagJet(1).Eta();
+        bphi_2=  jets->getBtagJet(1).Phi();
+        brawf_2= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
+        bmva_2=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
+        bcsv_2=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
     }
 
 
@@ -467,45 +450,57 @@ void EventWriter::fillJetBranches(HTTJetCollection jets)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::fillPairBranches(HTTPair *pair)
+void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
 {
-    met   =pair->getMET().Mod();
-    met_ex=pair->getMET().X();
-    met_ey=pair->getMET().Y();
-    metphi=pair->getMET().Phi();
-    if (metphi>TMath::Pi()) metphi-=2*TMath::Pi();
 
-    mt_1=pair->getMTLeg1();
-    mt_2=pair->getMTLeg2();
 
     metcov00=pair->getMETMatrix().at(0);
     metcov01=pair->getMETMatrix().at(1);
     metcov10=pair->getMETMatrix().at(2);
     metcov11=pair->getMETMatrix().at(3);
 
-    corrmet=met;
-    corrmet_ex=met_ex;
-    corrmet_ey=met_ey;
-    corrmetphi=metphi;
+    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
+    {
+        jets->setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second );
+        pair->setCurrentMETShift( jecShifts[shift].first );
 
-    mvamet=DEF;
-    mvamet_ex=DEF;
-    mvamet_ey=DEF;
-    mvametphi=DEF;
-    corrmvamet_ex=DEF;
-    corrmvamet_ey=DEF;
-    corrmvamet=DEF;
-    corrmvametphi=DEF;
-    mvacov00=DEF;
-    mvacov01=DEF;
-    mvacov10=DEF;
-    mvacov11=DEF;
+        met[shift]   =pair->getMET().Mod();
+        met_ex[shift]=pair->getMET().X();
+        met_ey[shift]=pair->getMET().Y();
+        metphi[shift]= TVector2::Phi_mpi_pi( pair->getMET().Phi() );
 
-    m_sv=pair->getP4().M();
-    pt_sv=pair->getP4().Pt();
+        mt_1[shift]=pair->getMTLeg1();
+        mt_2[shift]=pair->getMTLeg2();
+
+        m_sv[shift]=pair->getP4().M();
+        pt_sv[shift]=pair->getP4().Pt();
+
+        pt_tt[shift]=pair->getPT_TT();
+        mt_tot[shift]=pair->getMTTOT();
+        pt_sum[shift]=pt_1+pt_2+met[shift];
+
+        //////////////////////////////////////////////////////////////////
+        TLorentzVector vmet; vmet.SetPxPyPzE( met_ex[shift], met_ey[shift], 0., sqrt( met_ex[shift]*met_ex[shift] + met_ey[shift]*met_ey[shift] ) );
+        TLorentzVector ttjj = leg1P4 + leg2P4 + vmet;
+        if ( njetspt20[0] >=1 )
+        {
+            ttjj += jets->getJet(0).P4();
+        }
+        if ( njetspt20[0] >=2 )
+        {
+            ttjj += jets->getJet(1).P4();
+        }
+        pt_ttjj[shift] = ttjj.Pt();
+        m_ttjj[shift] = ttjj.M();
+    }
+    jets->setCurrentUncertShift( "", true );
+    pair->setCurrentMETShift( "" );
     //////////////////////////////////////////////////////////////////
-
-
+    //////////////////////////////////////////////////////////////////
+    pt_vis=pair->getPTVis();
+    m_vis=pair->getMVis();
+    dphi=leg1P4.DeltaPhi(leg2P4);
+    dr_leptau=leg1P4.DeltaR(leg2P4);    
     //////////////////////////////////////////////////////////////////
     double zetaX = TMath::Cos(phi_1) + TMath::Cos(phi_2);
     double zetaY = TMath::Sin(phi_1) + TMath::Sin(phi_2);
@@ -515,18 +510,11 @@ void EventWriter::fillPairBranches(HTTPair *pair)
       zetaY /= zetaR;
     }
     pzetavis =  (leg1P4.Px() + leg2P4.Px())*zetaX + (leg1P4.Py() + leg2P4.Py())*zetaY;
-    pzetamiss = met_ex*zetaX + met_ey*zetaY;
+    pzetamiss = met_ex[0]*zetaX + met_ey[0]*zetaY;
     dzeta = pzetamiss + (pzetavis - 1.85 * pzetavis);
     //////////////////////////////////////////////////////////////////
-    pt_tt=pair->getPT_TT();
-    pt_vis=pair->getPTVis();
-    mt_tot=pair->getMTTOT();
-    m_vis=pair->getMVis();
-    pfpt_tt=pt_tt;
-    dphi=leg1P4.DeltaPhi(leg2P4);
-
-    double x1 = pt_1 / ( pt_1 + met );
-    double x2 = pt_2 / ( pt_2 + met );
+    double x1 = pt_1 / ( pt_1 + met[0] );
+    double x2 = pt_2 / ( pt_2 + met[0] );
     if( TMath::Cos( dphi ) > -0.95
         && ( x1 > 0 && x1 < 1)
         && ( x2 > 0 && x2 < 1) )
@@ -534,24 +522,22 @@ void EventWriter::fillPairBranches(HTTPair *pair)
         m_coll =  m_vis / sqrt( x1 * x2 ) ;
     }
     else m_coll = DEF;
-
     //////////////////////////////////////////////////////////////////
-
+    vector<TLorentzVector> objs;
+    objs.push_back(leg1P4);
+    objs.push_back(leg2P4);
+    if ( njetspt20[0]>0 ) objs.push_back(jets->getJet(0).P4());
+    if ( njetspt20[0]>1 ) objs.push_back(jets->getJet(1).P4());
+    sphericity=calcSphericity(objs);  
     //////////////////////////////////////////////////////////////////
-    pfmt_1=mt_1;
-    pfmt_2=mt_2;
-    pt_sum=pt_1+pt_2+met;
-    pfpt_sum=pt_sum;
-    dr_leptau=leg1P4.DeltaR(leg2P4);
-    mvamet_centrality=DEF;
-
     TLorentzVector v0=leg1P4*( 1/sqrt(  pow(leg1P4.Px(),2)+pow(leg1P4.Py(),2)  ) ); //lep, normalized in transverse plane
     TLorentzVector v1=leg2P4*( 1/sqrt(  pow(leg2P4.Px(),2)+pow(leg2P4.Py(),2)  ) ); //tau, normalized in transverse plane
     float omega=v1.DeltaPhi(v0);
     float theta=-v0.Phi();
-    float x=(     met_ex * TMath::Sin(omega-theta)  - met_ey*TMath::Cos(omega-theta)   ) / TMath::Sin(omega); //x coord in lep-tau system
-    float y=(     met_ex * TMath::Sin(theta)        + met_ey*TMath::Cos(theta)         ) / TMath::Sin(omega); //y coord in lep-tau system
+    float x=(     met_ex[0] * TMath::Sin(omega-theta)  - met_ey[0]*TMath::Cos(omega-theta)   ) / TMath::Sin(omega); //x coord in lep-tau system
+    float y=(     met_ex[0] * TMath::Sin(theta)        + met_ey[0]*TMath::Cos(theta)         ) / TMath::Sin(omega); //y coord in lep-tau system
     met_centrality=( x+y ) / sqrt(x*x + y*y);
+    //////////////////////////////////////////////////////////////////
  
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -924,12 +910,12 @@ double EventWriter::calcSphericityFromMatrix(TMatrixD M) {
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets){
+int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection *jets){
   float minDR=1;
   int whichjet=0;
 
-  for (unsigned i=0; i<(unsigned int)jets.getNJets(20); i++){
-    TLorentzVector p4=jets.getJet(i).P4();
+  for (unsigned i=0; i<(unsigned int)jets->getNJets(20); i++){
+    TLorentzVector p4=jets->getJet(i).P4();
     if(p4.Pt() > 20 && fabs(p4.Eta() ) < 4.7 ){
       float tmpDR = calcDR( selObj.Eta(), selObj.Phi(), p4.Eta(), p4.Phi() );
       if( tmpDR < minDR ){
@@ -939,7 +925,7 @@ int EventWriter::getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets)
     }
   }
 
-  if( minDR < 0.5 ) return jets.getJet(whichjet).getProperty(PropertyEnum::partonFlavour);
+  if( minDR < 0.5 ) return jets->getJet(whichjet).getProperty(PropertyEnum::partonFlavour);
   return -99;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1061,7 +1047,6 @@ void EventWriter::setDefault(){
     q_1=DEF;
     d0_1=DEF;
     dZ_1=DEF;
-    mt_1=DEF;
     iso_1=DEF;
     againstElectronLooseMVA6_1=DEF;
     againstElectronMediumMVA6_1=DEF;
@@ -1119,7 +1104,6 @@ void EventWriter::setDefault(){
     q_2=DEF;
     d0_2=DEF;
     dZ_2=DEF;
-    mt_2=DEF;
     iso_2=DEF;
     againstElectronLooseMVA6_2=DEF;
     againstElectronMediumMVA6_2=DEF;
@@ -1159,24 +1143,38 @@ void EventWriter::setDefault(){
     decayModeFindingOldDMs_2=DEF;
     decayMode_2=DEF;
     //////////////////////////////////////////////////////////////////
-     // Testing for later
+    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
+    {
+        met[shift]=DEF;
+        metphi[shift]=DEF;
+        met_ex[shift]=DEF;
+        met_ey[shift]=DEF;
+        m_sv[shift]=DEF;
+        pt_sv[shift]=DEF;
+        pt_tt[shift]=DEF;
+        pt_ttjj[shift]=DEF;
+        m_ttjj[shift]=DEF;
+        mt_1[shift]=DEF;
+        mt_2[shift]=DEF;
+        mt_tot[shift]=DEF;
+        pt_sum[shift]=DEF;
 
-
-    njets[0]=DEF;
-    njetspt20[0]=DEF;
-    njetingap[0]=0;
-    njetingap20[0]=0;
-    mjj[0]=DEF;
-    jdeta[0]=DEF;
-    dijetpt[0]=DEF;
-    dijetphi[0]=DEF;
-    jdphi[0]=DEF;
-    jpt_1[0]=DEF;
-    jpt_2[0]=DEF;
-    jeta_1[0]=DEF;
-    jeta_2[0]=DEF;
-    jphi_1[0]=DEF;
-    jphi_2[0]=DEF;
+        njets[shift]=DEF;
+        njetspt20[shift]=DEF;
+        njetingap[shift]=0;
+        njetingap20[shift]=0;
+        mjj[shift]=DEF;
+        jdeta[shift]=DEF;
+        dijetpt[shift]=DEF;
+        dijetphi[shift]=DEF;
+        jdphi[shift]=DEF;
+        jpt_1[shift]=DEF;
+        jpt_2[shift]=DEF;
+        jeta_1[shift]=DEF;
+        jeta_2[shift]=DEF;
+        jphi_1[shift]=DEF;
+        jphi_2[shift]=DEF;
+    }
 
     jm_1=DEF;
     jm_2=DEF;
@@ -1201,11 +1199,7 @@ void EventWriter::setDefault(){
     bmva_2=DEF;
     bcsv_2=DEF;
     //////////////////////////////////////////////////////////////////
-    met=DEF;
     uncorrmet=DEF;
-    met_ex=DEF;
-    met_ey=DEF;
-    metphi=DEF;
     corrmet=DEF;
     corrmet_ex=DEF;
     corrmet_ey=DEF;
@@ -1226,8 +1220,6 @@ void EventWriter::setDefault(){
     metcov01=DEF;
     metcov10=DEF;
     metcov11=DEF;
-    m_sv=DEF;
-    pt_sv=DEF;
     //////////////////////////////////////////////////////////////////
     passesIsoCuts=DEF;
     passesLepIsoCuts=DEF;
@@ -1244,20 +1236,14 @@ void EventWriter::setDefault(){
     pzetamiss=DEF;
     dzeta=DEF;
     //////////////////////////////////////////////////////////////////
-    pt_tt=DEF;
-    pt_Hjj=DEF;
     pt_vis=DEF;
-    mt_tot=DEF;
-    pfpt_tt=DEF;
     m_vis=DEF;
-    m_Hjj=DEF;
     m_coll=DEF;
     dphi=DEF;
     //////////////////////////////////////////////////////////////////
     pfmt_1=DEF;
     pfmt_2=DEF;
     pfpt_sum=DEF;
-    pt_sum=DEF;
     dr_leptau=DEF;
     jeta1eta2=DEF;
     met_centrality=DEF;
@@ -1343,7 +1329,10 @@ void EventWriter::setDefault(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync){
+void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync_){
+
+    isMC=isMC_;
+    isSync=isSync_;
 
     jecShifts = jecShifts_;
 
@@ -1352,11 +1341,10 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
     w = (RooWorkspace*)wsp.Get("w");
 
-    isMC=isMC_;
+
 
     if(!isSync){
         t->Branch("pfpt_sum", &pfpt_sum);
-        t->Branch("pt_sum", &pt_sum);
         t->Branch("dr_leptau", &dr_leptau);
 
         t->Branch("jeta1eta2", &jeta1eta2);
@@ -1495,7 +1483,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("q_1", &q_1);
     t->Branch("d0_1", &d0_1);
     t->Branch("dZ_1", &dZ_1);
-    t->Branch("mt_1", &mt_1);
     t->Branch("pfmt_1", &pfmt_1);
     t->Branch("iso_1", &iso_1);
     t->Branch("againstElectronMVA6_1", &againstElectronMVA6_1);
@@ -1563,7 +1550,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("q_2", &q_2);
     t->Branch("d0_2", &d0_2);
     t->Branch("dZ_2", &dZ_2);
-    t->Branch("mt_2", &mt_2);
+
     t->Branch("pfmt_2", &pfmt_2);
     t->Branch("iso_2", &iso_2);
     t->Branch("againstElectronMVA6_2", &againstElectronMVA6_2);
@@ -1615,18 +1602,10 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("pzetavis", &pzetavis);
     t->Branch("pzetamiss", &pzetamiss);
     t->Branch("dzeta", &dzeta);
-
     t->Branch("m_vis", &m_vis);
     t->Branch("m_coll", &m_coll);
-    t->Branch("m_sv", &m_sv);
-    t->Branch("pt_sv", &pt_sv);
-    t->Branch("pt_tt", &pt_tt);
-    t->Branch("pt_Hjj", &pt_Hjj);
-    t->Branch("m_Hjj", &m_Hjj);
     t->Branch("pt_vis", &pt_vis);
     t->Branch("dphi", &dphi);
-    t->Branch("mt_tot", &mt_tot);
-    t->Branch("pfpt_tt", &pfpt_tt);
 
     t->Branch("passesIsoCuts", &passesIsoCuts);
     t->Branch("passesLepIsoCuts", &passesLepIsoCuts);
@@ -1641,10 +1620,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("extramuon_veto", &extramuon_veto);
 
     t->Branch("uncorrmet", &uncorrmet );
-    t->Branch("met", &met);
-    t->Branch("metphi", &metphi);
-    t->Branch("met_ex", &met_ex);
-    t->Branch("met_ey", &met_ey);
     t->Branch("corrmet", &corrmet);
     t->Branch("corrmetphi", &corrmetphi);
     t->Branch("corrmet_ex", &corrmet_ex);
@@ -1666,10 +1641,24 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("metcov10", &metcov10);
     t->Branch("metcov11", &metcov11);
 
-    // vec_njets.reserve( (unsigned int)JecUncertEnum::NONE );
 
     for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
     {
+
+        t->Branch( ("met"+jecShifts[shift].first).c_str(),      &met[shift]);
+        t->Branch( ("metphi"+jecShifts[shift].first).c_str(),   &metphi[shift]);
+        t->Branch( ("met_ex"+jecShifts[shift].first).c_str(),   &met_ex[shift]);
+        t->Branch( ("met_ey"+jecShifts[shift].first).c_str(),   &met_ey[shift]);
+        t->Branch( ("m_sv"+jecShifts[shift].first).c_str(),     &m_sv[shift]);
+        t->Branch( ("pt_sv"+jecShifts[shift].first).c_str(),    &pt_sv[shift]);
+        t->Branch( ("pt_tt"+jecShifts[shift].first).c_str(),    &pt_tt[shift]);
+        t->Branch( ("pt_ttjj"+jecShifts[shift].first).c_str(),  &pt_ttjj[shift]);
+        t->Branch( ("m_ttjj"+jecShifts[shift].first).c_str(),   &m_ttjj[shift]);
+        t->Branch( ("pt_sum"+jecShifts[shift].first).c_str(),   &pt_sum[shift]);
+        t->Branch( ("mt_1"+jecShifts[shift].first).c_str(),     &mt_1[shift]);
+        t->Branch( ("mt_2"+jecShifts[shift].first).c_str(),     &mt_2[shift]);
+        t->Branch( ("mt_tot"+jecShifts[shift].first).c_str(),   &mt_tot[shift]);
+
         t->Branch( ("njets"+jecShifts[shift].first).c_str() ,      &njets[shift]);
 
         t->Branch( ("njetspt20"+jecShifts[shift].first).c_str(),   &njetspt20[shift]);
