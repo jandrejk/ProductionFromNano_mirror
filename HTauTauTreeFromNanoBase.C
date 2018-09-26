@@ -22,7 +22,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
 
     isMC = Settings["isMC"].get<bool>();
     isSync = Settings["isSync"].get<bool>();
+    applyRecoil = Settings["recoil"].get<bool>();
 
+    httJetCollection.initCollection(isMC, applyRecoil, isSync);
 
     ///Init HTT ntuple
     initHTTTree(tree, prefix);
@@ -42,7 +44,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Initialization of RecoilCorrector
-    if( Settings["recoil"].get<bool>() )
+    if( applyRecoil )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root";
@@ -100,7 +102,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     httFile = std::unique_ptr<TFile>( new TFile(fileName.c_str(),"RECREATE") );
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
     httEvent->setSampleType( Settings["sample"].get<string>() );
-    httEvent->setNeededJECShifts(isSync);
 
     //  httTree = new TTree("HTauTauTree","");
     //  httTree->SetDirectory(httFile);
@@ -110,7 +111,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
-    evtWriter->initTree(t_TauCheck, httEvent->getNeededJECShifts() , isMC, isSync);
+    evtWriter->initTree(t_TauCheck, httJetCollection.getNeededJECShifts() , isMC, isSync);
     
     leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
 
@@ -336,17 +337,16 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
 
             HTTPair & bestPair = httPairCollection[0];
+            addMetToPair(bestPair); //Add after pair is filled to propagate shifts from TES right.
 
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
-                for(int i = 0; i < 10;i++){
-                    computeSvFit(bestPair, HTTParticle::corrType);
-                }
+                computeSvFit(bestPair);
             }
 
 
-            evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
+            evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
             evtWriter->entry=entry++;
             evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
@@ -645,21 +645,7 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
 
         ///JEC uncertaintes
-        // getValuesAfterJecSplitting(iJet);
         aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );
-
-        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc){
-        //     //Only need up since shifts are symmetric
-        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, iUnc ,true), true  );
-        // }
-
-        // Fallback when jec uncerts get asymmetric
-        // Up
-        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,true), true  );
-        // // Down
-        // for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-        //     aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,false), false  );
 
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), "Jet");
         ///Set jet PDG id by hand
@@ -672,6 +658,17 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
     //Set Jet collection to unshifted jets
     httJetCollection.fillCurrentCollections();
 
+}
+void HTauTauTreeFromNanoBase::addMetToPair(HTTPair &aPair)
+{
+    TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
+    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+
+    for(auto shift : httJetCollection.getNeededJECShifts() )
+    {
+        aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
+    }
+    aPair.setCurrentMETShift(""); //Explicitly set current met to unshifted
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1224,14 +1221,11 @@ bool HTauTauTreeFromNanoBase::buildPairs()
             if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
             debugWayPoint("[buildPairs] No overlap");
 
-            TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
+
             HTTPair aHTTpair;
 
             aHTTpair.setLeg1(httLeptonCollection.at(iL1),iL1);
             aHTTpair.setLeg2(httLeptonCollection.at(iL2),iL2);
-
-            aHTTpair.setMET(met); // Set MET after legs to propagate shifts to MET
-            aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
             
             httPairs_.push_back(aHTTpair); 
         }
@@ -1714,8 +1708,7 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
-                                           HTTAnalysis::sysEffects type)
+void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
 {
     if(svFitAlgo_==nullptr) return;
 
@@ -1754,40 +1747,40 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
 
     }else{//tau->hadrs.
         decay2 = leg2.getProperty(PropertyEnum::decayMode);
-        if( (  (unsigned int)leg2.getProperty(HTTEvent::usePropertyFor.at("tauID")) & 0x10 ) == 0x10 ) return;
         mass2 = leg2.getP4().M();
         if(decay2==0) mass2 = 0.13957; //pi+/- mass
         type2 = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     }
     //Leptons for SvFit
     std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
-    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4(type).Pt(), leg1.getP4(type).Eta(), leg1.getP4(type).Phi(), mass1, decay1) );
-    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4(type).Pt(), leg2.getP4(type).Eta(), leg2.getP4(type).Phi(), mass2, decay2) );
+    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4().Pt(), leg1.getP4().Eta(), leg1.getP4().Phi(), mass1, decay1) );
+    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4().Pt(), leg2.getP4().Eta(), leg2.getP4().Phi(), mass2, decay2) );
     //MET
-    TVector2 aMET = aPair.getMET(type);
+
     TMatrixD covMET(2, 2);
     covMET[0][0] = aPair.getMETMatrix().at(0);
     covMET[0][1] = aPair.getMETMatrix().at(1);
     covMET[1][0] = aPair.getMETMatrix().at(2);
     covMET[1][1] = aPair.getMETMatrix().at(3);
+    if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix    
 
-    if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix
-
-    TLorentzVector p4SVFit = aPair.getP4(HTTAnalysis::NOMINAL);
-    TLorentzVector leg1P4Nominal = leg1.getP4(HTTAnalysis::NOMINAL);
-    TLorentzVector leg2P4Nominal = leg2.getP4(HTTAnalysis::NOMINAL);
-
-    
-    if(type==HTTAnalysis::NOMINAL
-       || leg1.getP4(type)!=leg1P4Nominal
-       || leg2.getP4(type)!=leg2P4Nominal)
+    TLorentzVector p4SVFit; 
+    for(auto shift : httJetCollection.getNeededJECShifts() )
     {
-         p4SVFit = runSVFitAlgo(measuredTauLeptons, aMET, covMET);
-    }
+        p4SVFit.SetPtEtaPhiM(-10,-.10,-10,-10);
 
-    aPair.setP4(p4SVFit,type);
-    aPair.setLeg1P4(p4Leg1SVFit,type);
-    aPair.setLeg2P4(p4Leg2SVFit,type);
+        aPair.setCurrentMETShift(shift.first);
+
+        //Only calculate svfit for shapes that are in SR
+        if( ( strcmp(shift.first.c_str(),"") != 0 && aPair.isInLooseSR() )
+            || ( HTTParticle::corrType != HTTAnalysis::NOMINAL && aPair.isInLooseSR() )
+            || ( strcmp(shift.first.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
+        ){
+            p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
+        }
+
+        aPair.setP4(p4SVFit,shift.first);
+    }
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1834,8 +1827,6 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 
     }else{
         p4SVFit.SetPtEtaPhiM(0,0,0,0);
-        p4Leg1SVFit.SetPtEtaPhiM(0,0,0,0);
-        p4Leg2SVFit.SetPtEtaPhiM(0,0,0,0);
     }
 
     return p4SVFit;
@@ -1851,8 +1842,8 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections()
         || httEvent->getSampleType() == HTTEvent::TTbar
         || httEvent->getSampleType() == HTTEvent::ST
         || httEvent->getSampleType() == HTTEvent::Diboson
-    )
-      return;
+    ) return;
+
     TVector2 theUncorrMEt;
     float corrMEtPx, corrMEtPy;
     int nJets = httJetCollection.getNJets(20);
@@ -1907,7 +1898,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections()
               corrMEtPy+=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::NOMINAL).Y();
               corrMEtPy+=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::NOMINAL).Y();
           }
-          httPairCollection[iPair].setMET( TVector2(corrMEtPx,corrMEtPy) );
+          httPairCollection[iPair].setMET( TVector2(corrMEtPx,corrMEtPy), "" );
 
           //recompute mT's using consistently TES corrected MEt and Pt
           // double mTLeg1 = TMath::Sqrt(2.*httPairCollection[iPair].getLeg1().getP4().Pt()*httPairCollection[iPair].getMET().Mod()*(1.-TMath::Cos(httPairCollection[iPair].getLeg1().getP4().Phi()-httPairCollection[iPair].getMET().Phi())));

@@ -24,6 +24,7 @@
 #include "Math/LorentzVector.h"
 
 #include "HTTEvent.h"
+#include <string.h>
 #include <vector>
 #include <iostream>
 #include "json.hpp"
@@ -64,6 +65,7 @@ public :
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
   void fillEvent(unsigned int bestPairIndex = 9999);
   virtual bool buildPairs();
+  virtual void addMetToPair(HTTPair &aPair);  
   virtual void fillPairs(unsigned int bestPairIndex);
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
@@ -78,7 +80,7 @@ public :
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
-  void computeSvFit(HTTPair &aPair, HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL);
+  void computeSvFit(HTTPair &aPair);
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
@@ -147,6 +149,7 @@ public :
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
   bool isMC;
   bool isSync;
+  bool applyRecoil;
   int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
