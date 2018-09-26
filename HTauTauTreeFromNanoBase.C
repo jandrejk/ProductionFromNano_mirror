@@ -117,8 +117,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80;
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80;
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90;
     HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
@@ -760,13 +760,13 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
             // Passes baseline cuts
             if(elePt >  LeptonCuts::Baseline.Electron.pt
                 && eleEta < LeptonCuts::Baseline.Electron.eta
-                && eleIDWP80
+                && eleIDWP90
             ) bitmask |= LeptonCuts::Baseline.bitmask;
 
             // Passes additional lepton cuts
             if(elePt >  LeptonCuts::Additional.Electron.pt
                 && eleEta < LeptonCuts::Additional.Electron.eta
-                && eleIDWP80
+                && eleIDWP90
                 && eleIso
             ) bitmask |= LeptonCuts::Additional.bitmask;
 
