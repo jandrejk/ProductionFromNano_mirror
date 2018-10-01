@@ -102,17 +102,18 @@ class EventWriter
   int genJet_match_1;
   int genJet_match_2;
   //////////////////////////////////////////////////////////////////  
-  int trg_singlemuon;
-  int trg_singlemuon_lowpt;
-  int trg_muontau_lowptmu;
-  int trg_singleelectron;
-  int trg_singleelectron_lowpt;
-  int trg_electrontau;
   int trg_singletau_leading;
   int trg_singletau_trailing;
-  int trg_doubletau;
-  int trg_doubletau_mediso;
-  int trg_doubletau_lowpt;
+  int trg_singlemuon_27;
+  int trg_singlemuon_24;
+  int trg_crossmuon_mu20tau27;
+  int trg_singleelectron_35;
+  int trg_singleelectron_32;
+  int trg_singleelectron_27;
+  int trg_crossele_ele24tau30;
+  int trg_doubletau_40_tightiso;
+  int trg_doubletau_40_mediso_tightid;
+  int trg_doubletau_35_tightiso_tightid;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
   int Flag_METFilters;

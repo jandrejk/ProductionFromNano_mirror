@@ -126,6 +126,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     HTTEvent::usePropertyFor["tauID"]              = PropertyEnum::idMVAoldDM2017v2;
 
     ///Trigger bits to check
+    /// Must be aligned with TriggerEnum.h
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
     TriggerData aTrgData;
 
@@ -133,8 +134,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     // Electron
     // 0 CaloIdL_TrackIdL_IsoVL                CaloIdLTrackIdLIsoVL*TrackIso*Filter
-    // 1 WPLoose                               hltEle*WPTight*TrackIsoFilter*
-    // 2 WPTight                               hltEle*WPLoose*TrackIsoFilter
+    // 1 WPTight                               hltEle*WPTight*TrackIsoFilter*
+    // 2 WPLoose                               hltEle*WPLoose*TrackIsoFilter
     // 3 OverlapFilter PFTau                   *OverlapFilterIsoEle*PFTau*
 
     // Muon
@@ -189,12 +190,18 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     //Single e triggers
     triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
+    triggerBits_.back().leg1Id=11;
+    triggerBits_.back().leg1BitMask=(1<<1);
+    triggerBits_.back().leg1Pt=27;
+    triggerBits_.back().leg1L1Pt=-1;
+
+    triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
     triggerBits_.back().leg1Pt=32;
     triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=26;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
@@ -202,7 +209,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1BitMask=(1<<1);
     triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=26;
 
 
     triggerBits_.push_back(aTrgData);

@@ -115,33 +115,34 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     if ( channel == HTTAnalysis::MuTau ) //mu-tau
     {
         trg_singletau_leading= false;
-        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
 
-        trg_singlemuon =       leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
-        trg_singlemuon_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
+        trg_singlemuon_27 =    leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu27);
+        trg_singlemuon_24 =    leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu24);
 
-        trg_muontau_lowptmu=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
-                              && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
+        trg_crossmuon_mu20tau27=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
+                                  && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1);
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
         trg_singletau_leading= false;
-        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
 
-        trg_singleelectron =       leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
-        trg_singleelectron_lowpt = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
+        trg_singleelectron_35 =    leg1.hasTriggerMatch(TriggerEnum::HLT_Ele35_WPTight_Gsf);
+        trg_singleelectron_32 =    leg1.hasTriggerMatch(TriggerEnum::HLT_Ele32_WPTight_Gsf);
+        trg_singleelectron_27 =    leg1.hasTriggerMatch(TriggerEnum::HLT_Ele27_WPTight_Gsf);
 
-        trg_electrontau = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1) 
-                          && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1);
+        trg_crossele_ele24tau30 = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1) 
+                                  && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1);
 
     } else if ( channel == HTTAnalysis::TauTau )
     {
-        trg_singletau_leading= leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
-        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg);
+        trg_singletau_leading= leg1.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
+        trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
 
-        trg_doubletau=        ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) );
-        trg_doubletau_mediso= ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
-        trg_doubletau_lowpt=  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) );
+        trg_doubletau_40_tightiso=          ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) );
+        trg_doubletau_40_mediso_tightid=    ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) );
+        trg_doubletau_35_tightiso_tightid=  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) );
     }
 
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
@@ -1017,17 +1018,18 @@ void EventWriter::setDefault(){
     genJet_match_1=DEF;
     genJet_match_2=DEF;
     //////////////////////////////////////////////////////////////////  
-    trg_singlemuon=DEF;
-    trg_singlemuon_lowpt=DEF;
-    trg_muontau_lowptmu=DEF;
-    trg_singleelectron=DEF;
-    trg_singleelectron_lowpt=DEF;
-    trg_electrontau=DEF;
-    trg_singletau_leading=DEF;
-    trg_singletau_trailing=DEF;
-    trg_doubletau=DEF;
-    trg_doubletau_mediso=DEF;
-    trg_doubletau_lowpt=DEF;
+    trg_singletau_leading=false;
+    trg_singletau_trailing=false;
+    trg_singlemuon_27=false;
+    trg_singlemuon_24=false;
+    trg_crossmuon_mu20tau27=false;
+    trg_singleelectron_35=false;
+    trg_singleelectron_32=false;
+    trg_singleelectron_27=false;
+    trg_crossele_ele24tau30=false;
+    trg_doubletau_40_tightiso=false;
+    trg_doubletau_40_mediso_tightid=false;
+    trg_doubletau_35_tightiso_tightid=false;
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
     Flag_HBHENoiseFilter=DEF;
     Flag_HBHENoiseIsoFilter=DEF;
@@ -1749,18 +1751,18 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
     t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
 
-    t->Branch("trg_singlemuon" ,&trg_singlemuon);
-    t->Branch("trg_singlemuon_lowpt" ,&trg_singlemuon_lowpt);
-    t->Branch("trg_muontau_lowptmu" ,&trg_muontau_lowptmu);
-    t->Branch("trg_electrontau", &trg_electrontau);
-    t->Branch("trg_singleelectron" ,&trg_singleelectron);
-    t->Branch("trg_singleelectron_lowpt" ,&trg_singleelectron_lowpt);
-    t->Branch("trg_singletau_leading" ,&trg_singletau_leading);
-    t->Branch("trg_singletau_trailing" ,&trg_singletau_trailing);
-    t->Branch("trg_doubletau" ,&trg_doubletau);
-    t->Branch("trg_doubletau_mediso" ,&trg_doubletau_mediso);
-    t->Branch("trg_doubletau_lowpt" ,&trg_doubletau_lowpt);
-    t->Branch("trg_muonelectron", &trg_muonelectron);
+    t->Branch("trg_singletau_leading", &trg_singletau_leading);
+    t->Branch("trg_singletau_trailing", &trg_singletau_trailing);
+    t->Branch("trg_singlemuon_27", &trg_singlemuon_27);
+    t->Branch("trg_singlemuon_24", &trg_singlemuon_24);
+    t->Branch("trg_crossmuon_mu20tau27", &trg_crossmuon_mu20tau27);
+    t->Branch("trg_singleelectron_35", &trg_singleelectron_35);
+    t->Branch("trg_singleelectron_32", &trg_singleelectron_32);
+    t->Branch("trg_singleelectron_27", &trg_singleelectron_27);
+    t->Branch("trg_crossele_ele24tau30", &trg_crossele_ele24tau30);
+    t->Branch("trg_doubletau_40_tightiso", &trg_doubletau_40_tightiso);
+    t->Branch("trg_doubletau_40_mediso_tightid", &trg_doubletau_40_mediso_tightid);
+    t->Branch("trg_doubletau_35_tightiso_tightid", &trg_doubletau_35_tightiso_tightid);
 
     t->Branch("fileEntry", &fileEntry);
     t->Branch("entry", &entry);
