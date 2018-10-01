@@ -277,8 +277,6 @@ void HTTJetCollection::initCollection(bool isMC, bool applyRecoil, bool isSync)
 }
 void HTTJetCollection::clear()
 {
-    usePromoteDemote = false;
-
     dijet.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
 
     jetCollection.clear();

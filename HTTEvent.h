@@ -509,7 +509,7 @@ class HTTJetCollection
 
     static bool sortJets(HTTJet j1, HTTJet j2);
 
-    bool usePromoteDemote;
+    bool usePromoteDemote = false;
     BTagCalibration calib;
     BTagCalibrationReader reader;
     TFile *eff_file;
