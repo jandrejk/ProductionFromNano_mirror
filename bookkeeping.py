@@ -258,7 +258,9 @@ class Bookkeeping():
       print_summary += "\n{0}\033[1m{1}\033[0m{0}\n\n".format( " "*((83 - len(sample))/2), sample )
       print_summary += "{0}{1} ET {1}{1} MT {1}{1} TT {1}_\n".format("_"*16, "_"*9)
       print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
-      for shift in self.summary[sample]:
+      shifts = self.summary[sample].keys()
+      shifts.sort()
+      for shift in shifts:
         line = {"et":" "*21,"mt":" "*21,"tt":" "*21}
         for channel in self.summary[sample][shift]:
           
@@ -297,7 +299,7 @@ class Bookkeeping():
             ft = " {0}/{1}/{2}/{3}/{4} ".format( cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
             line[channel] = ft
 
-        print_summary += "{0} |{1}|{2}|{3}|\n".format(" "*(15 - len(shift)) + shift, line["et"], line["mt"], line["tt"])
+        print_summary += "{0} |{1}|{2}|{3}|\n".format("  "+ shift +" "*(15 - len(shift)), line["et"], line["mt"], line["tt"])
 
       print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
       print_summary += "="*83 + "\n"
@@ -316,7 +318,7 @@ def cS(string, color):
   if string == 0: s = " "
   else: s = str(string)
 
-  if not color: c = "\033[1;30m"
+  if not color: c = "\033[1m"
   if color == "r": c = "\033[1;31m"
   if color == "g": c = "\033[1;32m"
   if color == "y": c = "\033[1;33m"
