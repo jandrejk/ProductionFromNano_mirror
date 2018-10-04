@@ -386,7 +386,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
 
         if ( njetspt20[shift] >=1 )
         {
-            jpt_1[shift]   =  jets->getJet(0).Pt();
+            jpt_1[shift]   = jets->getJet(0).Pt();
             jeta_1[shift]  = jets->getJet(0).Eta();
             jphi_1[shift]  = jets->getJet(0).Phi();
             if( strcmp(jecShifts[shift].first.c_str(), "") == 0 )
@@ -473,26 +473,24 @@ void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
         mt_1[shift]=pair->getMTLeg1();
         mt_2[shift]=pair->getMTLeg2();
 
-        m_sv[shift]=pair->getP4().M();
-        pt_sv[shift]=pair->getP4().Pt();
+        m_sv[shift]=pair->getP4(HTTPair::SVFit).M();
+        pt_sv[shift]=pair->getP4(HTTPair::SVFit).Pt();
 
-        pt_tt[shift]=pair->getPT_TT();
+        pt_tt[shift]=pair->getP4( HTTPair::Simple ).Pt();
         mt_tot[shift]=pair->getMTTOT();
         pt_sum[shift]=pt_1+pt_2+met[shift];
 
+        htxs_reco_ggf[shift] = (int)getStage1Category(HiggsProdMode::GGF, pair->getP4( HTTPair::Simple ), jets);
+        htxs_reco_vbf[shift] = (int)getStage1Category(HiggsProdMode::VBF, pair->getP4( HTTPair::Simple ), jets);
         //////////////////////////////////////////////////////////////////
-        TLorentzVector vmet; vmet.SetPxPyPzE( met_ex[shift], met_ey[shift], 0., sqrt( met_ex[shift]*met_ex[shift] + met_ey[shift]*met_ey[shift] ) );
-        TLorentzVector ttjj = leg1P4 + leg2P4 + vmet;
-        if ( njetspt20[0] >=1 )
-        {
-            ttjj += jets->getJet(0).P4();
-        }
+        TLorentzVector ttjj; ttjj.SetPtEtaPhiM(-10,-10,-10,-10);
         if ( njetspt20[0] >=2 )
         {
-            ttjj += jets->getJet(1).P4();
+            ttjj = pair->getP4( HTTPair::Simple ) + jets->getJet(0).P4() + jets->getJet(1).P4();
         }
         pt_ttjj[shift] = ttjj.Pt();
         m_ttjj[shift] = ttjj.M();
+        //////////////////////////////////////////////////////////////////
     }
     jets->setCurrentUncertShift( "", true );
     pair->setCurrentMETShift( "" );
@@ -1176,6 +1174,8 @@ void EventWriter::setDefault(){
         jeta_2[shift]=DEF;
         jphi_1[shift]=DEF;
         jphi_2[shift]=DEF;
+        htxs_reco_ggf[shift]=0;
+        htxs_reco_vbf[shift]=0;
     }
 
     jm_1=DEF;
@@ -1678,6 +1678,9 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch( ("jeta_2"+jecShifts[shift].first).c_str(),      &jeta_2[shift]);
         t->Branch( ("jphi_1"+jecShifts[shift].first).c_str(),      &jphi_1[shift]);
         t->Branch( ("jphi_2"+jecShifts[shift].first).c_str(),      &jphi_2[shift]);
+
+        t->Branch( ("htxs_reco_ggf"+jecShifts[shift].first).c_str(), &htxs_reco_ggf[shift]);
+        t->Branch( ("htxs_reco_vbf"+jecShifts[shift].first).c_str(), &htxs_reco_vbf[shift]);
     }
     
     t->Branch("jm_1", &jm_1);

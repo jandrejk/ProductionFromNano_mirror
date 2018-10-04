@@ -1,4 +1,5 @@
 #include "HTTEvent.h"
+#include "HTXSClassification.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //#include "TMatrixD.h"
@@ -18,7 +19,6 @@ class EventWriter
 {
 
  public:
-
   //ClassDef(EventWriter,0);
 
   HTTParticle leg1, leg2;
@@ -329,6 +329,8 @@ class EventWriter
   float pt_ttjj[56];
   float m_ttjj[56];
   float pt_sum[56];
+  int htxs_reco_ggf[56];
+  int htxs_reco_vbf[56];
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
