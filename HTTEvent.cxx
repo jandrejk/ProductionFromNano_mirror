@@ -165,10 +165,23 @@ void HTTPair::clear()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getP4()
+const TLorentzVector HTTPair::getP4(P4Type type)
 {
-    if( p4Vector.find(lastMETShift) == p4Vector.end() ) return p4Vector.at("");
-    return p4Vector.at(lastMETShift);
+    if(type == P4Type::SVFit)
+    {
+      if( p4Vector.find(lastMETShift) == p4Vector.end() ) return p4Vector.at("");
+      return p4Vector.at(lastMETShift);
+
+    } else if(type == P4Type::Simple)
+    {
+      TLorentzVector vmet; 
+      vmet.SetPtEtaPhiM(getMET().Mod(),0,getMET().Phi(),0);
+
+      return (vmet + leg1.getP4() + leg2.getP4() );
+    } else
+    {
+      return ( leg1.getP4() + leg2.getP4() );
+    }
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -219,16 +232,6 @@ float HTTPair::getMTTOT(HTTAnalysis::sysEffects defaultType) const
   float mt2 = 2. * leg2.getP4(type).Pt() * getMET().Mod() * (1. - TMath::Cos(leg2.getP4(type).Phi()-getMET().Phi()));
   float mt3 = 2. * leg1.getP4(type).Pt() * leg2.getP4(type).Pt() * (1. - TMath::Cos(leg1.getP4(type).Phi()-leg2.getP4(type).Phi()));
   return TMath::Sqrt( mt1 + mt2 + mt3 );
-}
-
-float HTTPair::getPT_TT(HTTAnalysis::sysEffects defaultType) const
-{
-  HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
-
-  TLorentzVector vmet; 
-  vmet.SetPtEtaPhiM(getMET().Mod(),0,getMET().Phi(),0);
-
-  return (vmet + leg1.getP4(type) + leg2.getP4(type) ).Pt();
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

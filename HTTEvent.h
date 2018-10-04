@@ -377,7 +377,8 @@ class HTTPair
     void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 
     ///Data member getters.
-    const TLorentzVector & getP4();
+    enum P4Type{ Vis = 0, Simple = 1, SVFit = 2};
+    const TLorentzVector getP4(P4Type type = P4Type::SVFit);
 
     const TVector2 & getMET() const {return metCache;}
 
@@ -390,7 +391,6 @@ class HTTPair
 
     float getMVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return  ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).M(); }
     float getPTVis(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const {return ( leg1.getP4(defaultType) + leg2.getP4(defaultType) ).Pt(); }
-    float getPT_TT(HTTAnalysis::sysEffects defaultType = HTTAnalysis::NOMINAL) const; 
 
     int getIndexLeg1() {return indexLeg1;}
     int getIndexLeg2() {return indexLeg2;}
@@ -495,7 +495,7 @@ class HTTJetCollection
 
     vector< pair< string, pair<string,bool> > > getNeededJECShifts(){ return jecShifts; }
     const TVector2 getTotalJetShift(string uncert, bool up);
-    HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
+     HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
     HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
 
     int getNJets(double pt = 20);
