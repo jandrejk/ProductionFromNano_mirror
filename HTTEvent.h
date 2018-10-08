@@ -513,9 +513,9 @@ class HTTJetCollection
     BTagCalibration calib;
     BTagCalibrationReader reader;
     TFile *eff_file;
-    TH2F *hb_eff;
-    TH2F *hc_eff;
-    TH2F *hoth_eff;
+    TH2D *hb_eff;
+    TH2D *hc_eff;
+    TH2D *hoth_eff;
 
     // Names of JES uncertainty shifts.
     vector< pair< string, pair<string,bool> > > jecShifts;

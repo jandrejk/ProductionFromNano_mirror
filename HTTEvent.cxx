@@ -299,9 +299,9 @@ void HTTJetCollection::initForPromoteDemote()
   reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
 
   eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_march2018_btageff-all_samp-inc-DeepCSV_medium.root");
-  hb_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_b") );
-  hc_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_c") );
-  hoth_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_oth") );
+  hb_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_b") );
+  hc_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_c") );
+  hoth_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_oth") );
 
 }
 ////////////////////////////////////////////////
@@ -335,7 +335,7 @@ void HTTJetCollection::btagPromoteDemote(){
     }
     ++index;
   }
-  
+    
   for(auto & jet : antibtagCurrentCollection){
     jetPt=  jet.Pt();
     jetEta= jet.Eta();
@@ -346,7 +346,6 @@ void HTTJetCollection::btagPromoteDemote(){
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
       
       scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
-
       if(jetPt>hb_eff->GetXaxis()->GetBinLowEdge(hb_eff->GetNbinsX()+1))     tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetNbinsX(),hb_eff->GetYaxis()->FindBin(fabs( jetEta ) )); 
       else                                                                   tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetXaxis()->FindBin(jetPt),hb_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }
