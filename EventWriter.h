@@ -69,13 +69,19 @@ class EventWriter
   float idisoweight_1;
   float anti_idisoweight_1;
   float idisoweight_2;
-  float trk_sf;
-  float reco_sf;
   float effweight;
-  float weight_SingleOrCross;
+
+  float sf_trk;
+  float sf_reco;
+  float sf_SingleOrCrossTrigger;
+  float sf_SingleXorCrossTrigger;
+  float sf_SingleTrigger;
+  float sf_DoubleTauTight;
+  float sf_DoubleTauVTight;
+
   float stitchedWeight;
-  float topWeight;
-  float topWeight_run1;
+  float topPtReweightWeightRun1;
+  float topPtReweightWeightRun2;
   float zPtReweightWeight;
   float zpt_weight_nom;
   float zpt_weight_esup;
@@ -398,7 +404,8 @@ class EventWriter
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
   RooWorkspace *w;
-  TauTriggerSFs2017 *tauTrigSF;
+  TauTriggerSFs2017 *tauTrigSFTight;
+  TauTriggerSFs2017 *tauTrigSFVTight;
   vector< pair< string, pair<string,bool> > > jecShifts;
 
   vector<TLorentzVector> addlepton_p4;
