@@ -298,7 +298,7 @@ void HTTJetCollection::initForPromoteDemote()
   reader.load(calib,  BTagEntry::FLAV_C, "comb");
   reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
 
-  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_Moriond2017.root");
+  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_march2018_btageff-all_samp-inc-DeepCSV_medium.root");
   hb_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_b") );
   hc_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_c") );
   hoth_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_oth") );
