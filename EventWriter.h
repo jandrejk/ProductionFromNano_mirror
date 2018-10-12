@@ -31,7 +31,7 @@ class EventWriter
   Float_t lumiWeight;
   Int_t run_syncro;
   Float_t lumi_syncro;
-  ULong64_t evt_syncro;
+  int evt_syncro;
   int entry;
   Int_t fileEntry;
 
