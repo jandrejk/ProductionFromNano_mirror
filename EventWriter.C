@@ -47,10 +47,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     fillPairBranches(pair, jets);
     fillAdditionalLeptons( leptons, pair );
 
-
-
-
-
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
     genJets=DEF;
@@ -823,6 +819,8 @@ void EventWriter::fillScalefactors()
         w->var("e_eta")->setVal( eta_1 );
 
         singleTriggerSFLeg1 = w->function("e_trg_27_32_35_ratio")->getVal();
+        s1_data = w->function("e_trg_27_32_35_data")->getVal();
+        s1_mc   = w->function("e_trg_27_32_35_mc")->getVal();        
 
         if( std::abs(eta_1) < 2.1 )
         {
@@ -843,7 +841,7 @@ void EventWriter::fillScalefactors()
 
         sf_reco = w->function("e_reco_ratio")->getVal();
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg2;
+        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
