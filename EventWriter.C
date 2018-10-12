@@ -441,31 +441,34 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
         }
     }
     jets->setCurrentUncertShift("",true);
-
-    nbtag= jets->getNBtag();
-    if (nbtag >= 1)
+    for(unsigned int shift = 0; shift<btagShifts.size(); ++shift )
     {
-        bpt_1=   jets->getBtagJet(0).Pt();
-        beta_1=  jets->getBtagJet(0).Eta();
-        bphi_1=  jets->getBtagJet(0).Phi();
-        brawf_1= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
-        bmva_1=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
-        bcsv_1=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
-    }
+        jets->btagPromoteDemote( btagShifts[shift].second.first, btagShifts[shift].second.second );
+        nbtag[shift]= jets->getNBtag();
+        if (nbtag[shift] >= 1)
+        {
+            bpt_1[shift]=   jets->getBtagJet(0).Pt();
+            beta_1[shift]=  jets->getBtagJet(0).Eta();
+            bphi_1[shift]=  jets->getBtagJet(0).Phi();
+            brawf_1[shift]= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
+            bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
+            bcsv_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
+        }
 
-    if (nbtag >= 2)
-    {
-        bpt_2=   jets->getBtagJet(1).Pt();
-        beta_2=  jets->getBtagJet(1).Eta();
-        bphi_2=  jets->getBtagJet(1).Phi();
-        brawf_2= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
-        bmva_2=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
-        bcsv_2=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
-    }
+        if (nbtag[shift] >= 2)
+        {
+            bpt_2[shift]=   jets->getBtagJet(1).Pt();
+            beta_2[shift]=  jets->getBtagJet(1).Eta();
+            bphi_2[shift]=  jets->getBtagJet(1).Phi();
+            brawf_2[shift]= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
+            bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
+            bcsv_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
+        }
 
 
-    if (pdg1==15) gen_match_jetId_1=getGenMatch_jetId(leg1P4,jets);
-    if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);    
+        if (pdg1==15) gen_match_jetId_1=getGenMatch_jetId(leg1P4,jets);
+        if (pdg2==15) gen_match_jetId_2=getGenMatch_jetId(leg2P4,jets);
+    } 
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1201,19 +1204,21 @@ void EventWriter::setDefault(){
     jcsv_1=DEF;
     jcsv_2=DEF;
 
-    nbtag=DEF;
-    bpt_1=DEF;
-    beta_1=DEF;
-    bphi_1=DEF;
-    brawf_1=DEF;
-    bmva_1=DEF;
-    bcsv_1=DEF;
-    bpt_2=DEF;
-    beta_2=DEF;
-    bphi_2=DEF;
-    brawf_2=DEF;
-    bmva_2=DEF;
-    bcsv_2=DEF;
+    for(int i =0 ; i < 5; ++i){
+        nbtag[i]=DEF;
+        bpt_1[i]=DEF;
+        beta_1[i]=DEF;
+        bphi_1[i]=DEF;
+        brawf_1[i]=DEF;
+        bmva_1[i]=DEF;
+        bcsv_1[i]=DEF;
+        bpt_2[i]=DEF;
+        beta_2[i]=DEF;
+        bphi_2[i]=DEF;
+        brawf_2[i]=DEF;
+        bmva_2[i]=DEF;
+        bcsv_2[i]=DEF;
+    }
     //////////////////////////////////////////////////////////////////
     uncorrmet=DEF;
     corrmet=DEF;
@@ -1351,6 +1356,13 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     isSync=isSync_;
 
     jecShifts = jecShifts_;
+    btagShifts.clear();
+    btagShifts.push_back( make_pair( "",           make_pair("central","central") ) );
+    btagShifts.push_back( make_pair( "MistagUp",   make_pair("up","central") ) );
+    btagShifts.push_back( make_pair( "MistagDown", make_pair("down","central") ) );
+    btagShifts.push_back( make_pair( "BtagUp",     make_pair("central","up") ) );
+    btagShifts.push_back( make_pair( "BtagDown",   make_pair("central","down") ) );
+
 
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight");
@@ -1707,19 +1719,22 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("jcsv_1", &jcsv_1);
     t->Branch("jcsv_2",&bcsv_2);    
 
-    t->Branch( "nbtag",&nbtag);
-    t->Branch("bpt_1", &bpt_1);
-    t->Branch("bpt_2", &bpt_2);    
-    t->Branch("beta_1", &beta_1);
-    t->Branch("beta_2", &beta_2);    
-    t->Branch("bphi_1", &bphi_1);
-    t->Branch("bphi_2", &bphi_2);    
-    t->Branch("brawf_1",&brawf_1);
-    t->Branch("brawf_2",&brawf_2);    
-    t->Branch("bmva_1",&bmva_1);
-    t->Branch("bmva_2",&bmva_2);    
-    t->Branch("bcsv_1", &bcsv_1);
-    t->Branch("bcsv_2", &bcsv_2);
+    for(unsigned int shift=0; shift < btagShifts.size(); ++shift )
+    {
+        t->Branch( ("nbtag"+btagShifts[shift].first).c_str(),   &nbtag[shift]);
+        t->Branch( ("bpt_1"+btagShifts[shift].first).c_str(),   &bpt_1[shift]);
+        t->Branch( ("bpt_2"+btagShifts[shift].first).c_str(),   &bpt_2[shift]);
+        t->Branch( ("beta_1"+btagShifts[shift].first).c_str(),  &beta_1[shift]);
+        t->Branch( ("beta_2"+btagShifts[shift].first).c_str(),  &beta_2[shift]);
+        t->Branch( ("bphi_1"+btagShifts[shift].first).c_str(),  &bphi_1[shift]);
+        t->Branch( ("bphi_2"+btagShifts[shift].first).c_str(),  &bphi_2[shift]);
+        t->Branch( ("brawf_1"+btagShifts[shift].first).c_str(), &brawf_1[shift]);
+        t->Branch( ("brawf_2"+btagShifts[shift].first).c_str(), &brawf_2[shift]);
+        t->Branch( ("bmva_1"+btagShifts[shift].first).c_str(),  &bmva_1[shift]);
+        t->Branch( ("bmva_2"+btagShifts[shift].first).c_str(),  &bmva_2[shift]);
+        t->Branch( ("bcsv_1"+btagShifts[shift].first).c_str(),  &bcsv_1[shift]);
+        t->Branch( ("bcsv_2"+btagShifts[shift].first).c_str(),  &bcsv_2[shift]);
+    }
 
     t->Branch("weight", &weight);
     t->Branch("eventWeight", &weight);
