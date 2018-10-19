@@ -6,11 +6,14 @@ import json
 import os
 
 def main():
-    # checkTokens()
+    checkTokens()
     # checkProxy()
     getHeplxPublicFolder()
 
 def checkTokens():
+
+        if not os.path.exists("kerberos"):
+            os.mkdir("kerberos")
 
         neededToken = getSystem(inverse=True)
         if neededToken == "cern.ch": return True
@@ -19,7 +22,9 @@ def checkTokens():
         (out,err) =  p.communicate()
 
         token = ""
+
         for line in out.splitlines():
+
             if "Ticket cache" in line:
                 token = line.split("FILE:")[1]
             if "Default principal" in line:
@@ -27,8 +32,6 @@ def checkTokens():
                     print "Get a kerberos token for: {0}".format( neededToken )
                     return False
                 else:
-                    if not os.path.exists("kerberos"):
-                        os.mkdir("kerberos")
                     shutil.copyfile(token, "kerberos/krb5_token")
                     return True
 
