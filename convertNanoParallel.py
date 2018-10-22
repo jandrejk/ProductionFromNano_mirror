@@ -85,6 +85,7 @@ print "Compiling...."
 
 assert gSystem.CompileMacro('HTTEvent.cxx','k')
 assert gSystem.CompileMacro('utils/TauTriggerSFs2017/src/TauTriggerSFs2017.cc','k')
+assert gSystem.CompileMacro('HTXSClassification.cc','k')
 assert gSystem.CompileMacro('EventWriter.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
 assert gSystem.CompileMacro('NanoEventsSkeleton.C','k')

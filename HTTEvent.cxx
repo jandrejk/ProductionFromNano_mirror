@@ -165,10 +165,23 @@ void HTTPair::clear()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-const TLorentzVector & HTTPair::getP4()
+const TLorentzVector HTTPair::getP4(P4Type type)
 {
-    if( p4Vector.find(lastMETShift) == p4Vector.end() ) return p4Vector.at("");
-    return p4Vector.at(lastMETShift);
+    if(type == P4Type::SVFit)
+    {
+      if( p4Vector.find(lastMETShift) == p4Vector.end() ) return p4Vector.at("");
+      return p4Vector.at(lastMETShift);
+
+    } else if(type == P4Type::Simple)
+    {
+      TLorentzVector vmet; 
+      vmet.SetPtEtaPhiM(getMET().Mod(),0,getMET().Phi(),0);
+
+      return (vmet + leg1.getP4() + leg2.getP4() );
+    } else
+    {
+      return ( leg1.getP4() + leg2.getP4() );
+    }
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -220,16 +233,6 @@ float HTTPair::getMTTOT(HTTAnalysis::sysEffects defaultType) const
   float mt3 = 2. * leg1.getP4(type).Pt() * leg2.getP4(type).Pt() * (1. - TMath::Cos(leg1.getP4(type).Phi()-leg2.getP4(type).Phi()));
   return TMath::Sqrt( mt1 + mt2 + mt3 );
 }
-
-float HTTPair::getPT_TT(HTTAnalysis::sysEffects defaultType) const
-{
-  HTTAnalysis::sysEffects type =  defaultType != HTTAnalysis::NOMINAL ? defaultType : HTTParticle::corrType;
-
-  TLorentzVector vmet; 
-  vmet.SetPtEtaPhiM(getMET().Mod(),0,getMET().Phi(),0);
-
-  return (vmet + leg1.getP4(type) + leg2.getP4(type) ).Pt();
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -277,8 +280,6 @@ void HTTJetCollection::initCollection(bool isMC, bool applyRecoil, bool isSync)
 }
 void HTTJetCollection::clear()
 {
-    usePromoteDemote = false;
-
     dijet.SetPtEtaPhiM(-10.,-10.,-10.,-10.);
 
     jetCollection.clear();
@@ -297,10 +298,10 @@ void HTTJetCollection::initForPromoteDemote()
   reader.load(calib,  BTagEntry::FLAV_C, "comb");
   reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
 
-  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_Moriond2017.root");
-  hb_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_b") );
-  hc_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_c") );
-  hoth_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_oth") );
+  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_march2018_btageff-all_samp-inc-DeepCSV_medium.root");
+  hb_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_b") );
+  hc_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_c") );
+  hoth_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_oth") );
 
 }
 ////////////////////////////////////////////////
@@ -334,7 +335,7 @@ void HTTJetCollection::btagPromoteDemote(){
     }
     ++index;
   }
-  
+    
   for(auto & jet : antibtagCurrentCollection){
     jetPt=  jet.Pt();
     jetEta= jet.Eta();
@@ -345,7 +346,6 @@ void HTTJetCollection::btagPromoteDemote(){
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
       
       scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
-
       if(jetPt>hb_eff->GetXaxis()->GetBinLowEdge(hb_eff->GetNbinsX()+1))     tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetNbinsX(),hb_eff->GetYaxis()->FindBin(fabs( jetEta ) )); 
       else                                                                   tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetXaxis()->FindBin(jetPt),hb_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }

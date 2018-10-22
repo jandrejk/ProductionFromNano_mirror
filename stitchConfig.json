@@ -51,7 +51,14 @@
 		"samples":	[
 			"VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018"
 		]
-	},	
+	},
+	"BASIS_ntuple_ggH":{
+		"data":false,
+		"stitching":false,
+		"samples":	[
+			"GluGluHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018"
+		]
+	},
 	"BASIS_ntuple_SingleElectron":{
 		"data":true,
 		"stitching":false,

@@ -2,6 +2,7 @@ enum class TriggerEnum {
 HLT_IsoMu24 = 0,
 HLT_IsoMu27,
 HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1,
+HLT_Ele27_WPTight_Gsf,
 HLT_Ele32_WPTight_Gsf,
 HLT_Ele35_WPTight_Gsf,
 HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1,

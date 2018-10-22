@@ -1,4 +1,5 @@
 #include "HTTEvent.h"
+#include "HTXSClassification.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //#include "TMatrixD.h"
@@ -18,7 +19,6 @@ class EventWriter
 {
 
  public:
-
   //ClassDef(EventWriter,0);
 
   HTTParticle leg1, leg2;
@@ -69,13 +69,19 @@ class EventWriter
   float idisoweight_1;
   float anti_idisoweight_1;
   float idisoweight_2;
-  float trk_sf;
-  float reco_sf;
   float effweight;
-  float weight_SingleOrCross;
+
+  float sf_trk;
+  float sf_reco;
+  float sf_SingleOrCrossTrigger;
+  float sf_SingleXorCrossTrigger;
+  float sf_SingleTrigger;
+  float sf_DoubleTauTight;
+  float sf_DoubleTauVTight;
+
   float stitchedWeight;
-  float topWeight;
-  float topWeight_run1;
+  float topPtReweightWeightRun1;
+  float topPtReweightWeightRun2;
   float zPtReweightWeight;
   float zpt_weight_nom;
   float zpt_weight_esup;
@@ -102,17 +108,18 @@ class EventWriter
   int genJet_match_1;
   int genJet_match_2;
   //////////////////////////////////////////////////////////////////  
-  int trg_singlemuon;
-  int trg_singlemuon_lowpt;
-  int trg_muontau_lowptmu;
-  int trg_singleelectron;
-  int trg_singleelectron_lowpt;
-  int trg_electrontau;
   int trg_singletau_leading;
   int trg_singletau_trailing;
-  int trg_doubletau;
-  int trg_doubletau_mediso;
-  int trg_doubletau_lowpt;
+  int trg_singlemuon_27;
+  int trg_singlemuon_24;
+  int trg_crossmuon_mu20tau27;
+  int trg_singleelectron_35;
+  int trg_singleelectron_32;
+  int trg_singleelectron_27;
+  int trg_crossele_ele24tau30;
+  int trg_doubletau_40_tightiso;
+  int trg_doubletau_40_mediso_tightid;
+  int trg_doubletau_35_tightiso_tightid;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
   int Flag_METFilters;
@@ -328,6 +335,8 @@ class EventWriter
   float pt_ttjj[56];
   float m_ttjj[56];
   float pt_sum[56];
+  int htxs_reco_ggf[56];
+  int htxs_reco_vbf[56];
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
@@ -395,7 +404,8 @@ class EventWriter
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
   RooWorkspace *w;
-  TauTriggerSFs2017 *tauTrigSF;
+  TauTriggerSFs2017 *tauTrigSFTight;
+  TauTriggerSFs2017 *tauTrigSFVTight;
   vector< pair< string, pair<string,bool> > > jecShifts;
 
   vector<TLorentzVector> addlepton_p4;
