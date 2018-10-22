@@ -58,7 +58,7 @@ if not "root://" in aFile: aFile = "file://" + aFile
 
 
 print "Using file: ",aFile
-if str( configBall["system"] ) == "lxbatch":
+if str( configBall["system"] ) == "lxbatch" or str( configBall["system"] ) == "condor":
     os.system("xrdcp {0} {1}".format(aFile, aFile.split("/")[-1] ) )
     aFile = aFile.split("/")[-1]
 
