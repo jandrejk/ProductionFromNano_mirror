@@ -14,6 +14,7 @@ files = glob.glob("{channel}-*.root".format(channel = channel) )
 
 summary = ""
 print "#####   VALIDATING ######"
+glob_error = 0
 for filename in files:
 	error = 0
 	tmpfile = R.TFile(filename)
@@ -21,11 +22,14 @@ for filename in files:
 		shutil.copyfile(filename, "/".join([outdir,filename]) )
 		remotefile = R.TFile("/".join([outdir,filename]))
 		if remotefile.IsOpen() and not remotefile.IsZombie():
+			os.chmod( "/".join([outdir,filename]), 0777)
 			summary += "file:{0}#DONE#\n".format(filename)
 		else: error = 1
 	else: error = 2
 
-	if error: summary += "file:{0}#ERROR{1}#\n".format(filename,error)
+	if error:
+		glob_error = error
+		summary += "file:{0}#ERROR{1}#\n".format(filename,error)
 
 	tmpfile.Close()
 
@@ -34,3 +38,5 @@ with open("copy_status.log","w") as FSO:
 
 if os.getcwd() != rundir:
 	shutil.copy("copy_status.log", "/".join([rundir,"copy_status.log"]) )
+
+sys.exit(glob_error)
