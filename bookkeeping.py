@@ -6,7 +6,7 @@ import glob
 import shutil
 import subprocess as sp
 import argparse
-from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
+from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
 
 def main():
 
@@ -40,10 +40,12 @@ class Bookkeeping():
 
     self.verbose = verbose
 
+
     host = getSystem()
     if "hephy" in host: 
       self.system = "hephybatch"
     elif "cern" in host: 
+      useToken("hephy")
       self.system = "lxbatch"
     else:
       print "Dont know host you are on. Only heplx and lxplus!"   
@@ -212,7 +214,7 @@ class Bookkeeping():
       shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
 
       if self.system == "lxbatch":
-        os.system( " bsub -q 1nd -J {0} submit.sh".format( failed[1] ) )
+        os.system( " bsub -q 2nd -J {0} submit.sh".format( failed[1] ) )
 
       if self.system == "hephybatch":
         os.system( "sbatch submit.sh" )        
@@ -299,7 +301,9 @@ class Bookkeeping():
             ft = " {0}/{1}/{2}/{3}/{4} ".format( cS(u,"r") ,cS(p,"b"),cS(r,"y"), cS(finished,"g"),cS(total,"") )
             line[channel] = ft
 
-        print_summary += "{0} |{1}|{2}|{3}|\n".format("  "+ shift +" "*(15 - len(shift)), line["et"], line["mt"], line["tt"])
+
+        print_summary += "{0} |{1}|{2}|{3}|\n".format("  "+shift + " "*(13 - len(shift)), line["et"], line["mt"], line["tt"])
+
 
       print_summary += "{0}|{1}|{1}|{1}|\n".format(" "*16, " "*21)
       print_summary += "="*83 + "\n"

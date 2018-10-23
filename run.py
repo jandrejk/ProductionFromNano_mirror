@@ -11,7 +11,7 @@ import shlex
 import argparse
 import string
 import json
-from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
+from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
 
 def main():
 
@@ -21,7 +21,7 @@ def main():
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t',
                                                                                            'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m',
                                                                                            'e0u','e1u','e10u','e0d','e1d','e10d','e0','e1','e10','e'], default = '')
-    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['batch','local'], default = 'local')
+    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
@@ -119,8 +119,14 @@ class SteerNanoProduction():
 
         cell = getSystem()
         if submit == "batch":
-            if cell == "cern.ch": self.submit = "lxbatch"
+            if cell == "cern.ch": self.submit = "lxplus"
             if cell == "hephy.at": self.submit = "hephybatch"
+
+        if submit == "condor":
+            if cell == "cern.ch": self.submit = "condor"
+            if cell == "hephy.at":
+                print "Sorry! Condor not available on heplx. Submitting to batch."
+                self.submit = "hephybatch"
 
         else: self.submit = submit
 
@@ -161,6 +167,7 @@ class SteerNanoProduction():
         self.certJson = cert
 
     def runOneSample(self, sample, channel, shift):
+        useToken("hephy")
         threads = []
         os.chdir(self.basedir)
 
@@ -173,15 +180,20 @@ class SteerNanoProduction():
         assert sample
         sample = sample.split("/")[-1].replace(".txt","")
 
-        # with open("submit_on_hephybatch.sh") as FSO:
-        if not self.submit == "local":
-            with open("submit_on_{0}.sh".format(self.submit) ) as FSO:
-                templ = string.Template( FSO.read() )
-
-        runpath = "/".join([self.basedir,"out", sample, 'rundir_{0}_{1}_'.format(self.channel,self.systShift) ])
+        runpath = "/".join([self.basedir,"out", sample, 'rundir_{0}_{1}'.format(self.channel,self.systShift) ])
         outdir = "/".join([self.outdir, sample])
         if not os.path.exists(outdir):
             os.makedirs(outdir)
+
+        if not self.submit == "local":
+            if self.submit == "condor":
+                templ = "lxplus"
+                condor_jobs = {}
+            else:
+                templ = self.submit
+
+            with open("submit_on_{0}.sh".format(templ) ) as FSO:
+                templ = string.Template( FSO.read() )
 
         if not self.debug and not self.submit == "local":
             if not self.writeSubmitLog( sample, self.systShift ):
@@ -194,7 +206,7 @@ class SteerNanoProduction():
 
             if self.debug and idx > 0: break
 
-            rundir = runpath+str(idx+1)
+            rundir = "_".join([runpath, str(idx+1)])
 
             ##### Create rundir. Overwrite if it already exists... Well, actually delete it and make it new. 
             if not os.path.exists(rundir):
@@ -237,8 +249,16 @@ class SteerNanoProduction():
                 if self.submit == "hephybatch":
                     os.system( "sbatch submit.sh" )
 
-                if self.submit == "lxbatch":
+                if self.submit == "lxplus":
                     os.system( " bsub -q 1nd -J {0} submit.sh".format( jobname ) )
+
+                # if self.submit == "condor":
+                    # condor_jobs[ "_".join([self.channel, self.systShift, str(idx+1)]) ] = "/".join([rundir,"condor.sub"])
+
+        if self.submit == "condor":
+            os.chdir(self.basedir)
+            self.submitToCondor(runpath)
+
 
         if self.submit == "local":
             for x in threads:
@@ -247,6 +267,24 @@ class SteerNanoProduction():
             if not self.debug:
                 os.chdir( "/".join([ self.basedir, "out", sample ]) )
                 os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, self.systShift]), self.channel ) )
+
+    def submitToCondor(self, runpath):
+
+        run_file = runpath.replace("rundir_","") + ".sub"
+        for df in glob(run_file + "*"):
+            os.remove(df)
+
+        with open("condor_template.sub","r") as FSO:
+            condor_templ = string.Template(FSO.read())
+
+        with open(run_file,"w") as FSO:
+            FSO.write(condor_templ.substitute(rundir=runpath+"*" ))
+        useToken("cern")
+        os.system("condor_submit {0}".format(run_file))
+
+
+        
+            
 
     def runOneFileLocal(self, rundir ,file):
 
@@ -281,8 +319,8 @@ class SteerNanoProduction():
         self.throwConfigBall(configBall, rundir)
         shutil.copytree("proxy", "/".join([rundir,"proxy"]))
         shutil.copytree("kerberos", "/".join([rundir,"kerberos"]))
-
-        if not self.submit == "lxbatch":
+                
+        if not self.submit == "lxplus" and not self.submit == "condor":
             headerfiles = glob("*.h*")
             Cfiles = glob("*.c*") + glob("*.C")
             addFiles =['convertNanoParallel.py','validateAndCopy.py']

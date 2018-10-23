@@ -8,32 +8,57 @@ import os
 def main():
     checkTokens()
     # checkProxy()
-    getHeplxPublicFolder()
+    prepareTokens()
+    useToken("hephy")
+    # getHeplxPublicFolder()
 
 def checkTokens():
+        prepareTokens()
+        return True
 
-        if not os.path.exists("kerberos"):
-            os.mkdir("kerberos")
 
-        neededToken = getSystem(inverse=True)
-        if neededToken == "cern.ch": return True
+def prepareTokens():
+        on_system = getSystem()
 
         p = sp.Popen( shlex.split("klist"), stdout=sp.PIPE, stderr=sp.PIPE )
-        (out,err) =  p.communicate()
-
-        token = ""
-
+        (out,err) =  p.communicate()    
         for line in out.splitlines():
 
             if "Ticket cache" in line:
                 token = line.split("FILE:")[1]
-            if "Default principal" in line:
-                if not neededToken in line.lower():
-                    print "Get a kerberos token for: {0}".format( neededToken )
-                    return False
-                else:
-                    shutil.copyfile(token, "kerberos/krb5_token")
-                    return True
+
+        if not os.path.exists("kerberos"):
+            os.mkdir("kerberos")
+        shutil.copyfile(token, "kerberos/krb5_token_"+on_system )
+
+        if on_system == "cern.ch":
+            if os.path.exists("kerberos/username"):
+                with open("kerberos/username","r") as FSO:
+                    user = FSO.read()
+            else:
+                user = raw_input("Give username for cell hephy.at: ")
+                save = raw_input("You want to save '{0}' as your username for later? (Y/n)".format(user))
+                if save != "n":
+                    with open("kerberos/username","w") as FSO:
+                        FSO.write(user)
+
+            p = sp.Popen( shlex.split("kinit {0}@HEPHY.AT -c kerberos/krb5_token_hephy.at".format(user)) )
+            p.communicate()
+            os.environ["KRB5CCNAME"] = "kerberos/krb5_token_hephy.at"
+            os.system("aklog -d hephy.at")
+            os.environ["KRB5CCNAME"] = "kerberos/krb5_token_cern.ch"
+
+
+def useToken(cell):
+
+    if cell == "hephy":
+        os.environ["KRB5CCNAME"] = "kerberos/krb5_token_hephy.at"
+        # os.system("aklog -d hephy.at")
+    if cell == "cern":
+        os.environ["KRB5CCNAME"] = "kerberos/krb5_token_cern.ch"
+        # os.system("aklog -d cern.ch")
+
+
 
 def checkProxy():
 

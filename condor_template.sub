@@ -1,0 +1,12 @@
+    executable              = $$(filename)
+    arguments               = $$(ClusterId)$$(ProcId)
+    output                  = $$Fp(filename)/$$(ClusterId).$$(ProcId).out
+    error                   = $$Fp(filename)/$$(ClusterId).$$(ProcId).err
+    log                     = $$Fp(filename)/$$(ClusterId).$$(ProcId).log
+    max_retries             = 3
+    requirements = Machine =!= LastRemoteHost
+    +JobFlavour             = "tomorrow"
+    
+    queue filename matching (${rundir}/*.sh)
+   
+

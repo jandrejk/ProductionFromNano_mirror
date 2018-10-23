@@ -48,16 +48,6 @@ scram b -j 4
 How to run
 
 * Get proxy with `voms-proxy-init -voms cms`.
-* Get kerberos token for heplx when on lxplus and vice versa.
-  ```
-  # On lxplus
-  kinit [HEPLX_USERNAME]@HEPHY.AT
-  aklog -d hephy.at
-  
-  # On heplx
-  kinit [LXPLUS_USERNAME]@CERN.CH
-  aklog -d cern.ch
-  ```
 * Source CMSSW
   ```
   cd $CMSSW_BASE/WawTools/NanoAODTools
@@ -67,7 +57,7 @@ How to run
   ```
   python getFilelists.py
   ```
-* Jobs can be submitted locally (`local`) or on a batch system (`batch`) with option `-t WHERE`. When submitting locally option `-j N` specifies the number of parallel jobs (`default=8`).
+* Jobs can be submitted locally (`local`) on a batch system (`batch`) or on HTCondor (`condor`) with option `-t WHERE`. When submitting locally option `-j N` specifies the number of parallel jobs (`default=8`).
 * Channel can be specified with option `-c {et, mt, tt, all}`. Make sure when running over data to give the correct channel.
 * Sample can be specified with option `-s SAMPLE`.
   - Single sample: give the relative path to the `.txt` file (NOTE: you can use tab-complete). E.g 
