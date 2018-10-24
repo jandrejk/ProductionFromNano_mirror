@@ -684,10 +684,11 @@ void EventWriter::fillLeptonFakeRateWeights()
 
     if(channel == HTTAnalysis::MuTau)
     {
+
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
             if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.09;
-            else if ( std::abs(eta_2) < 1.558 ) eleTauFakeRateWeight *= 1.19;   
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonTight3_2 > 0.5 )
         {
@@ -703,7 +704,7 @@ void EventWriter::fillLeptonFakeRateWeights()
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronTightMVA6_2 > 0.5 )
         {
             if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.80;
-            else if ( std::abs(eta_2) < 1.558 ) eleTauFakeRateWeight *= 1.53;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.53;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
@@ -720,7 +721,7 @@ void EventWriter::fillLeptonFakeRateWeights()
         if((gen_match_1 == 1 || gen_match_1 == 3) && againstElectronVLooseMVA6_1 > 0.5 )
         {
             if( std::abs(eta_1) < 1.460 )       eleTauFakeRateWeight *= 1.09;
-            else if ( std::abs(eta_1) < 1.558 ) eleTauFakeRateWeight *= 1.19;   
+            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_1 == 2 || gen_match_1 == 4) && againstMuonLoose3_1> 0.5 )
         {
@@ -734,7 +735,7 @@ void EventWriter::fillLeptonFakeRateWeights()
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
             if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.09;
-            else if ( std::abs(eta_2) < 1.558 ) eleTauFakeRateWeight *= 1.19;   
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
@@ -1717,7 +1718,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("jmva_1", &jmva_1);
     t->Branch("jmva_2",&jmva_2);    
     t->Branch("jcsv_1", &jcsv_1);
-    t->Branch("jcsv_2",&bcsv_2);    
+    t->Branch("jcsv_2",&jcsv_2);    
 
     for(unsigned int shift=0; shift < btagShifts.size(); ++shift )
     {
