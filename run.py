@@ -121,8 +121,7 @@ class SteerNanoProduction():
         if submit == "batch":
             if cell == "cern.ch": self.submit = "lxplus"
             if cell == "hephy.at": self.submit = "hephybatch"
-
-        if submit == "condor":
+        elif submit == "condor":
             if cell == "cern.ch": self.submit = "condor"
             if cell == "hephy.at":
                 print "Sorry! Condor not available on heplx. Submitting to batch."
@@ -191,7 +190,6 @@ class SteerNanoProduction():
                 condor_jobs = {}
             else:
                 templ = self.submit
-
             with open("submit_on_{0}.sh".format(templ) ) as FSO:
                 templ = string.Template( FSO.read() )
 
