@@ -117,9 +117,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80;
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90;
-    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80_v2;
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90_v2;
+    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased_v2;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
