@@ -998,7 +998,11 @@ void EventWriter::setDefault(){
     sf_trk=DEFWEIGHT;
     sf_reco=DEFWEIGHT;
     effweight=DEFWEIGHT;
-    sf_SingleOrCrossTrigger=DEFWEIGHT;
+    sf_SingleOrCrossTrigger = DEFWEIGHT;
+    sf_SingleXorCrossTrigger = DEFWEIGHT;
+    sf_SingleTrigger = DEFWEIGHT;
+    sf_DoubleTauTight = DEFWEIGHT;
+    sf_DoubleTauVTight = DEFWEIGHT;
     stitchedWeight=DEFWEIGHT;
     topPtReweightWeightRun2=DEFWEIGHT;
     topPtReweightWeightRun1=DEFWEIGHT;
@@ -1359,10 +1363,12 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     jecShifts = jecShifts_;
     btagShifts.clear();
     btagShifts.push_back( make_pair( "",           make_pair("central","central") ) );
-    btagShifts.push_back( make_pair( "MistagUp",   make_pair("up","central") ) );
-    btagShifts.push_back( make_pair( "MistagDown", make_pair("down","central") ) );
-    btagShifts.push_back( make_pair( "BtagUp",     make_pair("central","up") ) );
-    btagShifts.push_back( make_pair( "BtagDown",   make_pair("central","down") ) );
+    if(isMC){
+        btagShifts.push_back( make_pair( "MistagUp",   make_pair("up","central") ) );
+        btagShifts.push_back( make_pair( "MistagDown", make_pair("down","central") ) );
+        btagShifts.push_back( make_pair( "BtagUp",     make_pair("central","up") ) );
+        btagShifts.push_back( make_pair( "BtagDown",   make_pair("central","down") ) );
+    }
 
 
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight");
