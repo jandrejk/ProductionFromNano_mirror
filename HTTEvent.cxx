@@ -308,6 +308,9 @@ void HTTJetCollection::initForPromoteDemote()
 ////////////////////////////////////////////////
 void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
 
+  btagCurrentCollection = btagCollection;
+  if(!usePromoteDemote) return;
+
   TRandom3 rand;
 
   double scaleFactor;
@@ -316,8 +319,6 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
   double jetEta;
   double tagging_efficiency;
   double rn;
-
-  btagCurrentCollection = btagCollection;
   
   int index = 0;
   for(auto & jet : btagCurrentCollection){
@@ -393,13 +394,16 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
           if( jet.getProperty(PropertyEnum::btagDeepB)>0.4941 )
           {
             btagCollection.push_back( jet );
+
           }else
           {
             antibtagCollection.push_back( jet );
           }
         }
     }
-    if(usePromoteDemote) btagPromoteDemote();
+    // If promote-demote is not enabled only current btagCollection will be filled
+    btagPromoteDemote();
+
     
     if(jetCurrentCollection.size() > 1)
         setDijetP4();
