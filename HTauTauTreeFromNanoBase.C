@@ -117,8 +117,8 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80_v2;
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90_v2;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80_v2; // !!CAREFULL!! Names of IDs are confused in the NanoAOD sample. Is actually noIsoWP80
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90_v2; // !!CAREFULL!! Names of IDs are confused in the NanoAOD sample. Is actually noIsoWP90
     HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased_v2;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
@@ -263,7 +263,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg2BitMask=(1<<2) + (1<<8);;
     triggerBits_.back().leg2Pt=40;
     triggerBits_.back().leg2Eta=2.1;
-
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
