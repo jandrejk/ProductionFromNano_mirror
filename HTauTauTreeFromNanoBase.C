@@ -117,9 +117,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80_v2; // !!CAREFULL!! Names of IDs are confused in the NanoAOD sample. Is actually noIsoWP80
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90_v2; // !!CAREFULL!! Names of IDs are confused in the NanoAOD sample. Is actually noIsoWP90
-    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased_v2;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80; // !!CAREFULL!! Names of v2 IDs are confused in the NanoAOD sample. Is actually noIsoWP80
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90; // !!CAREFULL!! Names of v2 IDs are confused in the NanoAOD sample. Is actually noIsoWP90
+    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
