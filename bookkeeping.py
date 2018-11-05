@@ -213,7 +213,7 @@ class Bookkeeping():
           shutil.rmtree("kerberos")
       shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
 
-      if self.system == "lxbatch":
+      if self.system == "lxplus":
         os.system( " bsub -q 2nd -J {0} submit.sh".format( failed[1] ) )
 
       if self.system == "hephybatch":
