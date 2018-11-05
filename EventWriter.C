@@ -813,7 +813,7 @@ void EventWriter::fillScalefactors()
 
         sf_trk = w->function("m_trk_ratio")->getVal();
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg2;
+        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
