@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
-    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_PromptReco_Collisions17_JSON.txt')
+    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
     parser.add_argument('--svfit', dest='svfit', help='Calculate svfit mass', action = "store_true")
     parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
