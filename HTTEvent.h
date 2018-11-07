@@ -487,7 +487,6 @@ class HTTJetCollection
     void clear();
 
     void initForPromoteDemote();
-    void btagPromoteDemote();
 
     void addJet(HTTJet newJet){ jetCollection.push_back(newJet); };
     void setCurrentUncertShift( string uncert, bool up ){ fillCurrentCollections(uncert,up); }
@@ -495,7 +494,9 @@ class HTTJetCollection
 
     vector< pair< string, pair<string,bool> > > getNeededJECShifts(){ return jecShifts; }
     const TVector2 getTotalJetShift(string uncert, bool up);
-     HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
+    HTTJet & getJet(unsigned int index){ return jetCurrentCollection[index]; }
+
+    void btagPromoteDemote(string mistagsys = "central", string btagsys = "central");
     HTTJet & getBtagJet(unsigned int index){ return btagCurrentCollection[index]; }
 
     int getNJets(double pt = 20);
@@ -522,8 +523,9 @@ class HTTJetCollection
 
     std::vector<HTTJet> jetCollection;
     std::vector<HTTJet> jetCurrentCollection;
+    std::vector<HTTJet> btagCollection;
     std::vector<HTTJet> btagCurrentCollection;
-    std::vector<HTTJet> antibtagCurrentCollection;
+    std::vector<HTTJet> antibtagCollection;
     TLorentzVector dijet;
     void setDijetP4();
     void fillCurrentCollection();

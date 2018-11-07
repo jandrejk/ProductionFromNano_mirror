@@ -6,7 +6,7 @@ import json
 import os
 
 def main():
-    # checkTokens()
+    checkTokens()
     # checkProxy()
     prepareTokens()
     useToken("hephy")
@@ -16,12 +16,14 @@ def checkTokens():
         prepareTokens()
         return True
 
+
 def prepareTokens():
         on_system = getSystem()
 
         p = sp.Popen( shlex.split("klist"), stdout=sp.PIPE, stderr=sp.PIPE )
         (out,err) =  p.communicate()    
         for line in out.splitlines():
+
             if "Ticket cache" in line:
                 token = line.split("FILE:")[1]
 

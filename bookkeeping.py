@@ -46,7 +46,7 @@ class Bookkeeping():
       self.system = "hephybatch"
     elif "cern" in host: 
       useToken("hephy")
-      self.system = "lxbatch"
+      self.system = "lxplus"
     else:
       print "Dont know host you are on. Only heplx and lxplus!"   
       sys.exit()
@@ -105,7 +105,7 @@ class Bookkeeping():
 
   def getRunningJobs(self):
     runningJobs = {}
-    if self.system == "lxbatch":
+    if self.system == "lxplus":
 
 
       proc = sp.Popen( shlex.split('bjobs -UF'), stdout=sp.PIPE )
@@ -169,7 +169,7 @@ class Bookkeeping():
           r = self.summary[sample][shift][channel]["running"]
           p = self.summary[sample][shift][channel]["pending"]
 
-          if (f + r + p) < t and self.log[sample][channel][shift]["site"] == self.system:
+          if (f + r + p) < t:
             self.matchRundirs(sample, shift, channel)
           if f == t and self.log[sample][channel][shift]["status"] != "DONE" and self.log[sample][channel][shift]["status"] != "KILLED":
             self.log[sample][channel][shift]["status"] = "MERGE"
@@ -213,7 +213,7 @@ class Bookkeeping():
           shutil.rmtree("kerberos")
       shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
 
-      if self.system == "lxbatch":
+      if self.system == "lxplus":
         os.system( " bsub -q 2nd -J {0} submit.sh".format( failed[1] ) )
 
       if self.system == "hephybatch":
@@ -290,7 +290,7 @@ class Bookkeeping():
             failed_total += u
 
             if self.log[sample][channel][shift]["site"] != self.system:
-              r = p = u = "?"
+              r = p = "?"
 
             if self.verbose:
               for i,ff in enumerate(self.summary[sample][shift][channel]["failed_files"]):

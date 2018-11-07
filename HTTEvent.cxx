@@ -284,8 +284,8 @@ void HTTJetCollection::clear()
 
     jetCollection.clear();
     jetCurrentCollection.clear();
-    btagCurrentCollection.clear();
-    antibtagCurrentCollection.clear();
+    btagCollection.clear();
+    antibtagCollection.clear();
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
@@ -306,7 +306,10 @@ void HTTJetCollection::initForPromoteDemote()
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
-void HTTJetCollection::btagPromoteDemote(){
+void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
+
+  btagCurrentCollection = btagCollection;
+  if(!usePromoteDemote) return;
 
   TRandom3 rand;
 
@@ -325,10 +328,10 @@ void HTTJetCollection::btagPromoteDemote(){
     rn = rand.Rndm();
 
 
-    if( jet.getProperty(PropertyEnum::hadronFlavour) ==5 )       scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
-    else if( jet.getProperty(PropertyEnum::hadronFlavour) ==4 )  scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_C, jetEta, jetPt);
-    else                                                         scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_UDSG, jetEta, jetPt);
-    
+    if( jet.getProperty(PropertyEnum::hadronFlavour) ==5 )       scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_B, jetEta, jetPt);
+    else if( jet.getProperty(PropertyEnum::hadronFlavour) ==4 )  scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_C, jetEta, jetPt);
+    else                                                         scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_UDSG, jetEta, jetPt);
+
     if(scaleFactor < 1){
       scaleRatio = fabs( 1-scaleFactor );
       if( rn < scaleRatio ) btagCurrentCollection.erase(btagCurrentCollection.begin() + index);
@@ -336,7 +339,7 @@ void HTTJetCollection::btagPromoteDemote(){
     ++index;
   }
     
-  for(auto & jet : antibtagCurrentCollection){
+  for(auto & jet : antibtagCollection){
     jetPt=  jet.Pt();
     jetEta= jet.Eta();
 
@@ -345,20 +348,20 @@ void HTTJetCollection::btagPromoteDemote(){
 
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
       
-      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_B, jetEta, jetPt);
+      scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_B, jetEta, jetPt);
       if(jetPt>hb_eff->GetXaxis()->GetBinLowEdge(hb_eff->GetNbinsX()+1))     tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetNbinsX(),hb_eff->GetYaxis()->FindBin(fabs( jetEta ) )); 
       else                                                                   tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetXaxis()->FindBin(jetPt),hb_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }
     else if( jet.getProperty(PropertyEnum::hadronFlavour)==4 ){
 
-      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_C, jetEta, jetPt);
+      scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_C, jetEta, jetPt);
 
       if(jetPt>hc_eff->GetXaxis()->GetBinLowEdge(hc_eff->GetNbinsX()+1))     tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetNbinsX(),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
       else                                                                   tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetXaxis()->FindBin(jetPt),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }
     else{
  
-      scaleFactor = reader.eval_auto_bounds("central",BTagEntry::FLAV_UDSG, jetEta, jetPt);
+      scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_UDSG, jetEta, jetPt);
 
       if(jetPt>hoth_eff->GetXaxis()->GetBinLowEdge(hoth_eff->GetNbinsX()+1)) tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetNbinsX(),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));
       else                                                                   tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetXaxis()->FindBin(jetPt),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));  
@@ -369,14 +372,16 @@ void HTTJetCollection::btagPromoteDemote(){
     }  
   }
   std::sort(btagCurrentCollection.begin(), btagCurrentCollection.end(), sortJets);
+
+
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
 {
     jetCurrentCollection.clear();
-    btagCurrentCollection.clear();
-    antibtagCurrentCollection.clear();
+    btagCollection.clear();
+    antibtagCollection.clear();
 
     for(auto jet : jetCollection)
     {   
@@ -388,14 +393,17 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
         {
           if( jet.getProperty(PropertyEnum::btagDeepB)>0.4941 )
           {
-            btagCurrentCollection.push_back( jet );
+            btagCollection.push_back( jet );
+
           }else
           {
-            antibtagCurrentCollection.push_back( jet );
+            antibtagCollection.push_back( jet );
           }
         }
     }
-    if(usePromoteDemote) btagPromoteDemote();
+    // If promote-demote is not enabled only current btagCollection will be filled
+    btagPromoteDemote();
+
     
     if(jetCurrentCollection.size() > 1)
         setDijetP4();

@@ -286,19 +286,19 @@ class EventWriter
   float jcsv_1;
   float jcsv_2;
 
-  int nbtag;
-  float bpt_1;
-  float bpt_2;  
-  float beta_1;
-  float beta_2;  
-  float bphi_1;
-  float bphi_2;  
-  float brawf_1;
-  float brawf_2;  
-  float bmva_1;
-  float bmva_2;  
-  float bcsv_1;
-  float bcsv_2;  
+  int nbtag[5];
+  float bpt_1[5];
+  float bpt_2[5];
+  float beta_1[5];
+  float beta_2[5];
+  float bphi_1[5];
+  float bphi_2[5];
+  float brawf_1[5];
+  float brawf_2[5];
+  float bmva_1[5];
+  float bmva_2[5];
+  float bcsv_1[5];
+  float bcsv_2[5];
   //////////////////////////////////////////////////////////////////
   float uncorrmet;  
   float corrmet;
@@ -407,6 +407,7 @@ class EventWriter
   TauTriggerSFs2017 *tauTrigSFTight;
   TauTriggerSFs2017 *tauTrigSFVTight;
   vector< pair< string, pair<string,bool> > > jecShifts;
+  vector< pair< string, pair<string, string> > >  btagShifts;
 
   vector<TLorentzVector> addlepton_p4;
   vector<double> addlepton_pt;
