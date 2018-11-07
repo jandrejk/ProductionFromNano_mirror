@@ -63,45 +63,45 @@
 	},
 	"DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":5765.4,
+		"xsec":5343.0 ,
 		"nevents_from_DAS":48500499,
 		"nevents":97509681
 	},
 	"DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":{
 		"putag":"#DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17NanoAOD-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1-v1#NANOAODSIM",
-		"xsec":5765.4,
+		"xsec":5343.0 ,
 		"nevents_from_DAS":49009182,
 		"nevents":97509681
 	},
-	"DYJetsToLL_M-5to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
+	"DYJetsToLL_M-10to50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17MiniAODv2-PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM",
-		"xsec":81970.0,
-		"nevents_from_DAS":8881676,
-		"nevents":8881676
+		"xsec":21658.0,
+		"nevents_from_DAS":39521230,
+		"nevents":39521230
 	},
 
 
 	"EWKWMinus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#EWKWMinus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":20.25,
+		"xsec":23.24,
 		"nevents_from_DAS":4385142,
 		"nevents":4385142
 	},
 	"EWKWPlus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#EWKWPlus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":25.62,
+		"xsec":29.59,
 		"nevents_from_DAS":4358697,
 		"nevents":4358697
 	},
 	"EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":3.987,
+		"xsec":4.321,
 		"nevents_from_DAS":952504,
 		"nevents":952504
 	},
 	"EWKZ2Jets_ZToNuNu_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#EWKZ2Jets_ZToNuNu_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":10.01,
+		"xsec":10.66,
 		"nevents_from_DAS":2949960,
 		"nevents":2949960
 	},
@@ -109,14 +109,14 @@
 
 	"GluGluHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#GluGluHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":2.767578,
+		"xsec":3.04694,
 		"nevents_from_DAS":2892030,
 		"nevents":2892030
 	},
 	"VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":0.2371314,
-	        "nevents_from_DAS":2975404,
+		"xsec":0.23720704,
+	    "nevents_from_DAS":2975404,
 		"nevents":2975404
 	},
 
@@ -135,7 +135,7 @@
 	},
 	"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
-		"xsec":34.91,
+		"xsec":34.97,
 		"nevents_from_DAS":7780870,
 		"nevents":7780870
 	},
@@ -169,13 +169,13 @@
 
 	"WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2#NANOAODSIM",
-		"xsec":61526.7,
+		"xsec":52940.0,
 		"nevents_from_DAS":33073306,
 		"nevents":77841284
 	},
 	"WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018_ext1":{
 		"putag":"#WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2#NANOAODSIM",
-		"xsec":61526.7,
+		"xsec":52940.0,
 		"nevents_from_DAS":44767978,
 		"nevents":77841284
 	},
