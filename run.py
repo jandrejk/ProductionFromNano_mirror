@@ -209,7 +209,7 @@ class SteerNanoProduction():
             self.submitToBatch(runpaths)
 
         if self.submit == "condor":
-            self.submitToCondor(runpaths, shifts)
+            self.submitToCondor(runpaths)
 
 
         if self.submit == "local":
@@ -231,25 +231,21 @@ class SteerNanoProduction():
                 if self.submit == "lxplus":
                     os.system( " bsub -q 1nd -J {0} submit.sh".format( jobname ) )    
 
-    def submitToCondor(self, runpaths, shifts):
+    def submitToCondor(self, runpaths):
 
-        run_file = runpaths[0].replace("rundir_","") + ".sub"
-        runpath = runpaths[0] + "*"
-        if len(runpaths) > 1:
-            run_file = "/".join(runpaths[0].split("/")[:-1]) + "/{0}_Multi.sub".format(self.channel)
-            # Create regex for submission to condor
-            runpath = runpaths[0].replace(shifts[0],"") + "{" + "{0}".format( ",".join(shifts) ) + "}*"
+        for runpath in runpaths:
+            run_file = runpath.replace("rundir_","") + ".sub"
 
-        for df in glob(run_file + "*"):
-            os.remove(df)
+            for df in glob(run_file + "*"):
+                os.remove(df)
 
-        with open("condor_template.sub","r") as FSO:
-            condor_templ = string.Template(FSO.read())
+            with open("condor_template.sub","r") as FSO:
+                condor_templ = string.Template(FSO.read())
 
-        with open(run_file,"w") as FSO:
-            FSO.write(condor_templ.substitute(rundir=runpath))
-        useToken("cern")
-        os.system("condor_submit {0}".format(run_file))
+            with open(run_file,"w") as FSO:
+                FSO.write(condor_templ.substitute(rundir=runpath+"*"))
+            useToken("cern")
+            os.system("condor_submit {0}".format(run_file))
 
 
         
