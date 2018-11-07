@@ -625,7 +625,7 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
                          && aP4.DeltaR(leg2P4) > 0.5;
     }
 
-    //if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
+    if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
     return passSelection;
 }
 /////////////////////////////////////////////////
