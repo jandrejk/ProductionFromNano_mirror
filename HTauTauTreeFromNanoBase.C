@@ -158,7 +158,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu24";
     triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1);
+    triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=24;
     triggerBits_.back().leg1L1Pt=22;
     // triggerBits_.back().leg1OfflinePt=25;
@@ -166,7 +166,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu27";
     triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1);
+    triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=27;
     triggerBits_.back().leg1L1Pt=22; //22 or 25...
     // triggerBits_.back().leg1OfflinePt=28;
@@ -182,7 +182,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     //  triggerBits_.back().leg1L1Pt=18;
     triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<5); //looseChargedIso+OL
+    triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
     triggerBits_.back().leg2Pt=27;
     triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
@@ -218,7 +218,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Pt=24;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<6); 
+    triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
     triggerBits_.back().leg2Pt=30;
     triggerBits_.back().leg2Eta=2.1;
 
@@ -234,33 +234,33 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<8); //TightChargedIso+photons+dz
+    triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
     triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<8);
+    triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
     triggerBits_.back().leg2Pt=35;
     triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<8); //MediumChargedIso+photons+dz
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
     triggerBits_.back().leg1Pt=40;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<8);
+    triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
     triggerBits_.back().leg2Pt=40;
     triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<2) + (1<<8);; //TightChargedIso+dz
+    triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
     triggerBits_.back().leg1Pt=40;
     triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<2) + (1<<8);;
+    triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
     triggerBits_.back().leg2Pt=40;
     triggerBits_.back().leg2Eta=2.1;
     ////////////////////////////////////////////////////////////
