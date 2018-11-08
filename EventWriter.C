@@ -166,7 +166,10 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
  
-    zPtReweightWeight=ev->getZPtReWeight();
+    w->var("z_gen_mass")->setVal(  ll.M()  );
+    w->var("z_gen_pt")->setVal( ll.Pt() );
+
+    zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
 
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
