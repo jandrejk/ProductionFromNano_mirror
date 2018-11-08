@@ -94,7 +94,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     passesDiElectronVeto=!diElectronVeto;   // kept for backward compatibility
 
     passesThirdLepVeto=!ev->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto); 
-    passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);    
+    passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);
+
+    htxs_stage1cat = ev->getStage1Cat(); 
 
 
     //////////////////////////////////////////////////////////////////
@@ -962,6 +964,7 @@ void EventWriter::setDefault(){
     evt_syncro=0; //unsigned
     entry=DEF;
     fileEntry=DEF;
+    htxs_stage1cat=DEF;
 
     npv=DEF;
     npvGood=DEF;
@@ -1676,6 +1679,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("metcov01", &metcov01);
     t->Branch("metcov10", &metcov10);
     t->Branch("metcov11", &metcov11);
+    t->Branch("htxs_stage1cat", &htxs_stage1cat);
 
 
     for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )

@@ -337,6 +337,7 @@ class EventWriter
   float pt_sum[56];
   int htxs_reco_ggf[56];
   int htxs_reco_vbf[56];
+  int htxs_stage1cat;
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
