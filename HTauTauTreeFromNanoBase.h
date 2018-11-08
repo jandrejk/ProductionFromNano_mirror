@@ -137,7 +137,7 @@ public :
   std::unique_ptr<HTTEvent> httEvent;
   TH1D* puweights_histo;
   TH1F* hStats;
-  TH1D* zptmass_histo;  
+  TH2D* zptmass_histo;  
 
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;

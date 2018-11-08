@@ -57,9 +57,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017_1D.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017.root") );  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
-    zptmass_histo = (TH1D*)zPtReweightFile->Get("zpt_histo");
+    zptmass_histo = (TH2D*)zPtReweightFile->Get("zptmass_histo");
 
     puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") );  
     if(!puweights) std::cout<<"puweights.root is missing."<<std::endl;
@@ -1707,10 +1707,12 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
     
     if(genBosonP4.M()>1E-3)
     {
-        TH1D *hWeight = zptmass_histo;
+        TH2D *hWeight = zptmass_histo;
+        double mass = genBosonP4.M();
         double pt = genBosonP4.Perp();    
-        int ptBin = hWeight->GetXaxis()->FindBin(pt);
-        weight = hWeight->GetBinContent(ptBin);
+        int massBin = hWeight->GetXaxis()->FindBin(mass);
+        int ptBin = hWeight->GetYaxis()->FindBin(pt);
+        weight = hWeight->GetBinContent(massBin,ptBin);
     }
     return weight;
 }
