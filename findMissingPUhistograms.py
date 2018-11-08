@@ -11,7 +11,7 @@ def main() :
 
     args = parser.parse_args()
     resubmit = args.resub
-    base_dir = "/afs/hephy.at/work/j/jandrejkovic/MC_histWriting/CMSSW_9_4_4_fromNano/src/WawTools/NanoAODTools/"
+    base_dir = "{CMSSW_BASE}/src/WawTools/NanoAODTools/".format(**os.environ)
 
     file_list = [f for f in glob(base_dir+'/samples/mc/*/*')]
     root_files = []
