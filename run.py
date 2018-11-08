@@ -178,6 +178,7 @@ class SteerNanoProduction():
             runpaths.append(runpath)
 
             for idx,configBall in enumerate( self.makeConfigBalls(sample, shift) ):
+                os.chdir(self.basedir )
                 file = configBall["file"]
 
                 if self.debug and idx > 0: break
@@ -216,9 +217,10 @@ class SteerNanoProduction():
             for x in threads:
                 x.join()
 
-            if not self.debug:
-                os.chdir( "/".join([ self.basedir, "out", sample ]) )
-                os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, self.systShift]), self.channel ) )
+            for shift in shifts:
+                if not self.debug:
+                    os.chdir( "/".join([ self.basedir, "out", sample ]) )
+                    os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, shift]), self.channel ) )
 
     def submitToBatch(self, runpaths):
         for runpath in runpaths:
