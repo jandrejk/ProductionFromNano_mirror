@@ -13,7 +13,7 @@ print 'running python file'
 sample = sys.argv[1]
 print sample
 output_name = sample.replace('/','_')[31:]
-output_dir = "{CMSSW_BASE}/src/WawTools/NanoAODTools/MCpuHistograms/".format(**os.environ)+ output_name
+output_dir = "{CMSSW_BASE}/src/WawTools/NanoAODTools/utils/puweight/MCpuHistograms/".format(**os.environ)+ output_name
 print output_dir
 
 R.gROOT.SetBatch(True) #used to prevent from default canvas c1 popping out
