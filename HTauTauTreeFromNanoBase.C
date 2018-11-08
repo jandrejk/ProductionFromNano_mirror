@@ -512,6 +512,8 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
     if( isMC )//Assume that all those are filled for MC
     {
 
+        httEvent->setStage1Cat( GenHiggs_stage1PtJet30 );
+
         httEvent->setMCWeight( sgn(genWeight) );
         httEvent->setXsec( Settings["xsec"].get<float>() );
         httEvent->setGenNEventsWeight( 1.0 / Settings["genNEvents"].get<float>() );

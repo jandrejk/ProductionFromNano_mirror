@@ -64,6 +64,8 @@ class HTTEvent{
 
   void setMCWeight(float x){mcWeight = x;}
 
+  void setStage1Cat(int x){ htxs_stage1cat = x; }
+
   void setXsec(float x){xsec = x;}
 
   void setGenNEventsWeight(float x){genNEvents = x;}
@@ -132,8 +134,6 @@ class HTTEvent{
 
   unsigned int getNPV() const {return nPV;}
 
-
-
   float getRho() const {return rho;}
 
   float getMCatNLOWeight() const {return aMCatNLOweight;}
@@ -143,6 +143,8 @@ class HTTEvent{
   double getZPtReWeight() const { return zPtReWeight;}
 
   float getMCWeight() const {return mcWeight;}
+
+  int getStage1Cat() const {return htxs_stage1cat;}
 
   float getXsec() const {return xsec;}
 
@@ -205,7 +207,8 @@ class HTTEvent{
   float lheHt;
 
   ///Number of outgoing partons from LHE record
-  int   lheNOutPartons;
+  int lheNOutPartons;
+  int htxs_stage1cat = 0;
 
   ///MCatNLO weight
   float aMCatNLOweight;
