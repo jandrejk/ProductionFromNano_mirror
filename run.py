@@ -78,7 +78,7 @@ def makeSubmitList( sample, channel ):
     for c in channels:
         for s in samples:
 
-            if "/data/" in s and sh != "": continue
+            # if "/data/" in s and sh != "": continue
             if c == "et" and not "/mc/" in s and not "samples/data/SingleElectron" in s: continue
             if c == "mt" and not "/mc/" in s and not "samples/data/SingleMuon" in s: continue
             if c == "tt" and not "/mc/" in s and not "samples/data/Tau" in s: continue
