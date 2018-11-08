@@ -134,45 +134,45 @@ float getEnergyScale( int pdg, int mc_match, int dm, sysEffects type = sysEffect
 
     if(pdg == 15)
     {
-        if(mc_match == 1)
+        if(mc_match == 1 || mc_match == 3)
         {
             if(dm == 0)
             {
               scale = ES.Electron.oneProng0p0;
-              if(type == sysEffects::EES1p0p0Up || type == sysEffects::EES1p0p0Down) scale += shift*ES.Electron.uncertaintyShift;
+              if(type == sysEffects::EES1p0p0Up || type == sysEffects::EES1p0p0Down) scale += shift*ES.Electron.uncertaintyShift1p;
               return scale;
             }
             if(dm == 1)
             {
               scale = ES.Electron.oneProng1p0;
-              if(type == sysEffects::EES1p1p0Up || type == sysEffects::EES1p1p0Down) scale += shift*ES.Electron.uncertaintyShift;
+              if(type == sysEffects::EES1p1p0Up || type == sysEffects::EES1p1p0Down) scale += shift*ES.Electron.uncertaintyShift1p1p;
               return scale;
             }
             if(dm == 10)
             {
               scale = ES.Electron.threeProng0p0;
-              if(type == sysEffects::EES3p0p0Up || type == sysEffects::EES3p0p0Down) scale += shift*ES.Electron.uncertaintyShift;
+              if(type == sysEffects::EES3p0p0Up || type == sysEffects::EES3p0p0Down) scale += shift*ES.Electron.uncertaintyShift3p;
               return scale;
             }
         }
-        if(mc_match == 2)
+        if(mc_match == 2 || mc_match == 4)
         {
             if(dm == 0)
             {
               scale = ES.Muon.oneProng0p0;
-              if(type == sysEffects::MES1p0p0Up || type == sysEffects::MES1p0p0Down) scale += shift*ES.Muon.uncertaintyShift;
+              if(type == sysEffects::MES1p0p0Up || type == sysEffects::MES1p0p0Down) scale += shift*ES.Muon.uncertaintyShift1p;
               return scale;
             }
             if(dm == 1)
             {
               scale = ES.Muon.oneProng1p0;
-              if(type == sysEffects::MES1p1p0Up || type == sysEffects::MES1p1p0Down) scale += shift*ES.Muon.uncertaintyShift;
+              if(type == sysEffects::MES1p1p0Up || type == sysEffects::MES1p1p0Down) scale += shift*ES.Muon.uncertaintyShift1p1p;
               return scale;
             }
             if(dm == 10)
             {
               scale = ES.Muon.threeProng0p0;
-              if(type == sysEffects::MES3p0p0Up || type == sysEffects::MES3p0p0Down) scale += shift*ES.Muon.uncertaintyShift;
+              if(type == sysEffects::MES3p0p0Up || type == sysEffects::MES3p0p0Down) scale += shift*ES.Muon.uncertaintyShift3p;
               return scale;
             }
         }
@@ -181,19 +181,19 @@ float getEnergyScale( int pdg, int mc_match, int dm, sysEffects type = sysEffect
             if(dm == 0)
             {
               scale = ES.Tau.oneProng0p0;
-              if(type == sysEffects::TES1p0p0Up || type == sysEffects::TES1p0p0Down) scale += shift*ES.Tau.uncertaintyShift;
+              if(type == sysEffects::TES1p0p0Up || type == sysEffects::TES1p0p0Down) scale += shift*ES.Tau.uncertaintyShift1p;
               return scale;
             }
             if(dm == 1)
             {
               scale = ES.Tau.oneProng1p0;
-              if(type == sysEffects::TES1p1p0Up || type == sysEffects::TES1p1p0Down) scale += shift*ES.Tau.uncertaintyShift;
+              if(type == sysEffects::TES1p1p0Up || type == sysEffects::TES1p1p0Down) scale += shift*ES.Tau.uncertaintyShift1p1p;
               return scale;
             }
             if(dm == 10)
             {
               scale = ES.Tau.threeProng0p0;
-              if(type == sysEffects::TES3p0p0Up || type == sysEffects::TES3p0p0Down) scale += shift*ES.Tau.uncertaintyShift;
+              if(type == sysEffects::TES3p0p0Up || type == sysEffects::TES3p0p0Down) scale += shift*ES.Tau.uncertaintyShift3p;
               return scale;
             }
         }
