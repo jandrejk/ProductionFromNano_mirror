@@ -165,11 +165,14 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
- 
-    w->var("z_gen_mass")->setVal(  ll.M()  );
-    w->var("z_gen_pt")->setVal( ll.Pt() );
 
-    zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+    if(ev->getSampleType() == HTTEvent::DY )
+    { 
+        w->var("z_gen_mass")->setVal(  ll.M()  );
+        w->var("z_gen_pt")->setVal( ll.Pt() );
+        zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+        zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
+    }
 
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
@@ -213,7 +216,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     // Make sure this weight is up to date. 
     // Trigger sf need to be applied according to what triggers are used
-    weight = puWeight*stitchedWeight*genWeight*eleTauFakeRateWeight*muTauFakeRateWeight*topPtReweightWeightRun1*zPtReweightWeight*idisoweight_1*idisoweight_2*sf_trk*sf_reco;
+    weight = puWeight*stitchedWeight*genWeight*eleTauFakeRateWeight*muTauFakeRateWeight*idisoweight_1*idisoweight_2*sf_trk*sf_reco;
 
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,7 +867,9 @@ void EventWriter::fillScalefactors()
 
         sf_trk = w->function("e_trk_ratio")->getVal();
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+
         sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
+
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
@@ -1027,6 +1032,7 @@ void EventWriter::setDefault(){
     topPtReweightWeightRun2=DEFWEIGHT;
     topPtReweightWeightRun1=DEFWEIGHT;
     zPtReweightWeight=DEFWEIGHT;
+    zPtReweightWeight1D=DEFWEIGHT;
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
     zpt_weight_esdown=DEFWEIGHT;
@@ -1802,21 +1808,22 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("topPtReweightWeightRun2", &topPtReweightWeightRun2);
     t->Branch("topPtReweightWeightRun1", &topPtReweightWeightRun1);
     t->Branch("zPtReweightWeight", &zPtReweightWeight);
+    t->Branch("zPtReweightWeight1D", &zPtReweightWeight1D);
     t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
     t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
     t->Branch("antilep_tauscaling", &antilep_tauscaling);
 
-    t->Branch("zpt_weight_nom",&zpt_weight_nom);
-    t->Branch("zpt_weight_esup",&zpt_weight_esup);
-    t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
-    t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
-    t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
-    t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
-    t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
-    t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
-    t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
-    t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
-    t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
+    // t->Branch("zpt_weight_nom",&zpt_weight_nom);
+    // t->Branch("zpt_weight_esup",&zpt_weight_esup);
+    // t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
+    // t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
+    // t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
+    // t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
+    // t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
+    // t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
+    // t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
+    // t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
+    // t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
 
     t->Branch("trg_singletau_leading", &trg_singletau_leading);
     t->Branch("trg_singletau_trailing", &trg_singletau_trailing);

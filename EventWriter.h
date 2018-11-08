@@ -83,6 +83,7 @@ class EventWriter
   float topPtReweightWeightRun1;
   float topPtReweightWeightRun2;
   float zPtReweightWeight;
+  float zPtReweightWeight1D;
   float zpt_weight_nom;
   float zpt_weight_esup;
   float zpt_weight_esdown;
