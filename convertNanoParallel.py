@@ -57,6 +57,10 @@ print "-"*30
 if not "root://" in aFile: aFile = "file://" + aFile
 
 
+aROOTFile = TFile.Open(aFile)
+aTree = aROOTFile.Get("Events")
+remoteEvts = aTree.GetEntries()
+
 print "Using file: ",aFile
 if str( configBall["system"] ) == "lxbatch" or str( configBall["system"] ) == "condor":
     os.system("xrdcp {0} {1}".format(aFile, aFile.split("/")[-1] ) )
@@ -72,7 +76,10 @@ entries = aTree.GetEntries()
 
 if not entries:
     print "file is empty. Aborting"
-    exit(0)
+    exit(1)
+if not remoteEvts == entries:
+    print "File was not copied properly. Aborting"
+    exit(2)
 else:
     print "TTree entries: ", entries
 
