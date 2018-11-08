@@ -4,8 +4,54 @@ import json
 import shutil
 import os 
 from runUtils import checkProxy
+import argparse
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-l', dest='location', help='Get samples from local or DAS', choices=["das","private"], default = "das")
+    args = parser.parse_args()
+
+    if args.location == "private": 
+        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/")
+    else:
+        getfromDAS()
+
+def getfromPrivate(location):
+
+    if not os.path.exists( "samples" ):
+        os.mkdir( "samples" )
+
+    for tier in ["samples/data","samples/mc"]:
+        if not os.path.exists( tier ):
+            os.mkdir(tier)
+        folders = getPrivateFiles(location + tier )
+        k = folders.keys()
+        k.sort()
+        for folder in k:
+            if folders[folder]:
+                sub = folder.replace(location+tier,"").split("/")[1]
+                if not os.path.exists( "/".join([tier, sub]) ):
+                    os.mkdir( "/".join([ tier, sub]) )
+
+                with open( "/".join([tier,sub, folder.replace(location+tier,"").split("/")[2]]) + ".txt","w") as FSO:
+                    FSO.write( "\n".join( folders[folder] ) )
+
+def getPrivateFiles(source):
+
+    proc = sp.Popen(shlex.split("dpns-ls -R {0}".format(source) ), stdout=sp.PIPE, stderr=sp.PIPE, shell=False)
+    (out, err) = proc.communicate()
+    folder = {}
+    current = ""
+    for line in out.splitlines():
+        if ":" in line:
+            folder[line.replace(":","")] = []
+            current = line.replace(":","")
+        if current and ".root" in line:
+            folder[current].append("/".join(["root://hephyse.oeaw.ac.at",current, line]) )
+
+    return folder
+
+def getfromDAS():
 
     if not checkProxy(): sys.exit()
 
