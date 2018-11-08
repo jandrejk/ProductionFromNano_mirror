@@ -165,6 +165,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
+ 
     zPtReweightWeight=ev->getZPtReWeight();
 
     zpt_weight_nom=DEFWEIGHT;
@@ -791,16 +792,17 @@ void EventWriter::fillScalefactors()
     {
         w->var("m_pt")->setVal(  pt_1  );
         w->var("m_eta")->setVal( eta_1 );
+        w->var("m_iso")->setVal( iso_1 );
 
-        singleTriggerSFLeg1 = w->function("m_trg_SingleMu_Mu24ORMu27_desy_ratio")->getVal();
-        s1_data = w->function("m_trg_SingleMu_Mu24ORMu27_desy_data")->getVal();
-        s1_mc   = w->function("m_trg_SingleMu_Mu24ORMu27_desy_mc")->getVal();
+        singleTriggerSFLeg1 = w->function("m_trg24_27_binned_kit_ratio")->getVal();
+        s1_data = w->function("m_trg24_27_binned_kit_data")->getVal();
+        s1_mc   = w->function("m_trg24_27_binned_kit_mc")->getVal();
 
         if( std::abs(eta_1) < 2.1 )
         {
-            xTriggerSFLeg1 = w->function("m_trg_MuTau_Mu20Leg_desy_ratio")->getVal();
-            x1_data = w->function("m_trg_MuTau_Mu20Leg_desy_data")->getVal();
-            x1_mc   = w->function("m_trg_MuTau_Mu20Leg_desy_mc")->getVal();
+            xTriggerSFLeg1 = w->function("m_trg20_ratio")->getVal();
+            x1_data = w->function("m_trg20_data")->getVal();
+            x1_mc   = w->function("m_trg20_mc")->getVal();
         }
         if( std::abs(eta_2) < 2.1 )
         {
@@ -809,13 +811,17 @@ void EventWriter::fillScalefactors()
             x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
         }
 
-        idWeight_1  = w->function("m_id_ratio")->getVal();
-        isoWeight_1 = w->function("m_iso_ratio")->getVal();
+        idWeight_1  = w->function("m_id_kit_ratio")->getVal();
+        isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
         idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
         sf_trk = w->function("m_trk_ratio")->getVal();
+
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
+
+        if(pt_1 > 24) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
@@ -823,16 +829,17 @@ void EventWriter::fillScalefactors()
     {
         w->var("e_pt")->setVal(  pt_1  );
         w->var("e_eta")->setVal( eta_1 );
+        w->var("e_iso")->setVal( iso_1 );
 
-        singleTriggerSFLeg1 = w->function("e_trg_27_32_35_ratio")->getVal();
-        s1_data = w->function("e_trg_27_32_35_data")->getVal();
-        s1_mc   = w->function("e_trg_27_32_35_mc")->getVal();        
+        singleTriggerSFLeg1 = w->function("e_trg27_trg32_trg35_binned_kit_ratio")->getVal();
+        s1_data = w->function("e_trg27_trg32_trg35_binned_kit_data")->getVal();
+        s1_mc   = w->function("e_trg27_trg32_trg35_binned_kit_mc")->getVal();
 
         if( std::abs(eta_1) < 2.1 )
         {
-            xTriggerSFLeg1 = w->function("e_trg24_ratio")->getVal();
-            x1_data = w->function("e_trg24_data")->getVal();
-            x1_mc   = w->function("e_trg24_mc")->getVal();
+            xTriggerSFLeg1 = w->function("e_trg_EleTau_Ele24Leg_desy_ratio")->getVal();
+            x1_data = w->function("e_trg_EleTau_Ele24Leg_desy_data")->getVal();
+            x1_mc   = w->function("e_trg_EleTau_Ele24Leg_desy_mc")->getVal();
         }       
         if( std::abs(eta_2) < 2.1 )
         {
@@ -841,11 +848,11 @@ void EventWriter::fillScalefactors()
             x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
         }    
 
-        idWeight_1  = w->function("e_id_ratio")->getVal();
-        isoWeight_1 = w->function("e_iso_ratio")->getVal();
+        idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
+        isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
         idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
-        sf_reco = w->function("e_reco_ratio")->getVal();
+        sf_trk = w->function("e_trk_ratio")->getVal();
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
         sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
         sf_SingleTrigger = singleTriggerSFLeg1;
@@ -1377,7 +1384,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
 
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v17_1.root");
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v2.root");
     w = (RooWorkspace*)wsp.Get("w");
 
 
