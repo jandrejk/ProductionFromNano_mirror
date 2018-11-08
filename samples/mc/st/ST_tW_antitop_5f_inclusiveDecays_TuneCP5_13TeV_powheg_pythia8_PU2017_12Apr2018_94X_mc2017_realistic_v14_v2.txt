@@ -1,0 +1,15 @@
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_0.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_1.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_10.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_11.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_12.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_13.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_14.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_2.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_3.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_4.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_5.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_6.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_7.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_8.root
+root://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/samples/mc/st/ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2/nano_9.root
