@@ -41,7 +41,7 @@ ls -l
 echo "---------------------"
 
 ./convertNanoParallel.py
-if [ $? -ne 0 ]; then
+if [ $$? -ne 0 ]; then
     echo "Problem during running"
     exit 1
 fi
