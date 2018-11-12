@@ -73,7 +73,7 @@ const vector<string> JecUncertNames =
 
 const map< string, std::vector<JecUncertEnum> > JecAfterSplitting = {
     { "Total", {JecUncertEnum::Total} },
-    {"CMS_scale_j_eta0to5_13Tev", {JecUncertEnum::SinglePionECAL, JecUncertEnum::SinglePionHCAL, JecUncertEnum::AbsoluteFlavMap,
+    {"CMS_scale_j_eta0to5_13TeV", {JecUncertEnum::SinglePionECAL, JecUncertEnum::SinglePionHCAL, JecUncertEnum::AbsoluteFlavMap,
                                    JecUncertEnum::AbsoluteMPFBias, JecUncertEnum::AbsoluteScale, JecUncertEnum::AbsoluteStat, 
                                    JecUncertEnum::Fragmentation, JecUncertEnum::FlavorQCD, JecUncertEnum::TimePtEta,
                                    JecUncertEnum::PileUpDataMC, JecUncertEnum::RelativeFSR, JecUncertEnum::RelativeStatFSR,
