@@ -544,21 +544,23 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         TLorentzVector topP4, antitopP4;
         double topPtReWeight = 1.;
         double topPtReWeight_r1 = 1.;
-        if( findTopP4(topP4, antitopP4) && httEvent->getSampleType() == HTTEvent::TTbar )
+        if( findTopP4(topP4, antitopP4)  )
         {
             httEvent->setTopP4(topP4, antitopP4);
+            if( httEvent->getSampleType() == HTTEvent::TTbar)
+            {
+                double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
+                double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
 
-            double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
-            double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
+                double weightTop = exp(0.0615-0.0005*topPt);
+                double weightAntitop= exp(0.0615-0.0005*antitopPt);
 
-            double weightTop = exp(0.0615-0.0005*topPt);
-            double weightAntitop= exp(0.0615-0.0005*antitopPt);
+                double weightTop_r1 = exp(0.156-0.00137*topPt);
+                double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
 
-            double weightTop_r1 = exp(0.156-0.00137*topPt);
-            double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
-
-            topPtReWeight = sqrt(weightTop*weightAntitop);
-            topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+                topPtReWeight = sqrt(weightTop*weightAntitop);
+                topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+            }
         }
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
