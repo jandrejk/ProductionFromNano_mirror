@@ -22,7 +22,7 @@ namespace LeptonCuts
 			int Additional = 8;
 			struct SemiLep
 			{
-				float pt  = 20.0;
+				float pt  = 23.0;
 				float eta = 2.3;
 				int bitmask = 16;
 			}SemiLep;
