@@ -528,11 +528,14 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
         TLorentzVector genBosonP4, genBosonVisP4;
         float zPtReWeight = 1.;
-        if( findBosonP4(genBosonP4,genBosonVisP4) && ( httEvent->getSampleType() == HTTEvent::DY
-                                                       || httEvent->getSampleType() == HTTEvent::DYLowM ) )
+        if( findBosonP4(genBosonP4,genBosonVisP4) )
         {
             httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
-            zPtReWeight = getZPtReweight(genBosonP4);
+
+            if( ( httEvent->getSampleType() == HTTEvent::DY || httEvent->getSampleType() == HTTEvent::DYLowM ) )
+            {
+                zPtReWeight = getZPtReweight(genBosonP4);
+            }
         }
         httEvent->setZPtReWeight(zPtReWeight);
 
