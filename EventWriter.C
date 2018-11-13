@@ -832,7 +832,7 @@ void EventWriter::fillScalefactors()
 
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
-        if(pt_1 > 24) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
         else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
@@ -868,7 +868,8 @@ void EventWriter::fillScalefactors()
         sf_trk = w->function("e_trk_ratio")->getVal();
         sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
-        sf_SingleXorCrossTrigger = singleTriggerSFLeg1*xTriggerSFLeg1*xTriggerSFLeg2;
+        if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
