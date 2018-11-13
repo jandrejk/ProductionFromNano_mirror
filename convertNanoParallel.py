@@ -77,7 +77,7 @@ entries = aTree.GetEntries()
 if not entries:
     print "file is empty. Aborting"
     exit(1)
-if not remoteEvts == entries:
+if not remoteEvts == entries and not check_event > 0:
     print "File was not copied properly. Aborting"
     exit(2)
 else:
