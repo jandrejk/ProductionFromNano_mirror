@@ -84,6 +84,8 @@ class HTTEvent{
 
   void setLHE_Ht(float x){lheHt = x;}
 
+  void setNNLO_ggH_weight(double x){NNLO_ggH_weight = x;}
+
   void setLHEnOutPartons(int x){lheNOutPartons = x;}
 
   void setSampleType(string sampletype);
@@ -141,6 +143,8 @@ class HTTEvent{
   double getTopPtReWeight(bool run_1=true) const {return run_1 ? topPtReWeightR1 : topPtReWeight;}
 
   double getZPtReWeight() const { return zPtReWeight;}
+
+  double getNNLO_ggH_weight() const {return NNLO_ggH_weight;}
 
   float getMCWeight() const {return mcWeight;}
 
@@ -202,6 +206,9 @@ class HTTEvent{
   ///Weight used to modify the pt shape.
   float topPtReWeight, topPtReWeightR1;
   float zPtReWeight,   zPtReWeightSUSY;
+
+  // WG1 NNLO ggH reweighting: https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsWG/SignalModelingTools#Gluon_Fusion_NNLOPS_reweighting
+  double NNLO_ggH_weight;
 
   ///Ht value from LHE record.
   float lheHt;
@@ -375,7 +382,7 @@ class HTTPair
     void setLeg1(const HTTParticle &aParticle, int idx=-1){leg1 = aParticle; indexLeg1=idx;}
     void setLeg2(const HTTParticle &aParticle, int idx=-1){leg2 = aParticle; indexLeg2=idx;}
 
-    void setMET(const TVector2 &aVector, string uncert){ met[uncert] = aVector  - ( leg1.getDeltaVector() + leg2.getDeltaVector() ); };
+    void setMET(const TVector2 &aVector, string uncert, bool shift = true){ met[uncert] = shift ? aVector  - ( leg1.getDeltaVector() + leg2.getDeltaVector() ) : aVector ; metCache = met[uncert]; };
     void setCurrentMETShift(string uncert);
     void setMETMatrix(float m00, float m01, float m10, float m11) {metMatrix.push_back(m00); metMatrix.push_back(m01); metMatrix.push_back(m10); metMatrix.push_back(m11);}
 

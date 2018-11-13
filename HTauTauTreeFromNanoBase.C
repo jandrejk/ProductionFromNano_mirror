@@ -47,7 +47,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     if( applyRecoil )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
-        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root";
+        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
 
     } else
@@ -339,10 +339,9 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             fillGenLeptons();
             fillPairs(bestPairIndex);
             fillEvent(bestPairIndex);
-            applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
 
             HTTPair & bestPair = httPairCollection[0];
-            addMetToPair(bestPair); //Add after pair is filled to propagate shifts from TES right.
+            applyMetRecoilCorrections(bestPair); // Adds met to pair 
 
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
@@ -526,6 +525,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
         httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
 
+        // Zpt reweighting
         TLorentzVector genBosonP4, genBosonVisP4;
         float zPtReWeight = 1.;
         if( findBosonP4(genBosonP4,genBosonVisP4) )
@@ -538,6 +538,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
             }
         }
         httEvent->setZPtReWeight(zPtReWeight);
+        /////////////////////////////////////////////////////////////////////////////////////////////////////
 
         ///TT reweighting according to
         ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
@@ -564,6 +565,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         }
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
+        /////////////////////////////////////////////////////////////////////////////////////////////////////
     }
 
 }
@@ -672,19 +674,6 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
     httJetCollection.fillCurrentCollections();
 
 }
-void HTauTauTreeFromNanoBase::addMetToPair(HTTPair &aPair)
-{
-    TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
-    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
-
-    for(auto shift : httJetCollection.getNeededJECShifts() )
-    {
-        aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
-    }
-    aPair.setCurrentMETShift(""); //Explicitly set current met to unshifted
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
 {
     int bitmask = 0;
@@ -1848,82 +1837,78 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::applyMetRecoilCorrections()
+void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 {
 
-    // Do nothing if there is not best pair or recoilCorrector is not initialized
+    // Shift met by jec if there is not best pair or recoilCorrector is not initialized
+    TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
+    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+
     if( recoilCorrector_==nullptr
         || httPairCollection.empty()
         || httEvent->getSampleType() == HTTEvent::TTbar
         || httEvent->getSampleType() == HTTEvent::ST
         || httEvent->getSampleType() == HTTEvent::Diboson
-    ) return;
+    )
+    {
+        for(auto shift : httJetCollection.getNeededJECShifts() )
+        {
+            aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
+        }
+        aPair.setCurrentMETShift(""); //Explicitly set current met to unshifted
+        return;
+    }
 
-    TVector2 theUncorrMEt;
+    cout << met.Mod() << endl;
+    debugWayPoint("[applyMetRecoilCorrections] original met   ",{(double)met.Px(),
+                                                              (double)met.Py(),
+                                                              (double)met.Mod()},{},
+                                                              {"met_py","met_py","met_pt"} ) ;
+    aPair.setMET(met,""); // Set Met to propagate tes
+
     float corrMEtPx, corrMEtPy;
     int nJets = httJetCollection.getNJets(20);
     if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
       
     TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
     TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
-    /* Do not correct Met in the event, keep it as it is
-    // Correct Met in the event
-    theUncorrMEt = httEvent->getMET();
+    debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)aPair.getMET().Px(),
+                                                                        (double)aPair.getMET().Py(),
+                                                                        (double)aPair.getMET().Mod()},{},
+                                                                        {"met_py","met_py","met_pt"} );
+
+    debugWayPoint("[applyMetRecoilCorrections] gen boson   ",{(double)genBosonP4.Px(),
+                                                           (double)genBosonP4.Py(),
+                                                           (double)genBosonVisP4.Px(),
+                                                           (double)genBosonVisP4.Py()},{},
+                                                           {"gen_py","gen_py","genvis_pt","genvis_pt"} ) ;
+
     recoilCorrector_->CorrectByMeanResolution(
     //recoilCorrector_->Correct( //Quantile correction works better for MVA MET
-        theUncorrMEt.Px(),
-        theUncorrMEt.Py(),
-        genBosonP4.Px(),
-        genBosonP4.Py(),
-        genBosonVisP4.Px(),
-        genBosonVisP4.Py(),
-        nJets,
-        corrMEtPx,
-        corrMEtPy
+      aPair.getMET().Px(),
+      aPair.getMET().Py(),
+      genBosonP4.Px(),
+      genBosonP4.Py(),
+      genBosonVisP4.Px(),
+      genBosonVisP4.Py(),
+      nJets,
+      corrMEtPx,
+      corrMEtPy
     );
-    httEvent->setMET( TVector2(corrMEtPx,corrMEtPy) );
-    */
-    // Correct Met in pairs (a priori it can be by-pair Met)
-    for(unsigned int iPair=0; iPair<httPairCollection.size(); iPair++)
+
+    debugWayPoint("[applyMetRecoilCorrections] met after applying recoil corrections   ",{(double)corrMEtPx,
+                                                                                          (double)corrMEtPy,
+                                                                                          (double)TVector2(corrMEtPx,corrMEtPy).Mod()},{},
+                                                                                          {"met_py","met_py","met_pt"} ) ;
+
+    for(auto shift : httJetCollection.getNeededJECShifts() )
     {
-          //theUncorrMEt = httEvent->getMET();
-          theUncorrMEt = httPairCollection[iPair].getMET();//TES corrected, fine??
-          recoilCorrector_->CorrectByMeanResolution(
-          //recoilCorrector_->Correct( //Quantile correction works better for MVA MET
-              theUncorrMEt.Px(),
-              theUncorrMEt.Py(),
-              genBosonP4.Px(),
-              genBosonP4.Py(),
-              genBosonVisP4.Px(),
-              genBosonVisP4.Py(),
-              nJets,
-              corrMEtPx,
-              corrMEtPy
-          );
-          //Remove TES correction to not have it twice
-          if( (std::abs(httPairCollection[iPair].getLeg1().getPDGid())==15 && httPairCollection[iPair].getLeg1().getProperty(PropertyEnum::mc_match)==5)
-              || (std::abs(httPairCollection[iPair].getLeg2().getPDGid())==15 && httPairCollection[iPair].getLeg2().getProperty(PropertyEnum::mc_match)==5) )
-          {
-              corrMEtPx-=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::DUMMY_SYS).X(); //uncor
-              corrMEtPx-=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::DUMMY_SYS).X(); //uncor
-              corrMEtPx+=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::NOMINAL).X();
-              corrMEtPx+=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::NOMINAL).X();
-              corrMEtPy-=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::DUMMY_SYS).Y(); //uncor
-              corrMEtPy-=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::DUMMY_SYS).Y(); //uncor
-              corrMEtPy+=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::NOMINAL).Y();
-              corrMEtPy+=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::NOMINAL).Y();
-          }
-          httPairCollection[iPair].setMET( TVector2(corrMEtPx,corrMEtPy), "" );
-
-          //recompute mT's using consistently TES corrected MEt and Pt
-          // double mTLeg1 = TMath::Sqrt(2.*httPairCollection[iPair].getLeg1().getP4().Pt()*httPairCollection[iPair].getMET().Mod()*(1.-TMath::Cos(httPairCollection[iPair].getLeg1().getP4().Phi()-httPairCollection[iPair].getMET().Phi())));
-          // double mTLeg2 = TMath::Sqrt(2.*httPairCollection[iPair].getLeg2().getP4().Pt()*httPairCollection[iPair].getMET().Mod()*(1.-TMath::Cos(httPairCollection[iPair].getLeg2().getP4().Phi()-httPairCollection[iPair].getMET().Phi())));
-
-          // httPairCollection[iPair].setMTLeg1(mTLeg1);
-          // httPairCollection[iPair].setMTLeg2(mTLeg2);
+        aPair.setMET( TVector2(corrMEtPx,corrMEtPy), shift.first, false);
     }
+    aPair.setCurrentMETShift("");
 
-    return;
+
+    return ;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////

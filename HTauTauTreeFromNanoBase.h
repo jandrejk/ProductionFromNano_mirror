@@ -65,12 +65,11 @@ public :
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
   void fillEvent(unsigned int bestPairIndex = 9999);
   virtual bool buildPairs();
-  virtual void addMetToPair(HTTPair &aPair);  
   virtual void fillPairs(unsigned int bestPairIndex);
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
   virtual void fillGenLeptons();
-  void applyMetRecoilCorrections();
+  void applyMetRecoilCorrections(HTTPair &aPair);
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);

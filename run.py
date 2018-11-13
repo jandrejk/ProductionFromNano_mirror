@@ -95,7 +95,7 @@ class SteerNanoProduction():
 
         self.basedir = os.getcwd()
         self.outdir = outdir
-        self.recoil = False
+        self.recoil = True
         self.svfit = svfit
 
         cell = getSystem()
