@@ -493,7 +493,7 @@ class HTTJetCollection
     HTTJetCollection(){clear();};
     ~HTTJetCollection(){}
 
-    void initCollection(bool isMC, bool applyRecoil, bool isSync);
+    void initCollection(bool isMC, bool isSync);
     void clear();
 
     void initForPromoteDemote();

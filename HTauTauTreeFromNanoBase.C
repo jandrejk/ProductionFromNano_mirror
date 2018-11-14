@@ -24,7 +24,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     isSync = Settings["isSync"].get<bool>();
     applyRecoil = Settings["recoil"].get<bool>();
 
-    httJetCollection.initCollection(isMC, applyRecoil, isSync);
+    httJetCollection.initCollection(isMC, isSync);
 
     ///Init HTT ntuple
     initHTTTree(tree, prefix);

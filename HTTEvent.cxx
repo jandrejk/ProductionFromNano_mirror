@@ -262,11 +262,11 @@ const TLorentzVector & HTTJet::getP4(string uncert, bool up)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void HTTJetCollection::initCollection(bool isMC, bool applyRecoil, bool isSync)
+void HTTJetCollection::initCollection(bool isMC, bool isSync)
 {
   jecShifts = { {"",{"",true}} };
 
-  if( HTTParticle::corrType == HTTAnalysis::NOMINAL && isMC && !applyRecoil && !isSync)
+  if( HTTParticle::corrType == HTTAnalysis::NOMINAL && isMC  && !isSync)
   {
       for(auto uncert : JecAfterSplitting)
       {
