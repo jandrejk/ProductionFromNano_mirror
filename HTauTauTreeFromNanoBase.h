@@ -140,7 +140,12 @@ public :
 
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
-  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights;
+  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights, nnlo_ggh_graphs;
+  TGraphErrors* NNLOPSratio_pt_mcatnlo_0jet;
+  TGraphErrors* NNLOPSratio_pt_mcatnlo_1jet;
+  TGraphErrors* NNLOPSratio_pt_mcatnlo_2jet;
+  TGraphErrors* NNLOPSratio_pt_mcatnlo_3jet;
+  
   TLorentzVector p4SVFit, p4Leg1SVFit, p4Leg2SVFit;   
 
   std::vector<edm::LuminosityBlockRange> jsonVector;

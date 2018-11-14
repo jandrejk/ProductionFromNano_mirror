@@ -77,6 +77,20 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         httJetCollection.initForPromoteDemote();
     }
 
+    if(httEvent->getSampleType() == HTTEvent::h)
+    {
+        nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
+        NNLOPSratio_pt_mcatnlo_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_0jet");
+        NNLOPSratio_pt_mcatnlo_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_1jet");
+        NNLOPSratio_pt_mcatnlo_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_2jet");
+        NNLOPSratio_pt_mcatnlo_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_3jet");
+    }
+    else
+    {
+        nnlo_ggh_graphs=nullptr;
+    }
+    
+
     firstWarningOccurence_=true;
 
 }
@@ -566,6 +580,14 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
         /////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(nnlo_ggh_graphs)
+        {
+            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
+            else                               httEvent->setNNLO_ggH_weight( 1.0 );
+        }
     }
 
 }
@@ -1859,7 +1881,6 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
         return;
     }
 
-    cout << met.Mod() << endl;
     debugWayPoint("[applyMetRecoilCorrections] original met   ",{(double)met.Px(),
                                                               (double)met.Py(),
                                                               (double)met.Mod()},{},
