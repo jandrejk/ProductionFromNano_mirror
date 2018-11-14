@@ -22,7 +22,6 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
 
     isMC = Settings["isMC"].get<bool>();
     isSync = Settings["isSync"].get<bool>();
-    applyRecoil = Settings["recoil"].get<bool>();
 
     httJetCollection.initCollection(isMC, isSync);
 
@@ -49,6 +48,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
+        metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
 
     } else
     {
@@ -117,6 +117,43 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
     httEvent->setSampleType( Settings["sample"].get<string>() );
 
+    metShifts.clear();
+    if( httEvent->getSampleType() == HTTEvent::TTbar 
+        || httEvent->getSampleType() == HTTEvent::ST
+        || httEvent->getSampleType() == HTTEvent::Diboson
+        || !isMC )
+    {
+        applyRecoil = false;
+
+    }else
+    {
+        applyRecoil = Settings["recoil"].get<bool>() ;       
+    }
+
+    if(applyRecoil)
+    {
+        // Dont judge me... Not very nice way to implement met uncerts
+        // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
+        metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
+        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );        
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) ); 
+    }
+    
+
     //  httTree = new TTree("HTauTauTree","");
     //  httTree->SetDirectory(httFile);
 
@@ -125,7 +162,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
-    evtWriter->initTree(t_TauCheck, httJetCollection.getNeededJECShifts() , isMC, isSync);
+    evtWriter->initTree(t_TauCheck, httJetCollection.getNeededJECShifts(), isMC, isSync, metShifts);
     
     leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
 
@@ -298,7 +335,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
     if (nentries_max>0 && nentries_max < nentries)
     {
         nentries_use=nentries_max;
-        check_event_number = 670998; // Usefull event in mutau for debug in 2017
+        check_event_number = 2038471; // Usefull event in mutau for debug in 2017
     }
 
     Long64_t nbytes = 0, nb = 0;
@@ -514,7 +551,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
     TVector2 metPF;
     metPF.SetMagPhi(MET_pt, MET_phi);
-    httEvent->setMET(metPF); //initial, recoil corrections if flag is set applied later on
+    httEvent->setMET(metPF);
     httEvent->setMET_uncorr(metPF);
 
     std::vector<Int_t> aFilters = getFilters(filterBits_);
@@ -1790,23 +1827,34 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
     covMET[1][1] = aPair.getMETMatrix().at(3);
     if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix    
 
-    TLorentzVector p4SVFit; 
-    for(auto shift : httJetCollection.getNeededJECShifts() )
+    TLorentzVector p4SVFit;
+    vector<string> shifts;
+
+    if(applyRecoil)
+    {
+        for(auto shift : metShifts)                              shifts.push_back( shift.first );
+    }else
+    {
+        for(auto shift : httJetCollection.getNeededJECShifts() ) shifts.push_back( shift.first );
+    }
+
+    for(auto shift : shifts )
     {
         p4SVFit.SetPtEtaPhiM(-10,-.10,-10,-10);
 
-        aPair.setCurrentMETShift(shift.first);
+        aPair.setCurrentMETShift(shift);
 
         //Only calculate svfit for shapes that are in SR
-        if( ( strcmp(shift.first.c_str(),"") != 0 && aPair.isInLooseSR() )
+        if( ( strcmp(shift.c_str(),"") != 0 && aPair.isInLooseSR() )
             || ( HTTParticle::corrType != HTTAnalysis::NOMINAL && aPair.isInLooseSR() )
-            || ( strcmp(shift.first.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
+            || ( strcmp(shift.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
         ){
             p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
         }
 
-        aPair.setP4(p4SVFit,shift.first);
+        aPair.setP4(p4SVFit,shift);
     }
+    aPair.setCurrentMETShift("");
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1868,9 +1916,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 
     if( recoilCorrector_==nullptr
         || httPairCollection.empty()
-        || httEvent->getSampleType() == HTTEvent::TTbar
-        || httEvent->getSampleType() == HTTEvent::ST
-        || httEvent->getSampleType() == HTTEvent::Diboson
+        || !applyRecoil
     )
     {
         for(auto shift : httJetCollection.getNeededJECShifts() )
@@ -1884,34 +1930,43 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     debugWayPoint("[applyMetRecoilCorrections] original met   ",{(double)met.Px(),
                                                               (double)met.Py(),
                                                               (double)met.Mod()},{},
-                                                              {"met_py","met_py","met_pt"} ) ;
+                                                              {"met_px","met_py","met_pt"} ) ;
     aPair.setMET(met,""); // Set Met to propagate tes
 
+    TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
+    TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
+
     float corrMEtPx, corrMEtPy;
+    float MEtPx = aPair.getMET().Px();
+    float MEtPy = aPair.getMET().Py();
+    float gen_ll_px = genBosonP4.Px();
+    float gen_ll_py = genBosonP4.Py();
+    float gen_ll_vis_px = genBosonVisP4.Px();
+    float gen_ll_vis_py = genBosonVisP4.Py();
+
     int nJets = httJetCollection.getNJets(20);
     if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
       
-    TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
-    TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
-    debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)aPair.getMET().Px(),
-                                                                        (double)aPair.getMET().Py(),
-                                                                        (double)aPair.getMET().Mod()},{},
-                                                                        {"met_py","met_py","met_pt"} );
 
-    debugWayPoint("[applyMetRecoilCorrections] gen boson   ",{(double)genBosonP4.Px(),
-                                                           (double)genBosonP4.Py(),
-                                                           (double)genBosonVisP4.Px(),
-                                                           (double)genBosonVisP4.Py()},{},
-                                                           {"gen_py","gen_py","genvis_pt","genvis_pt"} ) ;
+    debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)MEtPx,
+                                                                           (double)MEtPy,
+                                                                           (double)TVector2(MEtPx,MEtPy).Mod()},{},
+                                                                           {"met_px","met_py","met_pt"} );
+
+    debugWayPoint("[applyMetRecoilCorrections] gen boson   ",{(double)gen_ll_px,
+                                                           (double)gen_ll_py,
+                                                           (double)gen_ll_vis_px,
+                                                           (double)gen_ll_vis_py},{},
+                                                           {"gen_px","gen_py","genvis_px","genvis_py"} ) ;
 
     recoilCorrector_->CorrectByMeanResolution(
     //recoilCorrector_->Correct( //Quantile correction works better for MVA MET
-      aPair.getMET().Px(),
-      aPair.getMET().Py(),
-      genBosonP4.Px(),
-      genBosonP4.Py(),
-      genBosonVisP4.Px(),
-      genBosonVisP4.Py(),
+      MEtPx,
+      MEtPy,
+      gen_ll_px,
+      gen_ll_py,
+      gen_ll_vis_px,
+      gen_ll_vis_py,
       nJets,
       corrMEtPx,
       corrMEtPy
@@ -1920,11 +1975,28 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     debugWayPoint("[applyMetRecoilCorrections] met after applying recoil corrections   ",{(double)corrMEtPx,
                                                                                           (double)corrMEtPy,
                                                                                           (double)TVector2(corrMEtPx,corrMEtPy).Mod()},{},
-                                                                                          {"met_py","met_py","met_pt"} ) ;
+                                                                                          {"met_px","met_py","met_pt"} ) ;
 
-    for(auto shift : httJetCollection.getNeededJECShifts() )
+
+    float met_scale_x, met_scale_y;
+    for(auto shift : metShifts )
     {
-        aPair.setMET( TVector2(corrMEtPx,corrMEtPy), shift.first, false);
+        met_scale_x = corrMEtPx;
+        met_scale_y = corrMEtPy;
+        if(strcmp(shift.first.c_str(),"") != 0)
+        {
+            metSys_->ApplyMEtSys(
+                corrMEtPx, corrMEtPy,        
+                gen_ll_px,gen_ll_py,         
+                gen_ll_vis_px,gen_ll_vis_py, 
+                nJets,                       
+                MEtSys::ProcessType::BOSON,  
+                shift.second.first,   
+                shift.second.second,        
+                met_scale_x,met_scale_y      
+            );
+        }     
+        aPair.setMET( TVector2(met_scale_x,met_scale_y), shift.first, false); // Set met without applying tes a second time
     }
     aPair.setCurrentMETShift("");
 

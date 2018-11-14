@@ -33,8 +33,6 @@
 #include "TauAnalysis/ClassicSVfit/interface/MeasuredTauLepton.h"
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"
 
-#include "HTT-utilities/RecoilCorrections/interface/RecoilCorrector.h"
-
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
 
@@ -138,8 +136,11 @@ public :
   TH1F* hStats;
   TH2D* zptmass_histo;  
 
+  vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts;
+  
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
+  std::unique_ptr<MEtSys> metSys_;
   std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights, nnlo_ggh_graphs;
   TGraphErrors* NNLOPSratio_pt_mcatnlo_0jet;
   TGraphErrors* NNLOPSratio_pt_mcatnlo_1jet;

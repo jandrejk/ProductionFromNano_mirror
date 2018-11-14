@@ -431,7 +431,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
                 jm_1=   jets->getJet(0).M();
                 jrawf_1=jets->getJet(0).getProperty(PropertyEnum::rawFactor);
                 jmva_1= jets->getJet(0).getProperty(PropertyEnum::btagCMVA);
-                jcsv_1= jets->getJet(0).getProperty(PropertyEnum::btagCSVV2);
+                jcsv_1= jets->getJet(0).getProperty(PropertyEnum::btagDeepB);
             }
         }
         if ( njetspt20[shift] >=2 )
@@ -452,7 +452,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
                 jm_2=   jets->getJet(1).M();
                 jrawf_2=jets->getJet(1).getProperty(PropertyEnum::rawFactor);
                 jmva_2= jets->getJet(1).getProperty(PropertyEnum::btagCMVA);
-                jcsv_2= jets->getJet(1).getProperty(PropertyEnum::btagCSVV2);
+                jcsv_2= jets->getJet(1).getProperty(PropertyEnum::btagDeepB);
                 jeta1eta2=jeta_1[shift]*jeta_2[shift];
                 lep_etacentrality=TMath::Exp( -4/pow(jeta_1[shift]-jeta_2[shift],2) * pow( (eta_1-( jeta_1[shift]+jeta_2[shift] )*0.5), 2 ) );
             }
@@ -470,7 +470,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             bphi_1[shift]=  jets->getBtagJet(0).Phi();
             brawf_1[shift]= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
             bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
-            bcsv_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCSVV2);
+            bcsv_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagDeepB);
         }
 
         if (nbtag[shift] >= 2)
@@ -480,7 +480,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             bphi_2[shift]=  jets->getBtagJet(1).Phi();
             brawf_2[shift]= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
             bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
-            bcsv_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCSVV2);
+            bcsv_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagDeepB);
         }
 
 
@@ -500,10 +500,9 @@ void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
     metcov10=pair->getMETMatrix().at(2);
     metcov11=pair->getMETMatrix().at(3);
 
-    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
+    for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
     {
-        jets->setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second );
-        pair->setCurrentMETShift( jecShifts[shift].first );
+        pair->setCurrentMETShift( metShifts[shift] );
 
         met[shift]   =pair->getMET().Mod();
         met_ex[shift]=pair->getMET().X();
@@ -519,7 +518,11 @@ void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
         pt_tt[shift]=pair->getP4( HTTPair::Simple ).Pt();
         mt_tot[shift]=pair->getMTTOT();
         pt_sum[shift]=pt_1+pt_2+met[shift];
+    }
 
+    for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
+    {
+        jets->setCurrentUncertShift( jecShifts[shift].second.first, jecShifts[shift].second.second );
         htxs_reco_ggf[shift] = (int)getStage1Category(HiggsProdMode::GGF, pair->getP4( HTTPair::Simple ), jets);
         htxs_reco_vbf[shift] = (int)getStage1Category(HiggsProdMode::VBF, pair->getP4( HTTPair::Simple ), jets);
         //////////////////////////////////////////////////////////////////
@@ -1385,12 +1388,21 @@ void EventWriter::setDefault(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync_){
+void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync_, vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts_ ){
 
     isMC=isMC_;
     isSync=isSync_;
 
     jecShifts = jecShifts_;
+    metShifts.clear();
+    if(metShifts_.size() > 0)
+    {
+        for(auto shift : metShifts_)  metShifts.push_back( shift.first );
+    }else
+    {
+        for(auto shift : jecShifts_ ) metShifts.push_back( shift.first );
+    }
+
     btagShifts.clear();
     btagShifts.push_back( make_pair( "",           make_pair("central","central") ) );
     if(isMC){
@@ -1709,25 +1721,27 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("htxs_stage1cat", &htxs_stage1cat);
 
 
+
+    for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
+    {
+        t->Branch( ("met"+metShifts[shift]).c_str(),      &met[shift]);
+        t->Branch( ("metphi"+metShifts[shift]).c_str(),   &metphi[shift]);
+        t->Branch( ("met_ex"+metShifts[shift]).c_str(),   &met_ex[shift]);
+        t->Branch( ("met_ey"+metShifts[shift]).c_str(),   &met_ey[shift]);
+        t->Branch( ("m_sv"+metShifts[shift]).c_str(),     &m_sv[shift]);
+        t->Branch( ("pt_sv"+metShifts[shift]).c_str(),    &pt_sv[shift]);
+        t->Branch( ("pt_tt"+metShifts[shift]).c_str(),    &pt_tt[shift]);
+        t->Branch( ("pt_ttjj"+metShifts[shift]).c_str(),  &pt_ttjj[shift]);
+        t->Branch( ("m_ttjj"+metShifts[shift]).c_str(),   &m_ttjj[shift]);
+        t->Branch( ("pt_sum"+metShifts[shift]).c_str(),   &pt_sum[shift]);
+        t->Branch( ("mt_1"+metShifts[shift]).c_str(),     &mt_1[shift]);
+        t->Branch( ("mt_2"+metShifts[shift]).c_str(),     &mt_2[shift]);
+        t->Branch( ("mt_tot"+metShifts[shift]).c_str(),   &mt_tot[shift]);
+    }
+
     for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
     {
-
-        t->Branch( ("met"+jecShifts[shift].first).c_str(),      &met[shift]);
-        t->Branch( ("metphi"+jecShifts[shift].first).c_str(),   &metphi[shift]);
-        t->Branch( ("met_ex"+jecShifts[shift].first).c_str(),   &met_ex[shift]);
-        t->Branch( ("met_ey"+jecShifts[shift].first).c_str(),   &met_ey[shift]);
-        t->Branch( ("m_sv"+jecShifts[shift].first).c_str(),     &m_sv[shift]);
-        t->Branch( ("pt_sv"+jecShifts[shift].first).c_str(),    &pt_sv[shift]);
-        t->Branch( ("pt_tt"+jecShifts[shift].first).c_str(),    &pt_tt[shift]);
-        t->Branch( ("pt_ttjj"+jecShifts[shift].first).c_str(),  &pt_ttjj[shift]);
-        t->Branch( ("m_ttjj"+jecShifts[shift].first).c_str(),   &m_ttjj[shift]);
-        t->Branch( ("pt_sum"+jecShifts[shift].first).c_str(),   &pt_sum[shift]);
-        t->Branch( ("mt_1"+jecShifts[shift].first).c_str(),     &mt_1[shift]);
-        t->Branch( ("mt_2"+jecShifts[shift].first).c_str(),     &mt_2[shift]);
-        t->Branch( ("mt_tot"+jecShifts[shift].first).c_str(),   &mt_tot[shift]);
-
         t->Branch( ("njets"+jecShifts[shift].first).c_str() ,      &njets[shift]);
-
         t->Branch( ("njetspt20"+jecShifts[shift].first).c_str(),   &njetspt20[shift]);
         t->Branch( ("njetingap"+jecShifts[shift].first).c_str(),   &njetingap[shift]);
         t->Branch( ("njetingap20"+jecShifts[shift].first).c_str(), &njetingap20[shift]);

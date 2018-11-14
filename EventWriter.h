@@ -25,8 +25,9 @@ class EventWriter
   HTTAnalysis::finalState channel;
   TLorentzVector leg1P4, leg2P4;
 
-  int isSync;
-  int isMC;
+  bool isSync;
+  bool isMC;
+  bool applyRecoil;
 
   Float_t lumiWeight;
   Int_t run_syncro;
@@ -387,7 +388,7 @@ class EventWriter
 
   void setDefault();
   void fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair);
-  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_);
+  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_, vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
@@ -410,6 +411,7 @@ class EventWriter
   TauTriggerSFs2017 *tauTrigSFTight;
   TauTriggerSFs2017 *tauTrigSFVTight;
   vector< pair< string, pair<string,bool> > > jecShifts;
+  vector< string > metShifts;
   vector< pair< string, pair<string, string> > >  btagShifts;
 
   vector<TLorentzVector> addlepton_p4;

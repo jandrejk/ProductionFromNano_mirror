@@ -25,6 +25,9 @@
 #include "AnalysisEnums.h"
 #include "LeptonCuts.h"
 #include "utils/BTagCalibration/interface/BTagCalibrationStandalone.h"
+#include "HTT-utilities/RecoilCorrections/interface/RecoilCorrector.h"
+#include "HTT-utilities/RecoilCorrections/interface/MEtSys.h"
+
 ///////////////////////////////////////////////////
 ///////////////////////////////////////////////////
 class HTTEvent{

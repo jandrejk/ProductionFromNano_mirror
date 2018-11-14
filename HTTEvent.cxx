@@ -219,7 +219,13 @@ bool HTTPair::isInLooseSR()
 ////////////////////////////////////////////////
 void HTTPair::setCurrentMETShift(string uncert)
 {
-  metCache = met.at(uncert);
+  if( met.find(uncert) == met.end() )
+  {
+      metCache = met.at("");
+  }else
+  {
+      metCache = met.at(uncert);
+  }
   lastMETShift = uncert;
 }
 ////////////////////////////////////////////////
