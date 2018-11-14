@@ -4,11 +4,15 @@
 		"stitching":true,
 		"NNLO_xsec":5765.4,
 		"samples":[
-			"DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"DY1JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"DY3JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"DY4JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
+			"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
+			"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v3_94X_mc2017_realistic_v14_ext1_v2",
+			"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
+			"DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
+			"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v2_94X_mc2017_realistic_v14_v2"
 
 		]
 	},
@@ -17,80 +21,81 @@
 		"stitching":true,
 		"NNLO_xsec":61526.7,
 		"samples":[
-			"WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"W1JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"W2JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"W3JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"W4JetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
+			"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v2",
+			"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v3",
+			"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v4",
+			"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
 		]
 	},
 	"BASIS_ntuple_TT":{
 		"data":false,
 		"stitching":false,
 		"samples":	[
-			"TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"TTToHadronic_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
+			"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v2",
+			"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1"
 		]
 	},
 	"BASIS_ntuple_VV":{
 		"data":false,
 		"stitching":false,
 		"samples":[
-			"ST_t-channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"ST_t-channel_top_4f_inclusiveDecays_TuneCP5_13TeV-powhegV2-madspin-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV-powheg-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"WW_TuneCP5_13TeV-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"WZ_TuneCP5_13TeV-pythia8_RunIIFall17NanoAOD_12Apr2018",
-			"ZZ_TuneCP5_13TeV-pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"ST_t_channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
+			"ST_t_channel_top_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
+			"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
+			"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
+			"WW_TuneCP5_13TeV_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"WZ_TuneCP5_13TeV_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+			"ZZ_TuneCP5_13TeV_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
 		]
 	},
 	"BASIS_ntuple_VBF":{
 		"data":false,
 		"stitching":false,
 		"samples":	[
-			"VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
 		]
 	},
 	"BASIS_ntuple_ggH":{
 		"data":false,
 		"stitching":false,
 		"samples":	[
-			"GluGluHToTauTau_M125_13TeV_powheg_pythia8_RunIIFall17NanoAOD_12Apr2018"
+			"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
 		]
 	},
 	"BASIS_ntuple_SingleElectron":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"SingleElectron_Run2017B_31Mar2018",
-			"SingleElectron_Run2017C_31Mar2018",
-			"SingleElectron_Run2017D_31Mar2018",
-			"SingleElectron_Run2017E_31Mar2018",
-			"SingleElectron_Run2017F_31Mar2018"
+			"SingleElectron_Run2017B_31Mar2018_v1",
+			"SingleElectron_Run2017C_31Mar2018_v1",
+			"SingleElectron_Run2017D_31Mar2018_v1",
+			"SingleElectron_Run2017E_31Mar2018_v1",
+			"SingleElectron_Run2017F_31Mar2018_v1"
 		]
 	},
 	"BASIS_ntuple_SingleMuon":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"SingleMuon_Run2017B_31Mar2018",
-			"SingleMuon_Run2017C_31Mar2018",
-			"SingleMuon_Run2017D_31Mar2018",
-			"SingleMuon_Run2017E_31Mar2018",
-			"SingleMuon_Run2017F_31Mar2018"
+			"SingleMuon_Run2017B_31Mar2018_v1",
+			"SingleMuon_Run2017C_31Mar2018_v1",
+			"SingleMuon_Run2017D_31Mar2018_v1",
+			"SingleMuon_Run2017E_31Mar2018_v1",
+			"SingleMuon_Run2017F_31Mar2018_v1"
 		]
 	},
 	"BASIS_ntuple_Tau":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"Tau_Run2017B_31Mar2018",
-			"Tau_Run2017C_31Mar2018",
-			"Tau_Run2017D_31Mar2018",
-			"Tau_Run2017E_31Mar2018",
-			"Tau_Run2017F_31Mar2018"
+			"Tau_Run2017B_31Mar2018_v1",
+			"Tau_Run2017C_31Mar2018_v1",
+			"Tau_Run2017D_31Mar2018_v1",
+			"Tau_Run2017E_31Mar2018_v1",
+			"Tau_Run2017F_31Mar2018_v1"
 		]
 	}
 }
