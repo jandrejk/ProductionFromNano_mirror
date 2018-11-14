@@ -70,6 +70,7 @@ class EventWriter
   float anti_idisoweight_1;
   float idisoweight_2;
   float effweight;
+  float NNLO_ggH_weight;
 
   float sf_trk;
   float sf_reco;

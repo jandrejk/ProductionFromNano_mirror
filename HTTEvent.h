@@ -208,7 +208,7 @@ class HTTEvent{
   float zPtReWeight,   zPtReWeightSUSY;
 
   // WG1 NNLO ggH reweighting: https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsWG/SignalModelingTools#Gluon_Fusion_NNLOPS_reweighting
-  double NNLO_ggH_weight;
+  double NNLO_ggH_weight  = 1.0;
 
   ///Ht value from LHE record.
   float lheHt;

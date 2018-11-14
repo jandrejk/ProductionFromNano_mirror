@@ -174,6 +174,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
     }
 
+    NNLO_ggH_weight = ev->getNNLO_ggH_weight();
+
     zpt_weight_nom=DEFWEIGHT;
     zpt_weight_esup=DEFWEIGHT;
     zpt_weight_esdown=DEFWEIGHT;
@@ -1046,6 +1048,7 @@ void EventWriter::setDefault(){
     zpt_weight_statpt80up=DEFWEIGHT;
     zpt_weight_statpt80down=DEFWEIGHT;
 
+    NNLO_ggH_weight=DEFWEIGHT;
     
     eleTauFakeRateWeight=DEFWEIGHT;
     muTauFakeRateWeight=DEFWEIGHT;
@@ -1813,6 +1816,8 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("eleTauFakeRateWeight", &eleTauFakeRateWeight);
     t->Branch("muTauFakeRateWeight", &muTauFakeRateWeight);
     t->Branch("antilep_tauscaling", &antilep_tauscaling);
+
+    t->Branch("NNLO_ggH_weight", &NNLO_ggH_weight);
 
     // t->Branch("zpt_weight_nom",&zpt_weight_nom);
     // t->Branch("zpt_weight_esup",&zpt_weight_esup);
