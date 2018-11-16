@@ -1101,7 +1101,7 @@ public :
    TBranch        *b_FatJet_phi;   //!
    TBranch        *b_FatJet_pt;   //!
    TBranch        *b_FatJet_rawFactor;   //!
-   TBranch        *Jet_puIdDisc;   //!
+   TBranch        *b_Jet_puIdDisc;   //!
    TBranch        *b_FatJet_tau1;   //!
    TBranch        *b_FatJet_tau2;   //!
    TBranch        *b_FatJet_tau3;   //!
