@@ -430,7 +430,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             {
                 jm_1=   jets->getJet(0).M();
                 jrawf_1=jets->getJet(0).getProperty(PropertyEnum::rawFactor);
-                jmva_1= jets->getJet(0).getProperty(PropertyEnum::btagCMVA);
+                jmva_1= jets->getJet(0).getProperty(PropertyEnum::puIdDisc);
                 jcsv_1= jets->getJet(0).getProperty(PropertyEnum::btagDeepB);
             }
         }
@@ -451,7 +451,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             {
                 jm_2=   jets->getJet(1).M();
                 jrawf_2=jets->getJet(1).getProperty(PropertyEnum::rawFactor);
-                jmva_2= jets->getJet(1).getProperty(PropertyEnum::btagCMVA);
+                jmva_2= jets->getJet(1).getProperty(PropertyEnum::puIdDisc);
                 jcsv_2= jets->getJet(1).getProperty(PropertyEnum::btagDeepB);
                 jeta1eta2=jeta_1[shift]*jeta_2[shift];
                 lep_etacentrality=TMath::Exp( -4/pow(jeta_1[shift]-jeta_2[shift],2) * pow( (eta_1-( jeta_1[shift]+jeta_2[shift] )*0.5), 2 ) );
@@ -469,7 +469,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             beta_1[shift]=  jets->getBtagJet(0).Eta();
             bphi_1[shift]=  jets->getBtagJet(0).Phi();
             brawf_1[shift]= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
-            bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagCMVA);
+            bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::puIdDisc);
             bcsv_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagDeepB);
         }
 
@@ -479,7 +479,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             beta_2[shift]=  jets->getBtagJet(1).Eta();
             bphi_2[shift]=  jets->getBtagJet(1).Phi();
             brawf_2[shift]= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
-            bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagCMVA);
+            bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::puIdDisc);
             bcsv_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagDeepB);
         }
 
