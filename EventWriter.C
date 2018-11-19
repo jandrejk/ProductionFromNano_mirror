@@ -70,15 +70,15 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     Flag_ecalBadCalibFilter =                 ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
     Flag_METFilters =                         ev->getFilter(FilterEnum::Flag_METFilters);    
 
-    flagMETFilter = Flag_goodVertices 
-                    && Flag_globalTightHalo2016Filter 
-                    && Flag_HBHENoiseFilter
-                    && Flag_HBHENoiseIsoFilter
-                    && Flag_EcalDeadCellTriggerPrimitiveFilter
-                    && Flag_BadPFMuonFilter
-                    && Flag_BadChargedCandidateFilter
-                    && Flag_eeBadScFilter
-                    && Flag_ecalBadCalibFilter;
+    flagMETFilter = Flag_goodVertices // ? primary vertex filter?
+                    && Flag_globalTightHalo2016Filter // Flag_globalSuperTightHalo2016Filter
+                    && Flag_HBHENoiseFilter // ok
+                    && Flag_HBHENoiseIsoFilter // ok
+                    && Flag_EcalDeadCellTriggerPrimitiveFilter // ok
+                    && Flag_BadPFMuonFilter // ok
+                    && Flag_BadChargedCandidateFilter // BadChargedHadronFilter
+                    && Flag_eeBadScFilter // ok
+                    && Flag_ecalBadCalibFilter; // ?
 
 
 
