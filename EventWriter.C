@@ -70,15 +70,16 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     Flag_ecalBadCalibFilter =                 ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
     Flag_METFilters =                         ev->getFilter(FilterEnum::Flag_METFilters);    
 
-    flagMETFilter = Flag_goodVertices // ? primary vertex filter?
-                    && Flag_globalTightHalo2016Filter // Flag_globalSuperTightHalo2016Filter
+    // these values are for Moriond 2018, i.e. CMSSW >= 9_4_0
+    flagMETFilter = Flag_goodVertices // ok
+                    && Flag_globalSuperTightHalo2016Filter
                     && Flag_HBHENoiseFilter // ok
                     && Flag_HBHENoiseIsoFilter // ok
                     && Flag_EcalDeadCellTriggerPrimitiveFilter // ok
                     && Flag_BadPFMuonFilter // ok
                     && Flag_BadChargedCandidateFilter // BadChargedHadronFilter
                     && Flag_eeBadScFilter // ok
-                    && Flag_ecalBadCalibFilter; // ?
+                    && Flag_ecalBadCalibFilter; // ok
 
 
 
