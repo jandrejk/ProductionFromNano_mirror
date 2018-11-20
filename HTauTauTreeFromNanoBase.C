@@ -1846,8 +1846,7 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
 
         //Only calculate svfit for shapes that are in SR
         if( ( strcmp(shift.c_str(),"") != 0 && aPair.isInLooseSR() )
-            || ( HTTParticle::corrType != HTTAnalysis::NOMINAL && aPair.isInLooseSR() )
-            || ( strcmp(shift.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
+            || ( strcmp(shift.c_str(),"") == 0  )
         ){
             p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
         }
