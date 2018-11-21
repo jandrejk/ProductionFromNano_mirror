@@ -61,6 +61,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     Flag_goodVertices =                       ev->getFilter(FilterEnum::Flag_goodVertices);
     Flag_globalTightHalo2016Filter =          ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
+    Flag_globalSuperTightHalo2016Filter =     ev->getFilter(FilterEnum::Flag_globalSuperTightHalo2016Filter);
     Flag_HBHENoiseFilter =                    ev->getFilter(FilterEnum::Flag_HBHENoiseFilter);
     Flag_HBHENoiseIsoFilter =                 ev->getFilter(FilterEnum::Flag_HBHENoiseIsoFilter);
     Flag_EcalDeadCellTriggerPrimitiveFilter = ev->getFilter(FilterEnum::Flag_EcalDeadCellTriggerPrimitiveFilter);
@@ -1091,6 +1092,7 @@ void EventWriter::setDefault(){
     Flag_goodVertices=DEF;
     Flag_eeBadScFilter=DEF;
     Flag_globalTightHalo2016Filter=DEF;
+    Flag_globalSuperTightHalo2016Filter=DEF;
     failBadGlobalMuonTagger=DEF;
     failCloneGlobalMuonTagger=DEF;
 
@@ -1524,6 +1526,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("flagMETFilter", &flagMETFilter);
     t->Branch("Flag_goodVertices", &Flag_goodVertices);
     t->Branch("Flag_globalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
+    t->Branch("Flag_globalSuperTightHalo2016Filter", &Flag_globalSuperTightHalo2016Filter);
     t->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
     t->Branch("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
     t->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
