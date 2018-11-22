@@ -72,16 +72,18 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     Flag_METFilters =                         ev->getFilter(FilterEnum::Flag_METFilters);    
 
     // these values are for Moriond 2018, i.e. CMSSW >= 9_4_0
-    flagMETFilter = Flag_goodVertices // ok
+    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Analysis%20Recommendations%20(for%20an
+    flagMETFilter = Flag_goodVertices 
                     && Flag_globalSuperTightHalo2016Filter
-                    && Flag_HBHENoiseFilter // ok
-                    && Flag_HBHENoiseIsoFilter // ok
-                    && Flag_EcalDeadCellTriggerPrimitiveFilter // ok
-                    && Flag_BadPFMuonFilter // ok
-                    && Flag_BadChargedCandidateFilter // BadChargedHadronFilter
-                    && Flag_eeBadScFilter // ok
-                    && Flag_ecalBadCalibFilter; // ok
-
+                    && Flag_HBHENoiseFilter 
+                    && Flag_HBHENoiseIsoFilter 
+                    && Flag_EcalDeadCellTriggerPrimitiveFilter 
+                    && Flag_BadPFMuonFilter 
+                    && Flag_BadChargedCandidateFilter 
+                    && Flag_ecalBadCalibFilter; 
+    
+    // Flag_eeBadScFilter is not suggested, so it is only applied to data not to MC
+    if (!isMC) flagMETFilter &= Flag_eeBadScFilter; 
 
 
     //////////////////////////////////////////////////////////////////  
