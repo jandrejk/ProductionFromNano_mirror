@@ -204,8 +204,10 @@ class Bookkeeping():
     print "_"*83
     if not checkProxy(): return
 
+    condor_templ = ""
     with open( "/".join([self.cwd,"condor_template.sub"]) ) as FSO:
-      condor_templ = string.Template(FSO.read())
+      for l in string.Template(FSO.read()).substitute(rundir="").splitlines():
+        if not "queue" in l: condor_templ += l + "\n" 
 
     if self.system == "lxplus": useToken("cern")
 
@@ -220,13 +222,16 @@ class Bookkeeping():
       shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
 
       if self.system == "lxplus":
-        with open("condor_rescue.sub","w") as FSO:
-          con = condor_templ.substitute(rundir="/".join([self.cwd,failed[0] ]) )
-          FSO.write(con)
-        os.system( "condor_submit condor_rescue.sub" )
+        condor_templ += "queue filename matching ({0}/*.sh)\n".format( "/".join([self.cwd,failed[0] ]) )
 
       if self.system == "hephybatch":
-        os.system( "sbatch submit.sh" )        
+        os.system( "sbatch submit.sh" )
+
+    if self.system == "lxplus":
+      os.chdir( self.cwd )
+      with open("condor_rescue.sub","w") as FSO:
+        FSO.write(condor_templ)
+      os.system( "condor_submit condor_rescue.sub" )
 
     print "_"*83
 
