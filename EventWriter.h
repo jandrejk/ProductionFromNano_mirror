@@ -128,6 +128,7 @@ class EventWriter
   int Flag_METFilters;
   int Flag_goodVertices;
   int Flag_globalTightHalo2016Filter;
+  int Flag_globalSuperTightHalo2016Filter;
   int Flag_HBHENoiseFilter;
   int Flag_HBHENoiseIsoFilter;
   int Flag_EcalDeadCellTriggerPrimitiveFilter;

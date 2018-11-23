@@ -192,6 +192,7 @@ public :
    Float_t         Jet_pt[32];   //[nJet]
    Float_t         Jet_qgl[32];   //[nJet]
    Float_t         Jet_rawFactor[32];   //[nJet]
+   Float_t         Jet_puIdDisc[32];   //[nJet]
    Float_t         Jet_bRegCorr[32];   //[nJet]
    Float_t         Jet_bRegRes[32];   //[nJet]
    Int_t           Jet_electronIdx1[32];   //[nJet]
@@ -1100,6 +1101,7 @@ public :
    TBranch        *b_FatJet_phi;   //!
    TBranch        *b_FatJet_pt;   //!
    TBranch        *b_FatJet_rawFactor;   //!
+   TBranch        *b_Jet_puIdDisc;   //!
    TBranch        *b_FatJet_tau1;   //!
    TBranch        *b_FatJet_tau2;   //!
    TBranch        *b_FatJet_tau3;   //!
@@ -2263,6 +2265,7 @@ void NanoEventsSkeleton::Init(TTree *tree)
    fChain->SetBranchAddress("Jet_pt", Jet_pt, &b_Jet_pt);
    fChain->SetBranchAddress("Jet_qgl", Jet_qgl, &b_Jet_qgl);
    fChain->SetBranchAddress("Jet_rawFactor", Jet_rawFactor, &b_Jet_rawFactor);
+   fChain->SetBranchAddress("Jet_puIdDisc", Jet_puIdDisc, &b_Jet_puIdDisc);
    fChain->SetBranchAddress("Jet_bRegCorr", Jet_bRegCorr, &b_Jet_bRegCorr);
    fChain->SetBranchAddress("Jet_bRegRes", Jet_bRegRes, &b_Jet_bRegRes);
    fChain->SetBranchAddress("Jet_electronIdx1", Jet_electronIdx1, &b_Jet_electronIdx1);
