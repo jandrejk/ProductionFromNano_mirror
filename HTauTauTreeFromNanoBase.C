@@ -184,26 +184,43 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     // 2017 94X  Filter
 
     // Electron
-    // 0 CaloIdL_TrackIdL_IsoVL                CaloIdLTrackIdLIsoVL*TrackIso*Filter
-    // 1 WPTight                               hltEle*WPTight*TrackIsoFilter*
-    // 2 WPLoose                               hltEle*WPLoose*TrackIsoFilter
-    // 3 OverlapFilter PFTau                   *OverlapFilterIsoEle*PFTau*
+    // 0 = *CaloIdLTrackIdLIsoVL*TrackIso*Filter
+    // 1 = hltEle*WPTight*TrackIsoFilter*
+    // 2 = hltEle*WPLoose*TrackIsoFilter
+    // 3 = *OverlapFilterIsoEle*PFTau*
+    // 4 = hltEle*Ele*CaloIdLTrackIdLIsoVL*Filter
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = *OverlapFilterIsoEle*PFTau*
+    // 7 = hltEle*Ele*Ele*CaloIdLTrackIdLDphiLeg*Filter
+    // 8 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1DoubleMu*EG*Filter*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Muon
-    // 0 = TrkIsoVVL                           RelTrkIsoVVLFiltered0p4
-    // 1 = Iso                                 hltL3crIso*Filtered0p07
-    // 2 = OverlapFilter PFTau                 *OverlapFilterIsoMu*PFTau*
+    // 0 = *RelTrkIsoVVLFiltered0p4
+    // 1 = hltL3crIso*Filtered0p07
+    // 2 = *OverlapFilterIsoMu*PFTau*
+    // 3 = max(filter('hltL3crIsoL1*SingleMu*Filtered0p07'),filter('hltL3crIsoL1sMu*Filtered0p07'))
+    // 4 = hltDiMuon*Filtered*
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = hltOverlapFilterIsoMu*PFTau*
+    // 7 = hltL3fL1TripleMu*
+    // 8 = max(filter('hltL3fL1DoubleMu*EG*Filtered*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Tau
-    // 0 = LooseChargedIso                     LooseChargedIso*
-    // 1 = MediumChargedIso                    *MediumChargedIso*
-    // 2 = TightChargedIso                     *TightChargedIso*
-    // 3 = TightID OOSC photons                *TightOOSCPhotons*
-    // 4 = L2p5 pixel iso                      hltL2TauIsoFilter
-    // 5 = OverlapFilter IsoMu                 *OverlapFilterIsoMu*
-    // 6 = OverlapFilter IsoEle                *OverlapFilterIsoEle*
-    // 7 = L1-HLT matched                      *L1HLTMatched*
-    // 8 = Dz                                  *Dz02*
+    // 0 = *LooseChargedIso*
+    // 1 = *MediumChargedIso*
+    // 2 = *TightChargedIso*
+    // 3 = *TightOOSCPhotons*
+    // 4 = *Hps*
+    // 5 = hltSelectedPFTau*MediumChargedIsolationL1HLTMatched*
+    // 6 = hltDoublePFTau*TrackPt1*ChargedIsolation*Dz02Reg
+    // 7 = hltOverlapFilterIsoEle*PFTau*
+    // 8 = hltOverlapFilterIsoMu*PFTau*
+    // 9 = hltDoublePFTau*TrackPt1*ChargedIsolation*
+            
 
 
     triggerBits_.push_back(aTrgData);
@@ -211,7 +228,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=24;
-    triggerBits_.back().leg1L1Pt=22;
+    // triggerBits_.back().leg1L1Pt=22;
     // triggerBits_.back().leg1OfflinePt=25;
 
     triggerBits_.push_back(aTrgData);
@@ -219,7 +236,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=27;
-    triggerBits_.back().leg1L1Pt=22; //22 or 25...
+    // triggerBits_.back().leg1L1Pt=22; //22 or 25...
     // triggerBits_.back().leg1OfflinePt=28;
 
     // Mu tauh triggers
@@ -227,15 +244,15 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
-    triggerBits_.back().leg1Pt=20;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=20;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
     //  triggerBits_.back().leg1L1Pt=18;
-    triggerBits_.back().leg1OfflinePt=20;
+    // triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
-    triggerBits_.back().leg2Pt=27;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=27;
+    // triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
     triggerBits_.back().leg2L1Pt=-1;
 
@@ -244,21 +261,21 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=27;
+    // triggerBits_.back().leg1Pt=27;
     triggerBits_.back().leg1L1Pt=-1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=32;
+    // triggerBits_.back().leg1Pt=32;
     triggerBits_.back().leg1L1Pt=-1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1L1Pt=-1;
 
 
@@ -266,12 +283,12 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
-    triggerBits_.back().leg1Pt=24;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=24;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
-    triggerBits_.back().leg2Pt=30;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=30;
+    // triggerBits_.back().leg2Eta=2.1;
 
 
     // Single tauh triggers
@@ -286,34 +303,34 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=35;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
-    triggerBits_.back().leg2Pt=35;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=35;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
