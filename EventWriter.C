@@ -120,7 +120,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
         trg_crossmuon_mu20tau27=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1)
-                                  && pt_1 > 21 && pt_2 > 32;
+                                  && pt_1 > 21 && pt_2 > 32
+                                  && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
@@ -133,7 +134,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
         trg_crossele_ele24tau30 = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1) 
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1)
-                                  && pt_1 > 25 && pt_2 > 35;
+                                  && pt_1 > 25 && pt_2 > 35 
+                                  && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
     } else if ( channel == HTTAnalysis::TauTau )
     {
