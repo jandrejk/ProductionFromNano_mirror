@@ -111,7 +111,13 @@
 		"putag":"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":3.04694,
 		"nevents_from_DAS":2892030,
-		"nevents":2892030
+		"nevents":12151030
+	},
+	"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1":{
+		"putag":"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
+		"xsec":3.04694,
+		"nevents_from_DAS":9259000,
+		"nevents":12151030
 	},
 	"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
