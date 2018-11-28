@@ -3,48 +3,66 @@ import os
 import subprocess as sp
 import shlex
 import sys
-from samples import samplelist
+from samples_Janik import samplelist_Janik
+from samples_Markus import samplelist_Markus
 import string
 import argparse
 #from runUtils import checkProxy as cP
 import datetime
 
-def main():
-	"""
-				if not cP.checkProxy(): 
-					sys.exit() # check if proxy is set properly
-			
-				day_stamp = str(datetime.datetime.today()).split()[0]
-				# extract input arguments
-				parser = argparse.ArgumentParser()
-			    parser.add_argument('-o', dest='outdir', help='output directory', type=str, metavar = 'OUTDIR', default = "/afs/hephy.at/data/higgs02/haddJanik/{0}/".format(day_stamp))
-			    checkDirExist(outdir)
-			    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['hephybatch','local'], default = 'local')
-			    args = parser.parse_args()
-	"""
-	submit = "hephybatch"
+def main(): 
+	#proxy_cmd = 'voms-proxy-init --voms cms' 
+	#print "executing: {0}".format(proxy_cmd)
+	#os.system(proxy_cmd)
 
-	day_stamp = str(datetime.datetime.today()).split()[0]
-	day_stamp = '2018-11-23'
-	outdir = "/afs/hephy.at/data/higgs02/haddJanik/{0}/".format(day_stamp)
+	checkDirExist(directory='./proxy')
+	print "copying proxy"
+	os.system("cp /tmp/x509up_u3522 proxy/")
 	
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-n', dest='sample_name', help='Enter the name of the sample to be merged', type=str, metavar = 'SAMPLE_NAME', choices=['SingleElectron','SingleMuon','Tau','VBF','GluGlu','DY','EWK','ST_t','W','ZZ','TTT'],default='')
+	parser.add_argument('-t', dest='submit', help='Where to submit', type=str, metavar = 'SUBMIT', choices=['local','hephybatch'],default='hephybatch')
+	parser.add_argument('-o', dest='output_directory', help='output directory', type=str, metavar = 'OUTDIR', default='create')
+	parser.add_argument('-f', dest='which_file_list', help='which file list', type=str, metavar = 'FILELIST', choices=['Janik','Markus'], default='Janik')
+	args = parser.parse_args()
+			    
+	
+	submit = args.submit
+
+	output_choice = args.output_directory
+	sample_name = args.sample_name
+
+	if args.which_file_list == 'Janik' :
+		samplelist = samplelist_Janik
+	else :
+		samplelist = samplelist_Markus
+
+	if output_choice == 'create' :
+		day_stamp = str(datetime.datetime.today()).split()[0]
+		outdir = "/afs/hephy.at/data/higgs02/haddJanik/{0}/".format(day_stamp)
+	else :
+		if '/afs/' in output_choice :
+			outdir = output_choice
+		else :
+			outdir = "/afs/hephy.at/data/higgs02/haddJanik/{0}/".format(output_choice)
+
+	print 'output directory: {0}'.format(outdir)
 	checkDirExist(outdir)
 
 	sources = samplelist.keys()
 	sources.sort()
-	#print sources 
-	#exit(0)	
 	counter = 0
 	for source in sources:
 		splsource = source.split("/")
 		name = "_".join(splsource[1:3]).replace("RunIIFall17MiniAODv2-","").replace("-", "_")
+		if not(sample_name in name) :
+			continue
+
 		file_list =  getfiles(samplelist[source][0] )
 		n = len(file_list)
 		done = (n == samplelist[source][1] )
-		#n = str(n)
-
+		
 		# check whether sample has finished running
-		#print n, samplelist[source][1]	
 		if done :
 			print "sample {0} has finished running".format(name)
 			#print "id {0}".format(counter)
@@ -54,13 +72,14 @@ def main():
 			# and can be merged. If it is not empty it has been already merged.
 			if not os.listdir(output_dir) :
     			#print "Directory is empty"
-				#if "Tau" in name :
-				print 'going to merge the sample {0}'.format(name)
-				merge(outdir=output_dir,files=file_list,submit_run=submit)
+				if sample_name in name :
+					print 'going to merge the sample {0}'.format(name)
+					merge(outdir=output_dir,files=file_list,submit_run=submit)
 					
 			else :
 				"sample already merged - see: {0}".format(output_dir)
 		counter += 1
+
 def checkDirExist (directory) :
 	if not os.path.exists(directory) :
     		os.makedirs(directory)
@@ -91,6 +110,8 @@ def getfiles(source):
 
 
 def merge(outdir,files,submit_run):
+	test = True
+
 	nevents = 0
 	merge_pack = []
 	pack = []
@@ -139,7 +160,8 @@ def merge(outdir,files,submit_run):
        			#print("sbatch submit_"+str(i)+".sh") 
 			os.system( "sbatch submit_"+str(i)+".sh" )
 			os.chdir("../..")
-		
+			if test :
+				break
 
 if __name__ == '__main__':
 	main()
