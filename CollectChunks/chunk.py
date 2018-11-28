@@ -110,7 +110,7 @@ def getfiles(source):
 
 
 def merge(outdir,files,submit_run):
-	test = True
+	test = False
 
 	nevents = 0
 	merge_pack = []
