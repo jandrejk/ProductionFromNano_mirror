@@ -32,3 +32,4 @@ submit.sh
 utils/puweight/old/*
 samples_Outdated_24_11_2018/*
 CollectChunks/rundir/
+logfiles/*
