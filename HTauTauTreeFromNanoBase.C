@@ -397,7 +397,8 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
-                computeSvFit(bestPair);
+                bool fastMTT = false;
+                computeSvFit(bestPair,fastMTT);
             }
 
 
@@ -1771,8 +1772,9 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
+void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair, bool fastMTT)
 {
+    fastMTT = false;
     if(svFitAlgo_==nullptr) return;
 
     //Legs
@@ -1814,6 +1816,8 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
         if(decay2==0) mass2 = 0.13957; //pi+/- mass
         type2 = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     }
+
+
     //Leptons for SvFit
     std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
     measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4().Pt(), leg1.getP4().Eta(), leg1.getP4().Phi(), mass1, decay1) );
@@ -1849,12 +1853,41 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
             || ( HTTParticle::corrType != HTTAnalysis::NOMINAL && aPair.isInLooseSR() )
             || ( strcmp(shift.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
         ){
-            p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
+            if(fastMTT == true) {//compute fast mtt calculation
+                std::cout << "computing Fast MTT" << std::endl;
+                p4SVFit = runFastMttAlgo(measuredTauLeptons, aPair.getMET(), covMET);
+                std::cout << "pt, eta phi, m" << "\t" << p4SVFit.Pt() << "\t" << p4SVFit.Eta()<< "\t" << p4SVFit.Phi()<< "\t" << p4SVFit.M() << std::endl;
+
+            }
+            else {//compute SV fit
+                std::cout << "computing SV Fit" << std::endl;
+                p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
+                std::cout << "pt, eta phi, m" << "\t" << p4SVFit.Pt() << "\t" << p4SVFit.Eta()<< "\t" << p4SVFit.Phi()<< "\t" << p4SVFit.M() << std::endl; 
+            }
         }
 
         aPair.setP4(p4SVFit,shift);
     }
     aPair.setCurrentMETShift("");
+}
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
+TLorentzVector HTauTauTreeFromNanoBase::runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons, const TVector2 &aMET, const TMatrixD &covMET)
+{
+    TLorentzVector p4FastMTT;
+    if(measuredTauLeptons.size()!=2 || svFitAlgo_==nullptr) return p4FastMTT;
+   
+    //Run FastMTT
+    FastMTT aFastMTTAlgo;
+    aFastMTTAlgo.run(measuredTauLeptons, aMET.X(), aMET.Y(), covMET);
+    LorentzVector ttP4 = aFastMTTAlgo.getBestP4();
+    p4FastMTT.SetPtEtaPhiM(ttP4.Pt(),
+                             ttP4.Eta(),
+                             ttP4.Phi(),
+                             ttP4.M());
+
+
+    return p4FastMTT;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////

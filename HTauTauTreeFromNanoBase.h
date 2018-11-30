@@ -32,6 +32,7 @@
 #include "TauAnalysis/ClassicSVfit/interface/ClassicSVfit.h"
 #include "TauAnalysis/ClassicSVfit/interface/MeasuredTauLepton.h"
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"
+#include "TauAnalysis/ClassicSVfit/interface/FastMTT.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
@@ -77,9 +78,11 @@ public :
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
-  void computeSvFit(HTTPair &aPair);
+  void computeSvFit(HTTPair &aPair, bool fastMTT);
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
+  TLorentzVector runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
+            const TVector2 &aMET, const TMatrixD &covMET);
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
   int getGenMatch(unsigned int index, std::string colType="");
   int getGenMatch(TLorentzVector selObj);

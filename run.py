@@ -117,7 +117,7 @@ class SteerNanoProduction():
 
         if debug:
             self.nthreads = 1
-            self.nevents = 10001 if not event else -1
+            self.nevents = 101 if not event else -1
         else:
             self.nthreads = nthreads
             self.nevents = -1
