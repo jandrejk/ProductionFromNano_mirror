@@ -161,7 +161,7 @@ public :
   int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
-
+  std::string massfit;
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;

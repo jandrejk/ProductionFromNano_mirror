@@ -28,7 +28,7 @@ def main():
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
-    parser.add_argument('--svfit', dest='svfit', help='Calculate svfit mass', action = "store_true")
+    parser.add_argument('--massfit', dest='massfit', help='Calculate massfit mass', choices=['svfit','fastmtt'], default='')
     parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
 
 
@@ -42,7 +42,7 @@ def main():
         print "You forgot to source cmssw"
         sys.exit()
 
-    SNP = SteerNanoProduction(args.outdir, args.submit, args.svfit, args.jobs, args.debug, args.sync, args.force, args.event, args.cert)
+    SNP = SteerNanoProduction(args.outdir, args.submit, args.massfit, args.jobs, args.debug, args.sync, args.force, args.event, args.cert)
     for cmd in makeSubmitList(args.sample, args.channel):
 
         cmd["use_shift"] = args.shift
@@ -91,12 +91,12 @@ def makeSubmitList( sample, channel ):
 
 class SteerNanoProduction():
 
-    def __init__(self, outdir='', submit='local', svfit = False, nthreads=8, debug=False, sync = False, force = False, event = 0, cert = ""):
+    def __init__(self, outdir='', submit='local', massfit = False, nthreads=8, debug=False, sync = False, force = False, event = 0, cert = ""):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
         self.recoil = True
-        self.svfit = svfit
+        self.massfit = massfit
 
         cell = getSystem()
         if submit == "batch":
@@ -117,7 +117,7 @@ class SteerNanoProduction():
 
         if debug:
             self.nthreads = 1
-            self.nevents = 101 if not event else -1
+            self.nevents = 10001 if not event else -1
         else:
             self.nthreads = nthreads
             self.nevents = -1
@@ -364,7 +364,7 @@ class SteerNanoProduction():
             configBall["samplename"]  = sample
             configBall["channel"]     = self.channel
             configBall["systShift"]   = shift
-            configBall["svfit"]       = self.svfit
+            configBall["massfit"]       = self.massfit
             configBall["recoil"]      = self.recoil
             configBall["system"]      = self.submit
             configBall["nevents"]     = int(self.nevents)
