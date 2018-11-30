@@ -31,7 +31,7 @@ git cms-addpkg PhysicsTools/NanoAOD #not mandatory, but it initializes git for C
 git cms-addpkg FWCore/MessageLogger
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools # not used for now, but can be in future, e.g. JES?
 # SVFit
-git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b release_2018Mar20
+git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b fastMTT_21_06_2018
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 # MET recoil corrections
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
