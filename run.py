@@ -289,7 +289,7 @@ class SteerNanoProduction():
                 
         if not self.submit == "lxplus" and not self.submit == "condor":
             headerfiles = glob("*.h*")
-            Cfiles = glob("*.c*") + glob("*.C")
+            Cfiles = glob("*.c*") + glob("*.C") + glob('*.cxx')
             addFiles =['convertNanoParallel.py','validateAndCopy.py']
 
             shutil.copytree("utils", "/".join([rundir,"utils"]))

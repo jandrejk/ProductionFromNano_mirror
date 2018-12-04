@@ -72,6 +72,15 @@ class EventWriter
   float idisoweight_2;
   float effweight;
   float NNLO_ggH_weight;
+  float THU_ggH_Mu;
+  float THU_ggH_Res;
+  float THU_ggH_Mig01;
+  float THU_ggH_Mig12;
+  float THU_ggH_VBF2j;
+  float THU_ggH_VBF3j;
+  float THU_ggH_PT60;
+  float THU_ggH_PT120;
+  float THU_ggH_qmtop;
 
   float sf_trk;
   float sf_reco;

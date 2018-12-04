@@ -96,7 +96,17 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     passesThirdLepVeto=!ev->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto); 
     passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);
 
-    htxs_stage1cat = ev->getStage1Cat(); 
+    htxs_stage1cat = ev->getStage1Cat();
+    std::vector<double> THU = ev->getTHU_uncertainties();
+    THU_ggH_Mu =    THU[0];
+    THU_ggH_Res =   THU[1];
+    THU_ggH_Mig01 = THU[2];
+    THU_ggH_Mig12 = THU[3];
+    THU_ggH_VBF2j = THU[4];
+    THU_ggH_VBF3j = THU[5];
+    THU_ggH_PT60 =  THU[6];
+    THU_ggH_PT120 = THU[7];
+    THU_ggH_qmtop = THU[8];
 
 
     //////////////////////////////////////////////////////////////////
@@ -1054,6 +1064,15 @@ void EventWriter::setDefault(){
     zpt_weight_statpt80down=DEFWEIGHT;
 
     NNLO_ggH_weight=DEFWEIGHT;
+    THU_ggH_Mu = DEFWEIGHT;
+    THU_ggH_Res = DEFWEIGHT;
+    THU_ggH_Mig01 = DEFWEIGHT;
+    THU_ggH_Mig12 = DEFWEIGHT;
+    THU_ggH_VBF2j = DEFWEIGHT;
+    THU_ggH_VBF3j = DEFWEIGHT;
+    THU_ggH_PT60 = DEFWEIGHT;
+    THU_ggH_PT120 = DEFWEIGHT;
+    THU_ggH_qmtop = DEFWEIGHT;
     
     eleTauFakeRateWeight=DEFWEIGHT;
     muTauFakeRateWeight=DEFWEIGHT;
@@ -1836,6 +1855,16 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("antilep_tauscaling", &antilep_tauscaling);
 
     t->Branch("NNLO_ggH_weight", &NNLO_ggH_weight);
+
+    t->Branch("THU_ggH_Mu", &THU_ggH_Mu);
+    t->Branch("THU_ggH_Res", &THU_ggH_Res);
+    t->Branch("THU_ggH_Mig01", &THU_ggH_Mig01);
+    t->Branch("THU_ggH_Mig12", &THU_ggH_Mig12);
+    t->Branch("THU_ggH_VBF2j", &THU_ggH_VBF2j);
+    t->Branch("THU_ggH_VBF3j", &THU_ggH_VBF3j);
+    t->Branch("THU_ggH_PT60", &THU_ggH_PT60);
+    t->Branch("THU_ggH_PT120", &THU_ggH_PT120);
+    t->Branch("THU_ggH_qmtop", &THU_ggH_qmtop);
 
     // t->Branch("zpt_weight_nom",&zpt_weight_nom);
     // t->Branch("zpt_weight_esup",&zpt_weight_esup);

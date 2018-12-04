@@ -89,6 +89,8 @@ class HTTEvent{
 
   void setNNLO_ggH_weight(double x){NNLO_ggH_weight = x;}
 
+  void setTHU_uncertainties(int njets, double ptH, int stxs1);
+
   void setLHEnOutPartons(int x){lheNOutPartons = x;}
 
   void setSampleType(string sampletype);
@@ -148,6 +150,8 @@ class HTTEvent{
   double getZPtReWeight() const { return zPtReWeight;}
 
   double getNNLO_ggH_weight() const {return NNLO_ggH_weight;}
+
+  std::vector<double> getTHU_uncertainties() const {return THU_uncertainties;}
 
   float getMCWeight() const {return mcWeight;}
 
@@ -212,6 +216,9 @@ class HTTEvent{
 
   // WG1 NNLO ggH reweighting: https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsWG/SignalModelingTools#Gluon_Fusion_NNLOPS_reweighting
   double NNLO_ggH_weight  = 1.0;
+
+  // THU_ggH_Mu, THU_ggH_Res, THU_ggH_Mig01, THU_ggH_Mig12, THU_ggH_VBF2j, THU_ggH_VBF3j, THU_ggH_PT60, THU_ggH_PT120, THU_ggH_qmtop
+  std::vector<double> THU_uncertainties;
 
   ///Ht value from LHE record.
   float lheHt;

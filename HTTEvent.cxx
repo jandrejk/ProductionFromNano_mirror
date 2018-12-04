@@ -3,6 +3,7 @@
 #include "m2n/HTT/interface/GenInfoHelper.h"
 #else
 #include "HTTEvent.h"
+#include "gghWG1uncertainties.cxx"
 #endif
 
 std::map<string,PropertyEnum> HTTEvent::usePropertyFor = {};
@@ -67,7 +68,10 @@ void HTTEvent::clear(){
   metFilterDecision = 0;
   selectionWord.ResetAllBits();
 
-
+  THU_uncertainties = {1.0,1.0,1.0,
+                       1.0,1.0,1.0,
+                       1.0,1.0,1.0,
+  };
 
 }
 void HTTEvent::setSampleType(string sampletype)
@@ -85,6 +89,10 @@ void HTTEvent::setSampleType(string sampletype)
   if(sampletype == "ewk")            sampleType = EWK;   
   if(sampletype == "signal")         sampleType = h;
   sampletype = DUMMY;
+}
+void HTTEvent::setTHU_uncertainties(int njets, double ptH, int stxs1)
+{
+  THU_uncertainties = qcd_ggF_uncertSF_2017(njets, ptH, stxs1, 1.0);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

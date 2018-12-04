@@ -641,6 +641,8 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
             else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
             else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
             else                               httEvent->setNNLO_ggH_weight( 1.0 );
+
+            httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
         }
     }
 
