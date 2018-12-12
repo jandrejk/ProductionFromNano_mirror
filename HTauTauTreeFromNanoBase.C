@@ -80,10 +80,10 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     if(httEvent->getSampleType() == HTTEvent::h)
     {
         nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
-        NNLOPSratio_pt_mcatnlo_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_0jet");
-        NNLOPSratio_pt_mcatnlo_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_1jet");
-        NNLOPSratio_pt_mcatnlo_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_2jet");
-        NNLOPSratio_pt_mcatnlo_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_3jet");
+        NNLOPSratio_pt_powheg_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_0jet");
+        NNLOPSratio_pt_powheg_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_1jet");
+        NNLOPSratio_pt_powheg_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_2jet");
+        NNLOPSratio_pt_powheg_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_3jet");
     }
     else
     {
@@ -132,25 +132,19 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     if(applyRecoil)
     {
-        // Dont judge me... Not very nice way to implement met uncerts
+        // Don't judge me... Not very nice way to implement met uncerts
         // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
         metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
+
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVUp",      make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );    // SysType is dummy
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVDown",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );  // SysType is dummy
+
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+
         metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );        
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) ); 
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
+
     }
     
 
@@ -636,10 +630,10 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         if(nnlo_ggh_graphs)
         {
-            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
+            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
             else                               httEvent->setNNLO_ggH_weight( 1.0 );
 
             httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
@@ -2001,7 +1995,21 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     {
         met_scale_x = corrMEtPx;
         met_scale_y = corrMEtPy;
-        if(strcmp(shift.first.c_str(),"") != 0)
+        // Do not apply shift for nominal
+        if(shift.first.find("unclustered") != std::string::npos )
+        {
+            if(shift.second.second == MEtSys::SysShift::Up)
+            {
+                met_scale_x += MET_MetUnclustEnUpDeltaX; 
+                met_scale_y += MET_MetUnclustEnUpDeltaY;
+            }
+            if(shift.second.second == MEtSys::SysShift::Down)
+            {
+                met_scale_x -= MET_MetUnclustEnUpDeltaX; 
+                met_scale_y -= MET_MetUnclustEnUpDeltaY;
+            }            
+
+        } else if(strcmp(shift.first.c_str(),"") != 0)
         {
             metSys_->ApplyMEtSys(
                 corrMEtPx, corrMEtPy,        
