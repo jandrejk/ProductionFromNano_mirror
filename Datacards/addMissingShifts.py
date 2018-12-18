@@ -7,11 +7,11 @@ def GetKeyNames( self, dir = "" ):
 
 def MissingShift(name) :
 	missing_shifts = [
-		'CMS_htt_boson_reso_met_13TeV',
-		'CMS_htt_boson_scale_met_13TeV',
-		'CMS_htt_eff_b_13TeV',
-		'CMS_htt_mistag_b_13TeV',
-		'CMS_scale_met_unclustered_13TeV']
+		'CMS_htt_boson_reso_met',
+		'CMS_htt_boson_scale_met',
+		'CMS_htt_eff_b',
+		'CMS_htt_mistag_b',
+		'CMS_scale_met_unclustered']
 	for word in missing_shifts :
 		if word in name :
 			return True
@@ -25,12 +25,15 @@ def WriteHisto (directory, Histkey) :
 def main () :
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
+	parser.add_argument('-y', dest='year', help='data taking year',choices = ['2016','2017'], default = '2016')
 	args = parser.parse_args()
 	channel = args.channel
+	year = args.year
 	print "=== Decay channel: {0} ===".format(channel)
+	print "=== year: {0} ===".format(year)
 
-	path_Vienna = "/afs/hephy.at/user/m/mspanring/public/forJanik/datacards/vienna/htt_{0}.inputs-sm-13TeV-ML.root".format(channel)
-	path_KIT = "/afs/hephy.at/user/m/mspanring/public/forJanik/datacards/kit/htt_{0}.inputs-sm-13TeV-ML.root".format(channel)
+	path_Vienna = "/afs/hephy.at/data/higgs02/shapes/Vienna/htt_{0}.inputs-sm-Run{1}-ML.root".format(channel,year)
+	path_KIT = "/afs/hephy.at/data/higgs02/shapes/KIT/htt_{0}.inputs-sm-Run{1}-ML.root".format(channel,year)
 
 	Vienna_file = TFile.Open(path_Vienna,'read')
 	Tdirectories_Vienna = [key for key in Vienna_file.GetListOfKeys()]
@@ -39,7 +42,7 @@ def main () :
 	Tdirectory_names_KIT = [key.GetName() for key in KIT_file.GetListOfKeys()]
 
 
-	output = TFile.Open("/afs/hephy.at/user/j/jandrejkovic/public/forMarkus/datacards/vienna/htt_{0}.inputs-sm-13TeV-ML_copyMissingDatacards.root".format(channel),'recreate')
+	output = TFile.Open("/afs/hephy.at/user/j/jandrejkovic/public/forMarkus/datacards_new/vienna/htt_{0}.inputs-sm-Run{1}-ML.root".format(channel,year),'recreate')
 
 	counter = 0
 	loop = 0
@@ -61,7 +64,6 @@ def main () :
 
 				# Check if Datacard name belongs to the list of missing names
 				if MissingShift(name=h_key.GetName()) :
-
 					d_KIT = KIT_file.Get(Tdir.GetName())
 					KIT_histo_names = [key.GetName() for key in d_KIT.GetListOfKeys()]
 
