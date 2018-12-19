@@ -79,9 +79,11 @@ def makeSubmitList( sample, channel ):
         for s in samples:
 
             # if "/data/" in s and sh != "": continue
-            if c == "et" and not "/mc/" in s and not "samples/data/SingleElectron" in s: continue
-            if c == "mt" and not "/mc/" in s and not "samples/data/SingleMuon" in s: continue
-            if c == "tt" and not "/mc/" in s and not "samples/data/Tau" in s: continue
+            if c == "et" and not "/mc/" in s and not ("samples/data/SingleElectron" in s or "samples/data/EmbeddingElTau" in s): continue
+            if c == "mt" and not "/mc/" in s and not ("samples/data/SingleMuon" in s or "samples/data/EmbeddingMuTau" in s): continue
+            if c == "tt" and not "/mc/" in s and not ("samples/data/Tau" in s or "samples/data/EmbeddingTauTau" in s): continue
+
+
 
             submitlist.append( { "sample":s, "channel":c } )
 
@@ -145,7 +147,6 @@ class SteerNanoProduction():
 
 
         self.certJson = cert
-
     def runOneSample(self, sample, channel, use_shift):
         useToken("hephy")
         threads = []
