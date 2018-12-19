@@ -11,7 +11,7 @@ from chunk import checkDirExist
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-n', dest='sample_name', help='Enter the name of the sample to be tested for the correct merging', type=str, metavar = 'SAMPLE_NAME', choices=['SingleElectron','SingleMuon','Tau','VBF','GluGlu','DY','EWK','ST_t','W','ZZ','TTT'],default='')
+parser.add_argument('-n', dest='sample_name', help='Enter the name of the sample to be tested for the correct merging', type=str, metavar = 'SAMPLE_NAME', choices=['SingleElectron','SingleMuon','Tau','VBF','GluGlu','DY','EWK','ST_t','W','ZZ','TTT','Wplus','Wminus','ZH'],default='')
 parser.add_argument('-f', dest='which_file_list', help='which file list', type=str, metavar = 'FILELIST', choices=['Janik','Markus'], default='Janik')
 parser.add_argument('-d', dest='directory', help='directory', type=str, metavar = 'DIR')
 
@@ -48,6 +48,6 @@ for source in sources:
 		FSO.write( runscript )
         
 	os.chmod("submit_{0}.sh".format(name), 0777)
-	#print("sbatch submit_{0}.sh".format(name)) 
+	print("sbatch submit_{0}.sh".format(name)) 
 	os.system( "sbatch submit_{0}.sh".format(name) )
 	os.chdir("../../")

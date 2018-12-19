@@ -7,7 +7,7 @@ no_sucesses = 0
 no_failures = 0
 for f in files :
 	if '.txt' in f :
-		with open("./out/"+f) as name :
+		with open(directory+"/"+f) as name :
 			content = name.readlines()
 		if  len(content) != 0 :
 			if 'successful' in content[0] : 

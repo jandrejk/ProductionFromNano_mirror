@@ -24,6 +24,8 @@ def main():
 	parser.add_argument('-t', dest='submit', help='Where to submit', type=str, metavar = 'SUBMIT', choices=['local','hephybatch'],default='hephybatch')
 	parser.add_argument('-o', dest='output_directory', help='output directory', type=str, metavar = 'OUTDIR', default='create')
 	parser.add_argument('-f', dest='which_file_list', help='which file list', type=str, metavar = 'FILELIST', choices=['Janik','Markus'], default='Janik')
+	parser.add_argument('--test', dest='print_only', help='only print output but do not execute any program', action = "store_true")
+
 	args = parser.parse_args()
 			    
 	
@@ -73,8 +75,10 @@ def main():
 			if not os.listdir(output_dir) :
     			#print "Directory is empty"
 				if sample_name in name :
-					print 'going to merge the sample {0}'.format(name)
-					merge(outdir=output_dir,files=file_list,submit_run=submit)
+					print 'ready to merge'
+					if args.print_only == False :
+						print 'going to merge the sample {0}'.format(name)
+						merge(outdir=output_dir,files=file_list,submit_run=submit)
 					
 			else :
 				"sample already merged - see: {0}".format(output_dir)

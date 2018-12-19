@@ -29,6 +29,14 @@ samplelist_Markus = {
 "/VBFHToTauTau_M125_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM":
 ["/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/VBFHToTauTau_M125_13TeV_powheg_pythia8/VBFHToTauTau_M125_13TeV_powheg_pythia8/181115_124730",43],
 
+"/WplusHToTauTau_M125_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM":
+["/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/WplusHToTauTau_M125_13TeV_powheg_pythia8/WplusHToTauTau_M125_13TeV_powheg_pythia8/181210_102131",61],
+"/ZHToTauTau_M125_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM":
+["/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/ZHToTauTau_M125_13TeV_powheg_pythia8/ZHToTauTau_M125_13TeV_powheg_pythia8/181210_102243",75],
+"/WminusHToTauTau_M125_13TeV_powheg_pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1/MINIAODSIM":
+["/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/WminusHToTauTau_M125_13TeV_powheg_pythia8/WminusHToTauTau_M125_13TeV_powheg_pythia8/181210_102030",57],
+
+
 "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/MINIAODSIM":
 ["/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/181115_082028",514],
 "/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1-v2/MINIAODSIM":
