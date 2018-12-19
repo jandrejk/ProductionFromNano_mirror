@@ -5,17 +5,23 @@ def GetKeyNames( self, dir = "" ):
         self.cd(dir)
         return [key.GetName() for key in gDirectory.GetListOfKeys()]
 
-def MissingShift(name) :
-	missing_shifts = [
-		'CMS_htt_boson_reso_met',
-		'CMS_htt_boson_scale_met',
-		'CMS_htt_eff_b',
-		'CMS_htt_mistag_b',
-		'CMS_scale_met_unclustered']
-	for word in missing_shifts :
-		if word in name :
+def MissingShift(name, applyall) :
+	if 'CMS' not in name :
+		return False
+	else :
+		if applyall :
 			return True
-	return False
+		else :
+			missing_shifts = [
+			'CMS_htt_boson_reso_met',
+			'CMS_htt_boson_scale_met',
+			'CMS_htt_eff_b',
+			'CMS_htt_mistag_b',
+			'CMS_scale_met_unclustered']
+			for word in missing_shifts :
+				if word in name :
+					return True
+			return False
 
 def WriteHisto (directory, Histkey) :
 	out_histo = directory.Get(Histkey.GetName())
@@ -35,6 +41,7 @@ def PrintInputSettings (args) :
 	print "%-15s : %-20s" % ("2nd input path", args.path2)
 	print "%-15s : %-20s" % ("output path", args.outdirectory)
 	print "%-15s : %-20s" % ("simple copy", args.copy)
+	print "%-15s : %-20s" % ("apply all", args.applyall)
 	print "========================================================"
 	
 
@@ -54,22 +61,34 @@ def ApplyShifts (h_key,d,d_KIT,KIT_histo_names,nominal_vienna,nominal_KIT,loop) 
 		datacard_shift_KIT.Delete()
 		datacard_shift_Vienna.Delete()	
 		loop += 1
+
+		#print nominal_KIT.GetNbinsX()
+		#print nominal_vienna.GetNbinsX()
+
+		# for b in xrange(datacard_shift_Vienna.GetNbinsX() ) :
+		# 	print 'bin: {0}'.format(b)  
+		# 	print 'Vienna nominal: {0}'.format(nominal_vienna.GetBinContent(b))  
+		# 	print 'KIT nominal: {0}'.format(nominal_KIT.GetBinContent(b))  
+		# 	print 'KIT Shift: {0}'.format(datacard_shift_KIT.GetBinContent(b))  
+		# 	print 'Vienna Shift: {0}'.format(datacard_shift_Vienna.GetBinContent(b))
+		# 	if (nominal_KIT.GetBinContent(b) != 0) :
+		# 		print 'comparison: {0}'.format(nominal_vienna.GetBinContent(b)*(datacard_shift_KIT.GetBinContent(b) / nominal_KIT.GetBinContent(b)))
+
+		# 	print '-'*100
+
 	else : # copy Datacard from Vienna
 		WriteHisto(directory=d, Histkey=h_key)
 	return loop
 
 def CopyShifts (h_key,KIT_histo_names,loop,d_KIT,d) :
-	if MissingShift(name=h_key.GetName()) :				
-		# check if Datacard exists in KIT file
-		if (h_key.GetName() in KIT_histo_names) : # if yes copy Datacard from KIT
-			loop += 1
-			WriteHisto(directory=d_KIT, Histkey=h_key)
-		else : # copy Datacard from Vienna
-			WriteHisto(directory=d, Histkey=h_key)
-			
-					
-	else : # Datacard is not missing, therefore take it from Vienna
-		WriteHisto(directory=d, Histkey=h_key)
+				
+	# check if Datacard exists in KIT file
+	if (h_key.GetName() in KIT_histo_names) : # if yes copy Datacard from KIT
+		loop += 1
+		WriteHisto(directory=d_KIT, Histkey=h_key)
+	else : # copy Datacard from Vienna
+		WriteHisto(directory=d, Histkey=h_key)					
+	
 	return loop
 
 def main () :
@@ -80,6 +99,7 @@ def main () :
 	parser.add_argument('-in1', dest='path1', help='directory of Vienna shape datacards', default = '/afs/hephy.at/data/higgs02/shapes/Vienna')
 	parser.add_argument('-in2', dest='path2', help='directory of KIT shape datacards', default = '/afs/hephy.at/data/higgs02/shapes/KIT')
 	parser.add_argument('--copy', dest='copy', help='simply copy datacards from KIT', action = "store_true")
+	parser.add_argument('--all', dest='applyall', help='apply shifts from all datacards to Vienna sample', action = "store_true")
 	
 	args = parser.parse_args()
 	
@@ -121,19 +141,25 @@ def main () :
 			KIT_histo_names = [key.GetName() for key in d_KIT.GetListOfKeys()]
 
 			hist_dict = dict(zip(histo_name_keys,[k.GetName() for k in histo_name_keys]))
+			
 
 			# loop over all shapes in the given Tdirectory
 			for h_key in sorted(hist_dict,key=hist_dict.get) :
 				
-				if args.copy : # just copy the missing datacards from KIT
-					loop = CopyShifts(h_key=h_key, KIT_histo_names=KIT_histo_names, loop=loop, d_KIT=d_KIT, d=d)
-				else : # apply shifts from KIT datacards to nominal Vienna datacards to get the shifted Vienna datacards
-					if ('CMS' in h_key.GetName()) == False : # check if it is the nominal sample
-						WriteHisto(directory=d, Histkey=h_key)
-						nominal_vienna = d.Get(h_key.GetName())
-						nominal_KIT    = d_KIT.Get(h_key.GetName())
-					else :
+				if MissingShift(name=h_key.GetName(),applyall=args.applyall) :	
+
+					if args.copy : # just copy the missing datacards from KIT
+						loop = CopyShifts(h_key=h_key, KIT_histo_names=KIT_histo_names, loop=loop, d_KIT=d_KIT, d=d)
+					else : # apply shifts from KIT datacards to nominal Vienna datacards to get the shifted Vienna datacards
 						loop = ApplyShifts(h_key=h_key, d=d, d_KIT=d_KIT, KIT_histo_names=KIT_histo_names,nominal_vienna=nominal_vienna,nominal_KIT=nominal_KIT,loop=loop)
+
+				
+				else : # Datacard is not missing, therefore take it from Vienna
+					WriteHisto(directory=d, Histkey=h_key)
+					if 'CMS' not in h_key.GetName() : # check if it is the nominal sample
+						nominal_vienna = (d.Get(h_key.GetName()))
+						nominal_KIT    = (d_KIT.Get(h_key.GetName()))
+
 
 				counter += 1
 				
