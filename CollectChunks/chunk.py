@@ -62,6 +62,8 @@ def main():
 
 		file_list =  getfiles(samplelist[source][0] )
 		n = len(file_list)
+		print n
+		print samplelist[source][1] 
 		done = (n == samplelist[source][1] )
 		
 		# check whether sample has finished running

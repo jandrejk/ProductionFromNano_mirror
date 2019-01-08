@@ -17,6 +17,10 @@ parser.add_argument('-d', dest='directory', help='directory', type=str, metavar 
 
 args = parser.parse_args()
 
+checkDirExist(directory='./proxy')
+print "copying proxy"
+os.system("cp /tmp/x509up_u3522 proxy/")
+
 sample_name = args.sample_name
 if args.which_file_list == 'Janik' :
 	samplelist = samplelist_Janik
@@ -37,8 +41,12 @@ for source in sources:
 
 	with open("fullMerge.sh".format('batch') ) as FSO:
 		templ = string.Template( FSO.read() )
-		
-	runscript = templ.substitute(sample_name = sample_name, outputdir=directory, samplelist=args.which_file_list)
+
+	#print sample_name
+	#print directory
+	#print args.which_file_list	
+	#break	
+	runscript = templ.substitute(sample_name = name, outputdir=directory, samplelist=args.which_file_list)
 	
 	rundir_name = "./out/outstamp_{0}".format(directory.split('/')[-2])
 	checkDirExist(rundir_name+'/')

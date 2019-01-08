@@ -31,7 +31,10 @@ def main(sample_name,outputdir,whatsamplelist):
 		file_list =  getfiles(samplelist[source][0] )
 		n = len(file_list)	
 		done = (n == samplelist[source][1] )
-
+		print file_list
+		print n
+		print samplelist[source][1]
+		print done
 		if done :
 			try :
 				outputFile_list = [outputdir+name+'/'+f for f in  os.listdir(outputdir+name+'/')]
@@ -101,5 +104,8 @@ def getfiles(source):
 
 
 if __name__ == '__main__':
-	main(sample_name = sys.argv[1], outputdir=sys.argv[2],whatsamplelist=sys.argv[3] )
+	if len(sys.argv) == 4 :
+		main(sample_name = sys.argv[1], outputdir=sys.argv[2],whatsamplelist=sys.argv[3] )
+	if len(sys.argv) == 3 :
+		main(sample_name = '', outputdir=sys.argv[1],whatsamplelist=sys.argv[2] )
 
