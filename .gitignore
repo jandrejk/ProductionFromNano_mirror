@@ -36,3 +36,8 @@ logfiles/*
 PullAdded.root
 SVfitVSfastMTT/*
 Datacards/htt*
+Datacards/gitlab_datacards/*
+Datacards/scripts/*
+EmbeddingTests/*
+embtest_log_debug.txt
+samples_Outdated_07_01_2019/*
