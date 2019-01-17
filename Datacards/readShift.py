@@ -42,6 +42,7 @@ def PrintInputSettings (args) :
 	print "%-15s : %-20s" % ("output path", args.outdirectory)
 	print "%-15s : %-20s" % ("simple copy", args.copy)
 	print "%-15s : %-20s" % ("apply all", args.applyall)
+	print "%-15s : %-20s" % ("copy data_obs", args.data_obs)
 	print "========================================================"
 	
 
@@ -95,11 +96,12 @@ def main () :
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
 	parser.add_argument('-y', dest='year', help='data taking year',choices = ['2016','2017'], default = '2016')
-	parser.add_argument('-o', dest='outdirectory', help='output directory', default = '/afs/hephy.at/user/j/jandrejkovic/public/forMarkus/datacards_2018_12_19/vienna/')
+	parser.add_argument('-o', dest='outdirectory', help='output directory', default = '/afs/hephy.at/user/j/jandrejkovic/public/forMarkus/datacards_2018_12_20/vienna/')
 	parser.add_argument('-in1', dest='path1', help='directory of Vienna shape datacards', default = '/afs/hephy.at/data/higgs02/shapes/Vienna')
 	parser.add_argument('-in2', dest='path2', help='directory of KIT shape datacards', default = '/afs/hephy.at/data/higgs02/shapes/KIT')
 	parser.add_argument('--copy', dest='copy', help='simply copy datacards from KIT', action = "store_true")
 	parser.add_argument('--all', dest='applyall', help='apply shifts from all datacards to Vienna sample', action = "store_true")
+	parser.add_argument('--data_obs', dest='data_obs', help='replace the datacards data_obs from KIT', action = "store_true")
 	
 	args = parser.parse_args()
 	
@@ -145,17 +147,25 @@ def main () :
 
 			# loop over all shapes in the given Tdirectory
 			for h_key in sorted(hist_dict,key=hist_dict.get) :
-				
+
 				if MissingShift(name=h_key.GetName(),applyall=args.applyall) :	
 
 					if args.copy : # just copy the missing datacards from KIT
 						loop = CopyShifts(h_key=h_key, KIT_histo_names=KIT_histo_names, loop=loop, d_KIT=d_KIT, d=d)
 					else : # apply shifts from KIT datacards to nominal Vienna datacards to get the shifted Vienna datacards
 						loop = ApplyShifts(h_key=h_key, d=d, d_KIT=d_KIT, KIT_histo_names=KIT_histo_names,nominal_vienna=nominal_vienna,nominal_KIT=nominal_KIT,loop=loop)
-
+				# elif args.data_obs :
+				# 	if h_key.GetName() == "data_obs" :
+				# 		print h_key.GetName()
+				# 		loop = CopyShifts(h_key=h_key, KIT_histo_names=KIT_histo_names, loop=loop, d_KIT=d_KIT, d=d)
 				
 				else : # Datacard is not missing, therefore take it from Vienna
-					WriteHisto(directory=d, Histkey=h_key)
+
+					# except if the data_obs datacard should be copied from KIT
+					if args.data_obs == True and h_key.GetName() == "data_obs" :
+						loop = CopyShifts(h_key=h_key, KIT_histo_names=KIT_histo_names, loop=loop, d_KIT=d_KIT, d=d)
+					else :
+						WriteHisto(directory=d, Histkey=h_key)
 					if 'CMS' not in h_key.GetName() : # check if it is the nominal sample
 						nominal_vienna = (d.Get(h_key.GetName()))
 						nominal_KIT    = (d_KIT.Get(h_key.GetName()))
