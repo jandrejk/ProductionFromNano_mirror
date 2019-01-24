@@ -1438,7 +1438,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
 
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v2.root");
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v3.root");
     w = (RooWorkspace*)wsp.Get("w");
 
 
