@@ -102,6 +102,7 @@ enum sysEffects
     EES1p0p0Up, EES1p0p0Down,
     EES1p1p0Up, EES1p1p0Down,
     EES3p0p0Up, EES3p0p0Down,
+    EESUp,      EESDown,
     DUMMY_SYS,
 ///Place systematic effects not affecting the SV calculation after DUMMY_SYS
 ///all quantities for following syst effects are calculated on fly, no need to rerun
@@ -124,12 +125,22 @@ enum finalState
   NONE = 4
 };
 
-float getEnergyScale( int pdg, int mc_match, int dm, sysEffects type = sysEffects::NOMINAL )
+float getEnergyScale( int pdg, int mc_match, float eta, int dm, sysEffects type = sysEffects::NOMINAL )
 {
     float shift = 0.0;
     float scale = 0.0;
     if(type > sysEffects::NOMINAL && type < sysEffects::DUMMY_SYS){
         shift = type % 2 == 0 ? -1.0 : 1.0;
+    }
+    if(pdg == 11)
+    {
+        if(mc_match == 1 || mc_match == 3)
+        {
+              if(type == sysEffects::EESUp || type == sysEffects::EESDown){
+                if(fabs(eta) < 1.479 ) return shift*ES.Electron.uncertaintyBarrel;
+                return shift*ES.Electron.uncertaintyEndcap;
+              }
+        }      
     }
 
     if(pdg == 15)

@@ -140,9 +140,11 @@ const TLorentzVector HTTParticle::getShiftedP4(HTTAnalysis::sysEffects shift) co
   int dm = getProperty(PropertyEnum::decayMode);
   int mc_match = getProperty(PropertyEnum::mc_match);
 
-  float tauES = HTTAnalysis::getEnergyScale(pdg, mc_match, dm, shift); // Defined in AnalysisEnums.h
-  float tauES_mass = tauES;
-  if (dm == 0) tauES_mass=0;
+  float tauES = HTTAnalysis::getEnergyScale(pdg, mc_match, p4.Eta(), dm, shift); // Defined in AnalysisEnums.h
+
+  float tauES_mass;
+  if(pdg == 15 ) tauES_mass = tauES;
+  if(dm == 0 || pdg != 15) tauES_mass=0;
 
   shiftedP4.SetPtEtaPhiM(p4.Pt() * (1.0+tauES),
                        p4.Eta(),
@@ -306,7 +308,7 @@ void HTTJetCollection::clear()
 void HTTJetCollection::initForPromoteDemote()
 {
   usePromoteDemote = true;
-  calib = BTagCalibration("DeepCSV", "utils/BTagCalibration/data/DeepCSV_94XSF_V3_B_F.csv");
+  calib = BTagCalibration("deepCSV", "utils/BTagCalibration/data/DeepCSV_94XSF_V3_B_F.csv");
   reader = BTagCalibrationReader(BTagEntry::OP_MEDIUM, "central",{"up","down"});
   reader.load(calib,  BTagEntry::FLAV_B, "comb");
   reader.load(calib,  BTagEntry::FLAV_C, "comb");
@@ -330,17 +332,20 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
   double scaleFactor;
   double scaleRatio;
   double jetPt;
+  double jetPhi;
   double jetEta;
   double tagging_efficiency;
   double rn;
   
   int index = 0;
   for(auto & jet : btagCurrentCollection){
-    jetPt=  jet.Pt();    
+    jetPt=  jet.Pt();
+    jetPhi= jet.Phi();  
     jetEta= jet.Eta();
-    rand.SetSeed((int)((jetEta+5)*100000));
-    rn = rand.Rndm();
 
+    rand.SetSeed((int)((jetEta+5)*100000));
+    // rand.SetSeed( static_cast<int>(( jetEta +5 )*1000)*1000 + static_cast<int>(( jetPhi + 4 )*1000) );
+    rn = rand.Uniform();
 
     if( jet.getProperty(PropertyEnum::hadronFlavour) ==5 )       scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_B, jetEta, jetPt);
     else if( jet.getProperty(PropertyEnum::hadronFlavour) ==4 )  scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_C, jetEta, jetPt);
@@ -348,6 +353,7 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
 
     if(scaleFactor < 1){
       scaleRatio = fabs( 1-scaleFactor );
+      //cout << (int)(( jetEta +5 )*1000)*1000 + (int)(( jetPhi + 4 )*1000)<< " " << jet.getProperty(PropertyEnum::hadronFlavour) << " " << jetPt << " " << jetEta << " "<< jetPhi<< " " << scaleFactor<< " " << rn <<endl;
       if( rn < scaleRatio ) btagCurrentCollection.erase(btagCurrentCollection.begin() + index);
     }
     ++index;
@@ -355,10 +361,12 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
     
   for(auto & jet : antibtagCollection){
     jetPt=  jet.Pt();
+    jetPhi= jet.Phi();
     jetEta= jet.Eta();
 
     rand.SetSeed((int)((jetEta+5)*100000));
-    rn = rand.Rndm();
+    // rand.SetSeed( static_cast<int>(( jetEta +5 )*1000)*1000 + static_cast<int>(( jetPhi + 4 )*1000) );
+    rn = rand.Uniform();
 
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
       
@@ -417,6 +425,7 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
     }
     // If promote-demote is not enabled only current btagCollection will be filled
     btagPromoteDemote();
+
 
     
     if(jetCurrentCollection.size() > 1)

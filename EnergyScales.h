@@ -6,6 +6,8 @@ const struct ES{
 		float uncertaintyShift1p   = 0.007;
 		float uncertaintyShift1p1p = 0.007;
 		float uncertaintyShift3p   = 0.03;
+		float uncertaintyBarrel    = 0.01;
+		float uncertaintyEndcap    = 0.025;
 	} Electron;
 
 	struct Muon{
