@@ -6,7 +6,7 @@ def GetKeyNames( self, dir = "" ):
         return [key.GetName() for key in gDirectory.GetListOfKeys()]
 
 def MissingShift(name, applyall) :
-	if 'CMS' not in name :
+	if 'CMS' not in name:
 		return False
 	else :
 		if applyall :
@@ -17,7 +17,8 @@ def MissingShift(name, applyall) :
 			'CMS_htt_boson_scale_met',
 			'CMS_htt_eff_b',
 			'CMS_htt_mistag_b',
-			'CMS_scale_met_unclustered']
+			'CMS_scale_met_unclustered',
+			'CMS_scale_j']
 			for word in missing_shifts :
 				if word in name :
 					return True
@@ -48,10 +49,19 @@ def PrintInputSettings (args) :
 
 def ApplyShifts (h_key,d,d_KIT,KIT_histo_names,nominal_vienna,nominal_KIT,loop) :	
 	if (h_key.GetName() in KIT_histo_names) : # Check if shape exists in KIT - if True copy Datacard from KIT
+		
+		for i in xrange(nominal_vienna.GetNbinsX()) :
+			nominal_vienna.SetBinError(i, 0.)
+						
+		for i in xrange(nominal_KIT.GetNbinsX()) :
+			nominal_KIT.SetBinError(i,0.)
+
 		datacard_shift_KIT = d_KIT.Get(h_key.GetName())
 		datacard_shift_Vienna = nominal_vienna.Clone() 
 		datacard_shift_Vienna.SetName(h_key.GetName())
 		datacard_shift_Vienna.SetTitle(h_key.GetName())
+
+				
 
 		datacard_shift_Vienna.Multiply(datacard_shift_KIT)
 		datacard_shift_Vienna.Divide(nominal_KIT)
