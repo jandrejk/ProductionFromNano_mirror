@@ -71,20 +71,17 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     Flag_ecalBadCalibFilter =                 ev->getFilter(FilterEnum::Flag_ecalBadCalibFilter);
     Flag_METFilters =                         ev->getFilter(FilterEnum::Flag_METFilters);    
 
-    // these values are for Moriond 2018, i.e. CMSSW >= 9_4_0
-    // https://twiki.cern.ch/twiki/bin/viewauth/CMS/MissingETOptionalFiltersRun2#Analysis%20Recommendations%20(for%20an
-    flagMETFilter = Flag_goodVertices 
-                    && Flag_globalSuperTightHalo2016Filter
-                    && Flag_HBHENoiseFilter 
-                    && Flag_HBHENoiseIsoFilter 
-                    && Flag_EcalDeadCellTriggerPrimitiveFilter 
-                    && Flag_BadPFMuonFilter 
-                    && Flag_BadChargedCandidateFilter 
-                    && Flag_ecalBadCalibFilter; 
-    
-    // Flag_eeBadScFilter is not suggested, so it is only applied to data not to MC
-    if (!isMC) flagMETFilter &= Flag_eeBadScFilter; 
 
+    flagMETFilter = Flag_goodVertices
+                    && Flag_globalSuperTightHalo2016Filter
+                    && Flag_HBHENoiseFilter
+                    && Flag_HBHENoiseIsoFilter
+                    && Flag_EcalDeadCellTriggerPrimitiveFilter
+                    && Flag_BadPFMuonFilter
+                    && Flag_BadChargedCandidateFilter
+                    && Flag_ecalBadCalibFilter;
+
+    if(!isMC) flagMETFilter &= Flag_eeBadScFilter; // only for data
 
     //////////////////////////////////////////////////////////////////  
 
@@ -100,7 +97,17 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     passesThirdLepVeto=!ev->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto); 
     passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);
 
-    htxs_stage1cat = ev->getStage1Cat(); 
+    htxs_stage1cat = ev->getStage1Cat();
+    std::vector<double> THU = ev->getTHU_uncertainties();
+    THU_ggH_Mu =    THU[0];
+    THU_ggH_Res =   THU[1];
+    THU_ggH_Mig01 = THU[2];
+    THU_ggH_Mig12 = THU[3];
+    THU_ggH_VBF2j = THU[4];
+    THU_ggH_VBF3j = THU[5];
+    THU_ggH_PT60 =  THU[6];
+    THU_ggH_PT120 = THU[7];
+    THU_ggH_qmtop = THU[8];
 
 
     //////////////////////////////////////////////////////////////////
@@ -124,7 +131,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
         trg_crossmuon_mu20tau27=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1) 
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1)
-                                  && pt_1 > 21 && pt_2 > 32;
+                                  && pt_1 > 21 && pt_2 > 32
+                                  && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
@@ -137,7 +145,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
         trg_crossele_ele24tau30 = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1) 
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1)
-                                  && pt_1 > 25 && pt_2 > 35;
+                                  && pt_1 > 25 && pt_2 > 35 
+                                  && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
     } else if ( channel == HTTAnalysis::TauTau )
     {
@@ -233,11 +242,11 @@ void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
     {
         if(gen_Mll > 50)
         {
-            if(NUP == 0) stitchedWeight = 0.0591264368919;
-            if(NUP == 1) stitchedWeight = 0.0101618947671;
-            if(NUP == 2) stitchedWeight = 0.0214042383336;
-            if(NUP == 3) stitchedWeight = 0.0134688714374;
-            if(NUP == 4) stitchedWeight = 0.00922451738396;
+            if(NUP == 0) stitchedWeight = 0.05895;
+            if(NUP == 1) stitchedWeight = 0.01027499;
+            if(NUP == 2) stitchedWeight = 0.02142243;
+            if(NUP == 3) stitchedWeight = 0.01339934;
+            if(NUP == 4) stitchedWeight = 0.01240308;
         }
         else{
             //Low mass DY
@@ -246,11 +255,11 @@ void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
 
     } else if(sampleType == HTTEvent::WJets)
     {
-        if(NUP == 0) stitchedWeight = 0.790412193098;
-        if(NUP == 1) stitchedWeight = 0.149928986768;
-        if(NUP == 2) stitchedWeight = 0.306960320514;
-        if(NUP == 3) stitchedWeight = 0.0555042020747;
-        if(NUP == 4) stitchedWeight = 0.0521330443693;
+        if(NUP == 0) stitchedWeight = 0.79184426;
+        if(NUP == 1) stitchedWeight = 0.14205686;
+        if(NUP == 2) stitchedWeight = 0.29963387;
+        if(NUP == 3) stitchedWeight = 0.05360786;
+        if(NUP == 4) stitchedWeight = 0.05210335;
 
     } else stitchedWeight=lumiWeight;
 }
@@ -1056,6 +1065,15 @@ void EventWriter::setDefault(){
     zpt_weight_statpt80down=DEFWEIGHT;
 
     NNLO_ggH_weight=DEFWEIGHT;
+    THU_ggH_Mu = DEFWEIGHT;
+    THU_ggH_Res = DEFWEIGHT;
+    THU_ggH_Mig01 = DEFWEIGHT;
+    THU_ggH_Mig12 = DEFWEIGHT;
+    THU_ggH_VBF2j = DEFWEIGHT;
+    THU_ggH_VBF3j = DEFWEIGHT;
+    THU_ggH_PT60 = DEFWEIGHT;
+    THU_ggH_PT120 = DEFWEIGHT;
+    THU_ggH_qmtop = DEFWEIGHT;
     
     eleTauFakeRateWeight=DEFWEIGHT;
     muTauFakeRateWeight=DEFWEIGHT;
@@ -1421,7 +1439,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
 
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v2.root");
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v3.root");
     w = (RooWorkspace*)wsp.Get("w");
 
 
@@ -1838,6 +1856,16 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("antilep_tauscaling", &antilep_tauscaling);
 
     t->Branch("NNLO_ggH_weight", &NNLO_ggH_weight);
+
+    t->Branch("THU_ggH_Mu", &THU_ggH_Mu);
+    t->Branch("THU_ggH_Res", &THU_ggH_Res);
+    t->Branch("THU_ggH_Mig01", &THU_ggH_Mig01);
+    t->Branch("THU_ggH_Mig12", &THU_ggH_Mig12);
+    t->Branch("THU_ggH_VBF2j", &THU_ggH_VBF2j);
+    t->Branch("THU_ggH_VBF3j", &THU_ggH_VBF3j);
+    t->Branch("THU_ggH_PT60", &THU_ggH_PT60);
+    t->Branch("THU_ggH_PT120", &THU_ggH_PT120);
+    t->Branch("THU_ggH_qmtop", &THU_ggH_qmtop);
 
     // t->Branch("zpt_weight_nom",&zpt_weight_nom);
     // t->Branch("zpt_weight_esup",&zpt_weight_esup);

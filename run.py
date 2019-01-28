@@ -20,7 +20,8 @@ def main():
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt','all'], default = 'mt')
     parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',nargs="+", choices = ['t0u','t1u','t10u','t0d','t1d','t10d',
                                                                                                       'm0u','m1u','m10u','m0d','m1d','m10d',
-                                                                                                      'e0u','e1u','e10u','e0d','e1d','e10d'], default = [''])
+                                                                                                      'e0u','e1u','e10u','e0d','e1d','e10d',
+                                                                                                      'eeu','eed'], default = [''])
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
@@ -139,7 +140,9 @@ class SteerNanoProduction():
                 'e10u': 'EES3p0p0Up',
                 'e0d' : 'EES1p0p0Down',
                 'e1d' : 'EES1p1p0Down',
-                'e10d': 'EES3p0p0Down'
+                'e10d': 'EES3p0p0Down',
+                'eeu' : 'EESUp',
+                'eed' : 'EESDown'
         }
 
 
@@ -289,7 +292,7 @@ class SteerNanoProduction():
                 
         if not self.submit == "lxplus" and not self.submit == "condor":
             headerfiles = glob("*.h*")
-            Cfiles = glob("*.c*") + glob("*.C")
+            Cfiles = glob("*.c*") + glob("*.C") + glob('*.cxx')
             addFiles =['convertNanoParallel.py','validateAndCopy.py']
 
             shutil.copytree("utils", "/".join([rundir,"utils"]))

@@ -4,6 +4,7 @@ import json
 import sys
 import glob
 import shutil
+import string
 import subprocess as sp
 import argparse
 from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
@@ -203,6 +204,13 @@ class Bookkeeping():
     print "_"*83
     if not checkProxy(): return
 
+    condor_templ = ""
+    with open( "/".join([self.cwd,"condor_template.sub"]) ) as FSO:
+      for l in string.Template(FSO.read()).substitute(rundir="").splitlines():
+        if not "queue" in l: condor_templ += l + "\n" 
+
+    if self.system == "lxplus": useToken("cern")
+
     for failed in self.failed_paths:
       os.chdir( "/".join([self.cwd, failed[0]]) )
       if os.path.exists("proxy"):
@@ -214,10 +222,16 @@ class Bookkeeping():
       shutil.copytree("/".join([self.cwd,"kerberos" ]), "kerberos")
 
       if self.system == "lxplus":
-        os.system( " bsub -q 2nd -J {0} submit.sh".format( failed[1] ) )
+        condor_templ += "queue filename matching ({0}/*.sh)\n".format( "/".join([self.cwd,failed[0] ]) )
 
       if self.system == "hephybatch":
-        os.system( "sbatch submit.sh" )        
+        os.system( "sbatch submit.sh" )
+
+    if self.system == "lxplus":
+      os.chdir( self.cwd )
+      with open("condor_rescue.sub","w") as FSO:
+        FSO.write(condor_templ)
+      os.system( "condor_submit condor_rescue.sub" )
 
     print "_"*83
 

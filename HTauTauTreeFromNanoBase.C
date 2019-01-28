@@ -80,10 +80,10 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     if(httEvent->getSampleType() == HTTEvent::h)
     {
         nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
-        NNLOPSratio_pt_mcatnlo_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_0jet");
-        NNLOPSratio_pt_mcatnlo_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_1jet");
-        NNLOPSratio_pt_mcatnlo_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_2jet");
-        NNLOPSratio_pt_mcatnlo_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_mcatnlo_3jet");
+        NNLOPSratio_pt_powheg_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_0jet");
+        NNLOPSratio_pt_powheg_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_1jet");
+        NNLOPSratio_pt_powheg_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_2jet");
+        NNLOPSratio_pt_powheg_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_3jet");
     }
     else
     {
@@ -132,25 +132,19 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     if(applyRecoil)
     {
-        // Dont judge me... Not very nice way to implement met uncerts
+        // Don't judge me... Not very nice way to implement met uncerts
         // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
         metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
+
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVUp",      make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );    // SysType is dummy
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVDown",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );  // SysType is dummy
+
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_0Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_1Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVUp",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_reso_met_2Jet_13TeVDown",  make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+
         metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );        
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_0Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_1Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVUp",   make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        // metShifts.push_back( make_pair("CMS_htt_boson_scale_met_2Jet_13TeVDown", make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) ); 
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
+
     }
     
 
@@ -184,26 +178,43 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     // 2017 94X  Filter
 
     // Electron
-    // 0 CaloIdL_TrackIdL_IsoVL                CaloIdLTrackIdLIsoVL*TrackIso*Filter
-    // 1 WPTight                               hltEle*WPTight*TrackIsoFilter*
-    // 2 WPLoose                               hltEle*WPLoose*TrackIsoFilter
-    // 3 OverlapFilter PFTau                   *OverlapFilterIsoEle*PFTau*
+    // 0 = *CaloIdLTrackIdLIsoVL*TrackIso*Filter
+    // 1 = hltEle*WPTight*TrackIsoFilter*
+    // 2 = hltEle*WPLoose*TrackIsoFilter
+    // 3 = *OverlapFilterIsoEle*PFTau*
+    // 4 = hltEle*Ele*CaloIdLTrackIdLIsoVL*Filter
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = *OverlapFilterIsoEle*PFTau*
+    // 7 = hltEle*Ele*Ele*CaloIdLTrackIdLDphiLeg*Filter
+    // 8 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1DoubleMu*EG*Filter*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Muon
-    // 0 = TrkIsoVVL                           RelTrkIsoVVLFiltered0p4
-    // 1 = Iso                                 hltL3crIso*Filtered0p07
-    // 2 = OverlapFilter PFTau                 *OverlapFilterIsoMu*PFTau*
+    // 0 = *RelTrkIsoVVLFiltered0p4
+    // 1 = hltL3crIso*Filtered0p07
+    // 2 = *OverlapFilterIsoMu*PFTau*
+    // 3 = max(filter('hltL3crIsoL1*SingleMu*Filtered0p07'),filter('hltL3crIsoL1sMu*Filtered0p07'))
+    // 4 = hltDiMuon*Filtered*
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = hltOverlapFilterIsoMu*PFTau*
+    // 7 = hltL3fL1TripleMu*
+    // 8 = max(filter('hltL3fL1DoubleMu*EG*Filtered*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Tau
-    // 0 = LooseChargedIso                     LooseChargedIso*
-    // 1 = MediumChargedIso                    *MediumChargedIso*
-    // 2 = TightChargedIso                     *TightChargedIso*
-    // 3 = TightID OOSC photons                *TightOOSCPhotons*
-    // 4 = L2p5 pixel iso                      hltL2TauIsoFilter
-    // 5 = OverlapFilter IsoMu                 *OverlapFilterIsoMu*
-    // 6 = OverlapFilter IsoEle                *OverlapFilterIsoEle*
-    // 7 = L1-HLT matched                      *L1HLTMatched*
-    // 8 = Dz                                  *Dz02*
+    // 0 = *LooseChargedIso*
+    // 1 = *MediumChargedIso*
+    // 2 = *TightChargedIso*
+    // 3 = *TightOOSCPhotons*
+    // 4 = *Hps*
+    // 5 = hltSelectedPFTau*MediumChargedIsolationL1HLTMatched*
+    // 6 = hltDoublePFTau*TrackPt1*ChargedIsolation*Dz02Reg
+    // 7 = hltOverlapFilterIsoEle*PFTau*
+    // 8 = hltOverlapFilterIsoMu*PFTau*
+    // 9 = hltDoublePFTau*TrackPt1*ChargedIsolation*
+            
 
 
     triggerBits_.push_back(aTrgData);
@@ -211,7 +222,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=24;
-    triggerBits_.back().leg1L1Pt=22;
+    // triggerBits_.back().leg1L1Pt=22;
     // triggerBits_.back().leg1OfflinePt=25;
 
     triggerBits_.push_back(aTrgData);
@@ -219,7 +230,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<3);
     // triggerBits_.back().leg1Pt=27;
-    triggerBits_.back().leg1L1Pt=22; //22 or 25...
+    // triggerBits_.back().leg1L1Pt=22; //22 or 25...
     // triggerBits_.back().leg1OfflinePt=28;
 
     // Mu tauh triggers
@@ -227,15 +238,15 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
-    triggerBits_.back().leg1Pt=20;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=20;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
     //  triggerBits_.back().leg1L1Pt=18;
-    triggerBits_.back().leg1OfflinePt=20;
+    // triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
-    triggerBits_.back().leg2Pt=27;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=27;
+    // triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
     triggerBits_.back().leg2L1Pt=-1;
 
@@ -244,21 +255,21 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=27;
+    // triggerBits_.back().leg1Pt=27;
     triggerBits_.back().leg1L1Pt=-1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=32;
+    // triggerBits_.back().leg1Pt=32;
     triggerBits_.back().leg1L1Pt=-1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1L1Pt=-1;
 
 
@@ -266,12 +277,12 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
-    triggerBits_.back().leg1Pt=24;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=24;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
-    triggerBits_.back().leg2Pt=30;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=30;
+    // triggerBits_.back().leg2Eta=2.1;
 
 
     // Single tauh triggers
@@ -286,34 +297,34 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=35;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
-    triggerBits_.back().leg2Pt=35;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=35;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
     triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
@@ -619,11 +630,13 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         if(nnlo_ggh_graphs)
         {
-            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_mcatnlo_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
+            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
             else                               httEvent->setNNLO_ggH_weight( 1.0 );
+
+            httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
         }
     }
 
@@ -1846,8 +1859,7 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
 
         //Only calculate svfit for shapes that are in SR
         if( ( strcmp(shift.c_str(),"") != 0 && aPair.isInLooseSR() )
-            || ( HTTParticle::corrType != HTTAnalysis::NOMINAL && aPair.isInLooseSR() )
-            || ( strcmp(shift.c_str(),"") == 0 && HTTParticle::corrType == HTTAnalysis::NOMINAL )
+            || ( strcmp(shift.c_str(),"") == 0  )
         ){
             p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
         }
@@ -1983,7 +1995,21 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     {
         met_scale_x = corrMEtPx;
         met_scale_y = corrMEtPy;
-        if(strcmp(shift.first.c_str(),"") != 0)
+        // Do not apply shift for nominal
+        if(shift.first.find("unclustered") != std::string::npos )
+        {
+            if(shift.second.second == MEtSys::SysShift::Up)
+            {
+                met_scale_x += MET_MetUnclustEnUpDeltaX; 
+                met_scale_y += MET_MetUnclustEnUpDeltaY;
+            }
+            if(shift.second.second == MEtSys::SysShift::Down)
+            {
+                met_scale_x -= MET_MetUnclustEnUpDeltaX; 
+                met_scale_y -= MET_MetUnclustEnUpDeltaY;
+            }            
+
+        } else if(strcmp(shift.first.c_str(),"") != 0)
         {
             metSys_->ApplyMEtSys(
                 corrMEtPx, corrMEtPy,        

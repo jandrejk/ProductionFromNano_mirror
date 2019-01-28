@@ -23,13 +23,13 @@
 		"putag":"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
 		"xsec":877.8,
 		"nevents_from_DAS":42331295,
-		"nevents":77190729
+		"nevents":76000422
 	},
 	"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v3_94X_mc2017_realistic_v14_ext1_v2":{
 		"putag":"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v3_94X_mc2017_realistic_v14_ext1_v2",
 		"xsec":877.8,
-		"nevents_from_DAS":34859434,
-		"nevents":77190729
+		"nevents_from_DAS":33669127,
+		"nevents":76000422
 	},
 	"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
@@ -58,49 +58,49 @@
 	"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v2_94X_mc2017_realistic_v14_v2":{
 		"putag":"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_v2_94X_mc2017_realistic_v14_v2",
 		"xsec":44.03,
-		"nevents_from_DAS":4346952,
-		"nevents":4346952
+		"nevents_from_DAS":4328648,
+		"nevents":4328648
 	},
 	"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":5343.0 ,
-		"nevents_from_DAS":48500499,
-		"nevents":97509681
+		"nevents_from_DAS":48675378,
+		"nevents":97800939
 	},
 	"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1_v1":{
 		"putag":"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017RECOSIMstep_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
 		"xsec":5343.0 ,
-		"nevents_from_DAS":49009182,
-		"nevents":97509681
+		"nevents_from_DAS":49125561,
+		"nevents":97800939
 	},
 	"DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
-		"xsec":15810.0,
+		"xsec":21658.0,
 		"nevents_from_DAS":39521230,
 		"nevents":39521230
 	},
 
 
-	"EWKWMinus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
-		"putag":"#EWKWMinus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
+	"EWKWMinus2Jets_WToLNu_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"EWKWMinus2Jets_WToLNu_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":23.24,
 		"nevents_from_DAS":4385142,
 		"nevents":4385142
 	},
-	"EWKWPlus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
-		"putag":"#EWKWPlus2Jets_WToLNu_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
+	"EWKWPlus2Jets_WToLNu_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"EWKWPlus2Jets_WToLNu_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":29.59,
 		"nevents_from_DAS":4358697,
 		"nevents":4358697
 	},
-	"EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
-		"putag":"#EWKZ2Jets_ZToLL_M-50_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
+	"EWKZ2Jets_ZToLL_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"EWKZ2Jets_ZToLL_M_50_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":4.321,
 		"nevents_from_DAS":952504,
 		"nevents":952504
 	},
-	"EWKZ2Jets_ZToNuNu_TuneCP5_13TeV-madgraph-pythia8_RunIIFall17NanoAOD_12Apr2018":{
-		"putag":"#EWKZ2Jets_ZToNuNu_TuneCP5_13TeV-madgraph-pythia8#RunIIFall17NanoAOD-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#NANOAODSIM",
+	"EWKZ2Jets_ZToNuNu_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"EWKZ2Jets_ZToNuNu_TuneCP5_13TeV_madgraph_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":10.66,
 		"nevents_from_DAS":2949960,
 		"nevents":2949960
@@ -111,7 +111,13 @@
 		"putag":"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":3.04694,
 		"nevents_from_DAS":2892030,
-		"nevents":2892030
+		"nevents":12151030
+	},
+	"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1":{
+		"putag":"GluGluHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v1",
+		"xsec":3.04694,
+		"nevents_from_DAS":9259000,
+		"nevents":12151030
 	},
 	"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
@@ -120,50 +126,69 @@
 		"nevents":2975404
 	},
 
+	"WminusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"WminusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+		"xsec":0.0334297,
+	    "nevents_from_DAS":3860872,
+		"nevents":3860872
+	},
+	"WplusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"WplusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+		"xsec": 0.0526848,
+	    "nevents_from_DAS":4000000,
+		"nevents":4000000
+	},
+	"ZHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+		"putag":"ZHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+		"xsec":0.0554382,
+	    "nevents_from_DAS":4940230,
+		"nevents":4940230
+	},
+
 
 	"ST_t_channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2":{
 		"putag":"ST_t_channel_antitop_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
 		"xsec":80.95,
-		"nevents_from_DAS":3939990,
-		"nevents":3939990
+		"nevents_from_DAS":3652340,
+		"nevents":3652340
 	},
 	"ST_t_channel_top_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1":{
 		"putag":"ST_t_channel_top_4f_inclusiveDecays_TuneCP5_13TeV_powhegV2_madspin_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
 		"xsec":136.02,
-		"nevents_from_DAS":5865875,
-		"nevents":5865875
+		"nevents_from_DAS":5982064,
+		"nevents":5982064
 	},
 	"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2":{
 		"putag":"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
 		"xsec":35.85,
-		"nevents_from_DAS":7780870,
-		"nevents":7780870
+		"nevents_from_DAS":7977430,
+		"nevents":7977430
 	},
 	"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2":{
 		"putag":"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
 		"xsec":35.85,
-		"nevents_from_DAS":7581624,
-		"nevents":7581624
+		"nevents_from_DAS":7794186,
+		"nevents":7794186
 	},
 
 
 	"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1":{
 		"putag":"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
 		"xsec":88.29,
-		"nevents_from_DAS":8705576,
-		"nevents":8705576
+		"nevents_from_DAS":9000000,
+		"nevents":9000000
 	},
 	"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v2":{
 		"putag":"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v2",
 		"xsec":377.96,
-		"nevents_from_DAS":42194000,
-		"nevents":42194000
+		"nevents_from_DAS":41729120,
+		"nevents":41729120
 	},
 	"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1":{
 		"putag":"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
 		"xsec":365.35,
-		"nevents_from_DAS":41221873,
-		"nevents":41221873
+		"nevents_from_DAS":43732445,
+		"nevents":43732445
 	},
 
 
@@ -171,31 +196,31 @@
 		"putag":"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v2",
 		"xsec":52940.0,
 		"nevents_from_DAS":33073306,
-		"nevents":77841284
+		"nevents":77700506
 	},
 	"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v2":{
 		"putag":"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_ext1_v2",
 		"xsec":52940.0,
-		"nevents_from_DAS":44767978,
-		"nevents":77841284
+		"nevents_from_DAS":44627200,
+		"nevents":77700506
 	},
 	"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v3":{
 		"putag":"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v3",
 		"xsec":8104.0,
-		"nevents_from_DAS":50903498,
-		"nevents":50903498
+		"nevents_from_DAS":54147812,
+		"nevents":54147812
 	},
 	"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v4":{
 		"putag":"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v4",
 		"xsec":2793.0,
-		"nevents_from_DAS":6467970,
-		"nevents":6467970
+		"nevents_from_DAS":6577492,
+		"nevents":6577492
 	},
 	"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":992.5,
-		"nevents_from_DAS":19322516,
-		"nevents":19322516
+		"nevents_from_DAS":19700377,
+		"nevents":19700377
 	},
 	"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
