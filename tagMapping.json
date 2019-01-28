@@ -126,6 +126,26 @@
 		"nevents":2975404
 	},
 
+       "GluGluHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+                "putag":"GluGluHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+                "xsec":0.991267373,
+                "nevents_from_DAS":953600,
+                "nevents":953600
+        },
+        "VBFHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
+                "putag":"VBFHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+                "xsec":0.0846369,
+            "nevents_from_DAS":500000,
+                "nevents":500000
+        },
+        "ttHToTauTau_M125_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1":{
+                "putag":"ttHToTauTau_M125_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1",
+                "xsec":0.031805312,
+            "nevents_from_DAS":21713806,
+                "nevents":21713806
+        },
+
+
 	"WminusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
 		"putag":"WminusHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
 		"xsec":0.0334297,
